@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Link, Routes } from 'react-router-dom';
 import ScrollToTop from '../components/ScrollToTop';
@@ -16,6 +17,16 @@ const PublicLayout = () => {
       <ScrollToTop/>
         <ScrollContainer>
             <div className='App'>
+            <nav>
+          <ul>
+            <li><Link to="/">Inicio</Link></li>
+            <li><Link to="/about">Conoce Casa Bonita</Link></li>
+            <li><Link to="/treatments">Tratamientos</Link></li>
+            <li><Link to="/blog">Blog</Link></li>
+            <li><Link to="/members">Equipo De Trabajo</Link></li>
+            <li><Link to="/contact">Contacto</Link></li>
+          </ul>
+        </nav>
                 
           <Routes>
             <Route path="/" element={<Home />} />
