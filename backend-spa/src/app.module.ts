@@ -1,9 +1,33 @@
+
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule } from '@nestjs/config'; // 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { TreatmentModule } from './treatment/treatment.module';
+import { BlogModule } from './blog/blog.module';
 
 @Module({
-  imports: [],
+  imports: [
+    // ConfigModule debe cargarse primero para que las variables de entorno estén disponibles
+    ConfigModule.forRoot({
+      isGlobal: true, // Hace que el ConfigModule esté disponible globalmente
+      envFilePath: '.env', // Especifica la ruta a tu archivo .env
+    }),
+    TypeOrmModule.forRoot({
+      type: process.env.DATABASE_TYPE as any, // Lee del .env
+      host: process.env.DATABASE_HOST, // Lee del .env
+      port: parseInt(process.env.DATABASE_PORT ?? '5432', 10), // Lee del .env y convierte a número
+      username: process.env.DATABASE_USERNAME, // Lee del .env
+      password: process.env.DATABASE_PASSWORD, // Lee del .env
+      database: process.env.DATABASE_NAME, // Lee del .env
+      entities: [__dirname + '/**/*.entity{.ts,.js}'],
+      synchronize: true,
+      logging: true,
+    }),
+    TreatmentModule,
+    BlogModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
