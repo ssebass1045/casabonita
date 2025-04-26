@@ -6,6 +6,10 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TreatmentModule } from './treatment/treatment.module';
 import { BlogModule } from './blog/blog.module';
+import { AuthModule } from './auth/auth.module';
+import { UserModule } from './user/user.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { CloudinaryService } from './cloudinary/cloudinary.service';
 
 @Module({
   imports: [
@@ -27,8 +31,11 @@ import { BlogModule } from './blog/blog.module';
     }),
     TreatmentModule,
     BlogModule,
+    AuthModule,
+    UserModule,
+    CloudinaryModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, CloudinaryService],
 })
 export class AppModule {}
