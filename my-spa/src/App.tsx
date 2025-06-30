@@ -2,9 +2,25 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import './App.css';
+
+// Layouts
 import PublicLayout from './layouts/PublicLayout';
-import PrivateLayout from './layouts/PrivateLayout';
+import PrivateLayout from './layouts/PrivateLayout'; // Guardia de autenticación
+import AdminLayout from './layouts/AdminLayout'; // Layout específico del admin
+
+// Componentes de Página/Sección
 import Login from './components/Login';
+import Home from './components/Home'; // Asumiendo que PublicLayout los usa internamente o los definimos aquí
+import About from './components/About';
+import Treatments from './components/Treatments';
+import Blog from './components/Blog';
+import Members from './components/Members';
+import Contact from './components/Contact';
+import ManageTreatments from './components/ManageTreatments'; // Componente de gestión
+import ManageBlogs from './components/ManageBlogs'; // Componente de gestión
+import ChangePassword from './components/ChangePassword'; // Necesitaremos crear este
+
+// Contexto
 import { AuthProvider } from './auth/authContext';
 
 function App() {
@@ -12,9 +28,33 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
+          {/* Rutas Públicas */}
+          <Route path="/*" element={<PublicLayout />}>
+             {/* Si PublicLayout usa Outlet, define rutas públicas aquí */}
+             {/* Ejemplo: */}
+             {/* <Route index element={<Home />} /> */}
+             {/* <Route path="about" element={<About />} /> ... etc */}
+             {/* Si PublicLayout ya tiene las Routes, no necesitas anidar aquí */}
+          </Route>
+
+          {/* Ruta de Login */}
           <Route path="/login" element={<Login />} />
-          <Route path="/admin/*" element={<PrivateLayout />} />
-          <Route path="/*" element={<PublicLayout />} />
+
+          {/* Rutas Privadas / Admin */}
+          <Route element={<PrivateLayout />}> {/* Guardia de Autenticación */}
+            <Route path="/admin" element={<AdminLayout />}> {/* Layout del Admin con Outlet */}
+              {/* Rutas anidadas que se renderizarán dentro del Outlet de AdminLayout */}
+              <Route index element={<h2>Dashboard Admin (Placeholder)</h2>} /> {/* Ruta por defecto /admin */}
+              <Route path="treatments" element={<ManageTreatments />} />
+              <Route path="blogs" element={<ManageBlogs />} />
+              <Route path="change-password" element={<ChangePassword />} />
+              {/* Puedes añadir más rutas de admin aquí */}
+            </Route>
+          </Route>
+
+          {/* Ruta Catch-all o Not Found (Opcional) */}
+          {/* <Route path="*" element={<h1>Página no encontrada</h1>} /> */}
+
         </Routes>
       </Router>
     </AuthProvider>
@@ -22,64 +62,3 @@ function App() {
 }
 
 export default App;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// import React from 'react';
-// import { BrowserRouter as Router, Route, Link, Routes } from 'react-router-dom';
-// import './App.css';
-// import ScrollToTop from './components/ScrollToTop';
-// import ScrollContainer from './components/ScrollContainer';
-
-
-// import Home from './components/Home';
-// import About from './components/About';
-// import Treatments from './components/Treatments';
-// import Blog from './components/Blog';
-// import Members from './components/Members';
-// import Contact from './components/Contact';
-
-// function App() {
-//   return (
-//     <Router>
-//       <ScrollToTop />
-//       <ScrollContainer>
-//       <div className='App'>
-//         <nav>
-//           <ul>
-//             <li><Link to="/">Inicio</Link></li>
-//             <li><Link to="/about">Conoce Casa Bonita</Link></li>
-//             <li><Link to="/treatments">Tratamientos</Link></li>
-//             <li><Link to="/blog">Blog</Link></li>
-//             <li><Link to="/members">Equipo De Trabajo</Link></li>
-//             <li><Link to="/contact">Contacto</Link></li>
-//           </ul>
-//         </nav>
-
-//         <Routes>
-//           <Route path="/" element={<Home />} />
-//           <Route path="/about" element={<About />} />
-//           <Route path="/treatments" element={<Treatments />} />
-//           <Route path="/blog" element={<Blog />} />
-//           <Route path="/members" element={<Members />} />
-//           <Route path="/contact" element={<Contact />} />
-//         </Routes>
-//       </div>
-//       </ScrollContainer>
-//     </Router>
-    
-//   );
-// }
-
-// export default App;
