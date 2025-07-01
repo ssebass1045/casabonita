@@ -11,6 +11,7 @@ import { UserModule } from './user/user.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { CloudinaryService } from './cloudinary/cloudinary.service';
 import { EmployeeModule } from './employee/employee.module';
+import { ProductModule } from './product/product.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { EmployeeModule } from './employee/employee.module';
     UserModule,
     CloudinaryModule,
     EmployeeModule,
+    ProductModule,
   ],
   controllers: [AppController],
   providers: [AppService, CloudinaryService],
