@@ -17,7 +17,9 @@ import Blog from './components/Blog';
 import Members from './components/Members';
 import Contact from './components/Contact';
 import ManageTreatments from './components/ManageTreatments'; // Componente de gestión
-import ManageBlogs from './components/ManageBlogs'; // Componente de gestión
+import ManageBlogs from './components/ManageBlogs';
+import ManageProducts from './components/ManageProducts'; // Componente de gestión
+import ManageEmployees from './components/ManageEmployees';
 import ChangePassword from './components/ChangePassword'; // Necesitaremos crear este
 
 // Contexto
@@ -47,6 +49,8 @@ function App() {
               <Route index element={<h2>Dashboard Admin (Placeholder)</h2>} /> {/* Ruta por defecto /admin */}
               <Route path="treatments" element={<ManageTreatments />} />
               <Route path="blogs" element={<ManageBlogs />} />
+              <Route path="products" element={<ManageProducts />} />
+              <Route path="employees" element={<ManageEmployees />} />
               <Route path="change-password" element={<ChangePassword />} />
               {/* Puedes añadir más rutas de admin aquí */}
             </Route>
