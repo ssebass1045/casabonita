@@ -10,6 +10,7 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { CloudinaryService } from './cloudinary/cloudinary.service';
+import { EmployeeModule } from './employee/employee.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { CloudinaryService } from './cloudinary/cloudinary.service';
     AuthModule,
     UserModule,
     CloudinaryModule,
+    EmployeeModule,
   ],
   controllers: [AppController],
   providers: [AppService, CloudinaryService],
