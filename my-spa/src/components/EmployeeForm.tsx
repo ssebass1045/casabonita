@@ -2,12 +2,24 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:3000'; // Asegúrate que el puerto sea el de tu backend
+const API_BASE_URL = 'http://localhost:3000';
+
+// Define el enum de especialidad en el frontend para consistencia
+export enum EmployeeSpecialty { // Exporta para usarlo en ManageEmployees
+  ESTILISTA = 'Estilista',
+  DERMATOLOGO = 'Dermatólogo/a', // <-- Asegúrate de que sea exactamente así
+  MASAJISTA = 'Masajista',
+  MANICURISTA = 'Manicurista',
+  PELUQUERO = 'Peluquero/a',     // <-- Asegúrate de que sea exactamente así
+  COSMETOLOGA = 'Cosmetologo/a',  // <-- Asegúrate de que sea exactamente así
+  MEDICO = 'Médico',             // <-- Asegúrate de que sea exactamente así
+  OTRO = 'Otro',
+}
 
 interface Employee {
   id: number;
   name: string;
-  specialty?: string;
+  specialty?: EmployeeSpecialty; // <-- Usa el tipo EmployeeSpecialty
   description?: string;
   phone?: string;
   imageUrl?: string;
@@ -15,14 +27,14 @@ interface Employee {
 
 interface EmployeeFormData {
   name: string;
-  specialty: string;
+  specialty: EmployeeSpecialty | ''; // <-- Usa el tipo EmployeeSpecialty o string vacío
   description: string;
   phone: string;
   image: File | null;
 }
 
 interface EmployeeFormProps {
-  employee?: Employee; // Opcional: si se pasa, estamos editando
+  employee?: Employee;
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -30,7 +42,7 @@ interface EmployeeFormProps {
 const EmployeeForm: React.FC<EmployeeFormProps> = ({ employee, onSuccess, onCancel }) => {
   const [formData, setFormData] = useState<EmployeeFormData>({
     name: '',
-    specialty: '',
+    specialty: '', // Valor inicial vacío para el select
     description: '',
     phone: '',
     image: null
@@ -38,22 +50,21 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ employee, onSuccess, onCanc
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const isEditing = !!employee; // Determina si estamos editando
+  const isEditing = !!employee;
 
-  // Efecto para pre-poblar el formulario si estamos editando
   useEffect(() => {
     if (employee) {
       setFormData({
         name: employee.name || '',
-        specialty: employee.specialty || '',
+        specialty: employee.specialty || '', // Pre-poblar
         description: employee.description || '',
         phone: employee.phone || '',
-        image: null // La imagen existente no se pre-carga en el input file
+        image: null
       });
     }
   }, [employee]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => { // Añade HTMLSelectElement
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -75,17 +86,15 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ employee, onSuccess, onCanc
     setError(null);
 
     try {
-      // Validaciones básicas
       if (!formData.name.trim()) {
         throw new Error('El nombre del empleado es obligatorio');
       }
 
-      // Crear FormData para enviar archivos
       const submitData = new FormData();
       submitData.append('name', formData.name.trim());
       
-      if (formData.specialty.trim()) {
-        submitData.append('specialty', formData.specialty.trim());
+      if (formData.specialty) { // Solo añadir si se seleccionó un valor
+        submitData.append('specialty', formData.specialty);
       }
       if (formData.description.trim()) {
         submitData.append('description', formData.description.trim());
@@ -94,26 +103,22 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ employee, onSuccess, onCanc
         submitData.append('phone', formData.phone.trim());
       }
 
-      // Añadir imagen si se seleccionó una nueva
       if (formData.image) {
         submitData.append('image', formData.image);
       }
 
-      // Determinar la URL y método HTTP
       const url = isEditing 
         ? `${API_BASE_URL}/employees/${employee.id}` 
         : `${API_BASE_URL}/employees`;
       
       const method = isEditing ? 'patch' : 'post';
 
-      // Enviar al backend
       await axios[method](url, submitData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
 
-      // Éxito: llamar al callback
       onSuccess();
 
     } catch (err: any) {
@@ -168,13 +173,12 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ employee, onSuccess, onCanc
         />
       </div>
 
-      {/* Campo Especialidad */}
+      {/* Campo Especialidad (Select/Dropdown) */}
       <div style={{ marginBottom: '15px' }}>
         <label htmlFor="specialty" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
           Especialidad
         </label>
-        <input
-          type="text"
+        <select
           id="specialty"
           name="specialty"
           value={formData.specialty}
@@ -186,8 +190,12 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ employee, onSuccess, onCanc
             borderRadius: '4px',
             fontSize: '14px'
           }}
-          placeholder="Ej: Estilista, Masajista, Dermatólogo"
-        />
+        >
+          <option value="">Selecciona...</option>
+          {Object.values(EmployeeSpecialty).map(s => (
+            <option key={s} value={s}>{s}</option>
+          ))}
+        </select>
       </div>
 
       {/* Campo Descripción */}

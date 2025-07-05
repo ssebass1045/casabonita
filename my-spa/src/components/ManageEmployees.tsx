@@ -2,14 +2,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Modal from './Modal';
-import EmployeeForm from './EmployeeForm';
+import EmployeeForm, { EmployeeSpecialty } from './EmployeeForm'; // <-- Importa el enum
 
-const API_BASE_URL = 'http://localhost:3000'; // Asegúrate que el puerto sea el de tu backend
+const API_BASE_URL = 'http://localhost:3000';
 
 interface Employee {
   id: number;
   name: string;
-  specialty?: string;
+  specialty?: EmployeeSpecialty; // <-- Usa el tipo EmployeeSpecialty
   description?: string;
   phone?: string;
   imageUrl?: string;
@@ -145,7 +145,7 @@ const ManageEmployees = () => {
               <tr key={employee.id}>
                 <td>{employee.id}</td>
                 <td>{employee.name}</td>
-                <td>{employee.specialty || '-'}</td>
+                <td>{employee.specialty || '-'}</td> {/* <-- Mostrar especialidad */}
                 <td>{employee.description?.substring(0, 50)}...</td>
                 <td>{employee.phone || '-'}</td>
                 <td>
