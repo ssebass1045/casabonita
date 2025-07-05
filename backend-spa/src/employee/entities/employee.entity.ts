@@ -1,5 +1,6 @@
 // File: backend-spa/src/employee/entities/employee.entity.ts
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { EmployeeSpecialty } from '../enums/employee-specialty.enum'; // <-- Importa el enum
 
 @Entity()
 export class Employee {
@@ -9,17 +10,19 @@ export class Employee {
   @Column()
   name: string;
 
-  @Column({ nullable: true }) // Por ejemplo: "Estilista", "Dermatólogo", "Masajista"
-  specialty: string;
+  @Column({
+    type: 'enum', // <-- Especifica el tipo 'enum' para TypeORM
+    enum: EmployeeSpecialty, // <-- Referencia al enum que creamos
+    nullable: true,
+  })
+  specialty: EmployeeSpecialty; // <-- Usa el tipo EmployeeSpecialty del enum
 
-  @Column({ type: 'text', nullable: true }) // <-- NUEVO CAMPO: Descripción/Biografía corta
+  @Column({ type: 'text', nullable: true })
   description: string;
 
-  @Column({ nullable: true }) // Número de teléfono del empleado
+  @Column({ nullable: true })
   phone: string;
 
-  @Column({ nullable: true }) // URL de la imagen del empleado (Cloudinary)
+  @Column({ nullable: true })
   imageUrl: string;
-
-  // No incluimos email, servicios ni horario de trabajo según tu indicación
 }

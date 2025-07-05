@@ -12,6 +12,7 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { CloudinaryService } from './cloudinary/cloudinary.service';
 import { EmployeeModule } from './employee/employee.module';
 import { ProductModule } from './product/product.module';
+import { ClientModule } from './client/client.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { ProductModule } from './product/product.module';
     CloudinaryModule,
     EmployeeModule,
     ProductModule,
+    ClientModule,
   ],
   controllers: [AppController],
   providers: [AppService, CloudinaryService],

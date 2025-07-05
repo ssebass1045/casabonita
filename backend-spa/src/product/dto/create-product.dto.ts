@@ -1,6 +1,6 @@
 // File: backend-spa/src/product/dto/create-product.dto.ts
-import { IsString, IsNotEmpty, IsOptional, IsNumber, Min, IsBoolean } from 'class-validator'; // Importa IsBoolean
-import { Transform } from 'class-transformer';
+import { IsString, IsNotEmpty, IsOptional, IsNumber, Min, IsBoolean } from 'class-validator';
+import { Transform } from 'class-transformer'; // Asegúrate de que esta importación esté aquí
 
 export class CreateProductDto {
   @IsString()
@@ -23,8 +23,15 @@ export class CreateProductDto {
   @Min(0, { message: 'price must not be less than 0' })
   price: number;
 
-  @IsOptional() // isActive puede ser opcional al crear, con default en la entidad
-  @IsBoolean() // <-- CAMBIO: stock por isActive
+  @IsOptional()
+  @Transform(({ value }) => { // <-- NUEVA TRANSFORMACIÓN PARA isActive
+    if (typeof value === 'string') {
+      if (value === 'true') return true;
+      if (value === 'false') return false;
+    }
+    return value; // Devuelve el valor original si no es 'true'/'false' string
+  })
+  @IsBoolean({ message: 'isActive must be a boolean value' }) // <-- Mensaje de error más específico
   isActive?: boolean;
 
   @IsString()
