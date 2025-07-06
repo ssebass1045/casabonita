@@ -37,6 +37,7 @@ interface ClientFormProps {
 }
 
 const ClientForm: React.FC<ClientFormProps> = ({ client, onSuccess, onCancel }) => {
+  console.log('ClientForm: Componente renderizado.'); // NEW LOG A: Very early log
   const [formData, setFormData] = useState<ClientFormData>({
     name: '',
     phone: '',
@@ -51,6 +52,7 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onSuccess, onCancel }) 
   const isEditing = !!client;
 
   useEffect(() => {
+    console.log('ClientForm: useEffect ejecutado.'); // NEW LOG B
     if (client) {
       setFormData({
         name: client.name || '',
@@ -71,8 +73,8 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onSuccess, onCancel }) 
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Nueva función que contiene la lógica de envío real
+  const submitFormLogic = async () => {
     setIsSubmitting(true);
     setError(null);
 
@@ -110,18 +112,25 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onSuccess, onCancel }) 
         submitData.observations = formData.observations.trim();
       }
 
+    console.log('ClientForm: Datos a enviar:', submitData); // LOG 4
+    console.log('ClientForm: URL:', `${API_BASE_URL}/clients`); // LOG 5
+    console.log('ClientForm: Método:', isEditing ? 'patch' : 'post'); // LOG 6
+    console.log('ClientForm: Axios global Authorization header:', axios.defaults.headers.common['Authorization']); // LOG 7
+
+
       const url = isEditing 
         ? `${API_BASE_URL}/clients/${client.id}` 
         : `${API_BASE_URL}/clients`;
       
       const method = isEditing ? 'patch' : 'post';
 
-      await axios[method](url, submitData);
 
+      await axios[method](url, submitData);
+      console.log('ClientForm: Petición Axios enviada y exitosa.'); // LOG 8
       onSuccess();
 
     } catch (err: any) {
-      console.error(`Error ${isEditing ? 'updating' : 'creating'} client:`, err);
+    console.error('ClientForm: Error capturado en handleSubmit:', err); // LOG 9
       if (err.response?.status === 401) {
         setError('No tienes autorización. Por favor, inicia sesión nuevamente.');
       } else if (err.response?.status === 400) {
@@ -138,7 +147,14 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onSuccess, onCancel }) 
       }
     } finally {
       setIsSubmitting(false);
+          console.log('ClientForm: handleSubmit finalizado.'); // LOG 10
     }
+  };
+
+  // La función que se pasa directamente al onSubmit del formulario
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault(); // Esto DEBE ser lo primero
+    await submitFormLogic(); // Llama a la lógica de envío real
   };
 
   return (

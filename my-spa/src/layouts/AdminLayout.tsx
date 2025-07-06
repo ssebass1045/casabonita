@@ -27,8 +27,10 @@ const AdminLayout = () => {
             <li><Link to="/admin/treatments">Gestionar Tratamientos</Link></li>
             <li><Link to="/admin/blogs">Gestionar Blogs</Link></li>
             <li><Link to="/admin/products">Gestionar Productos</Link></li>
+            <li><Link to="/admin/appointments">Gestionar Citas</Link></li>
             <li><Link to="/admin/employees">Gestionar Empleados</Link></li>
             <li><Link to="/admin/clients">Gestionar Clientes</Link></li>
+            <li><Link to="/admin/employee-availabilities">Gestionar Disponibilidad empleados</Link></li>
             <li><Link to="/admin/change-password">Cambiar Contraseña</Link></li>
             <li><button onClick={handleLogout}>Cerrar Sesión</button></li>
           </ul>
