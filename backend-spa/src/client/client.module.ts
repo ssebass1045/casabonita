@@ -7,9 +7,10 @@ import { Client } from './entities/client.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Client]), // <-- Asegúrate de que esta línea exista
+    TypeOrmModule.forFeature([Client]),
   ],
   controllers: [ClientController],
   providers: [ClientService],
+  exports: [ClientService], // <-- ¡Añade esta línea!
 })
 export class ClientModule {}

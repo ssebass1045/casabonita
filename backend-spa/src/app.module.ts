@@ -13,6 +13,8 @@ import { CloudinaryService } from './cloudinary/cloudinary.service';
 import { EmployeeModule } from './employee/employee.module';
 import { ProductModule } from './product/product.module';
 import { ClientModule } from './client/client.module';
+import { AppointmentModule } from './appointment/appointment.module';
+import { EmployeeAvailabilityModule } from './employee-availability/employee-availability.module';
 
 @Module({
   imports: [
@@ -40,6 +42,8 @@ import { ClientModule } from './client/client.module';
     EmployeeModule,
     ProductModule,
     ClientModule,
+    AppointmentModule,
+    EmployeeAvailabilityModule,
   ],
   controllers: [AppController],
   providers: [AppService, CloudinaryService],
