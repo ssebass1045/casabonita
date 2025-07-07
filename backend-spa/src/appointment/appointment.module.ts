@@ -8,7 +8,7 @@ import { ClientModule } from '../client/client.module';
 import { EmployeeModule } from '../employee/employee.module';
 import { TreatmentModule } from '../treatment/treatment.module';
 import { EmployeeAvailabilityModule } from '../employee-availability/employee-availability.module'; // <-- ¡Añade esta línea!
-
+import { WhatsappModule } from 'src/whatsapp/whatsapp.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Appointment]),
@@ -16,6 +16,7 @@ import { EmployeeAvailabilityModule } from '../employee-availability/employee-av
     EmployeeModule,
     TreatmentModule,
     EmployeeAvailabilityModule, // <-- Asegúrate de que esté aquí
+    WhatsappModule,
   ],
   controllers: [AppointmentController],
   providers: [AppointmentService],

@@ -35,11 +35,8 @@ export class AppointmentController {
     return this.appointmentService.remove(id);
   }
 
-  // --- Rutas Públicas (o al menos accesibles sin JWT para lectura si se desea) ---
-  // Por ahora, las haremos públicas para que puedan ser listadas en el frontend sin login si es necesario.
-  // Si solo el admin debe ver la lista, añade @UseGuards(AuthGuard('jwt')) aquí también.
+  // --- Rutas Públicas ---
 
-  //@UseGuards(AuthGuard('jwt'))
   @Get()
   findAll() {
     return this.appointmentService.findAll();
@@ -48,5 +45,12 @@ export class AppointmentController {
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.appointmentService.findOne(id);
+  }
+
+  // --- NUEVA RUTA: Obtener citas por ID de Cliente ---
+  @UseGuards(AuthGuard('jwt')) // Proteger esta ruta, solo admins pueden ver historial
+  @Get('client/:clientId')
+  findByClientId(@Param('clientId', ParseIntPipe) clientId: number) {
+    return this.appointmentService.findByClientId(clientId);
   }
 }

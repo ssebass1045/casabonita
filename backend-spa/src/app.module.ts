@@ -15,6 +15,8 @@ import { ProductModule } from './product/product.module';
 import { ClientModule } from './client/client.module';
 import { AppointmentModule } from './appointment/appointment.module';
 import { EmployeeAvailabilityModule } from './employee-availability/employee-availability.module';
+import { MetricsModule } from './metrics/metrics.module';
+import { WhatsappModule } from './whatsapp/whatsapp.module';
 
 @Module({
   imports: [
@@ -44,6 +46,8 @@ import { EmployeeAvailabilityModule } from './employee-availability/employee-ava
     ClientModule,
     AppointmentModule,
     EmployeeAvailabilityModule,
+    MetricsModule,
+    WhatsappModule,
   ],
   controllers: [AppController],
   providers: [AppService, CloudinaryService],

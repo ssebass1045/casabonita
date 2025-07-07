@@ -1,17 +1,18 @@
 // File: backend-spa/src/appointment/appointment.service.ts
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Between, MoreThanOrEqual, LessThanOrEqual } from 'typeorm';
+import { Appointment } from './entities/appointment.entity';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
-import { Appointment } from './entities/appointment.entity';
 import { ClientService } from '../client/client.service';
 import { EmployeeService } from '../employee/employee.service';
 import { TreatmentService } from '../treatment/treatment.service';
-import { EmployeeAvailabilityService } from '../employee-availability/employee-availability.service'; // <-- Importa el servicio de disponibilidad
+import { EmployeeAvailabilityService } from '../employee-availability/employee-availability.service';
+import { WhatsappService } from '../whatsapp/whatsapp.service';
 import { AppointmentStatus } from './enums/appointment-status.enum';
 import { PaymentStatus } from './enums/payment-status.enum';
-import { DayOfWeek } from '../employee-availability/enums/day-of-week.enum'; // <-- Importa el enum DayOfWeek
+import { DayOfWeek } from '../employee-availability/enums/day-of-week.enum';
 
 @Injectable()
 export class AppointmentService {
@@ -21,10 +22,10 @@ export class AppointmentService {
     private clientService: ClientService,
     private employeeService: EmployeeService,
     private treatmentService: TreatmentService,
-    private employeeAvailabilityService: EmployeeAvailabilityService, // <-- Inyecta el servicio de disponibilidad
+    private employeeAvailabilityService: EmployeeAvailabilityService,
+    private whatsappService: WhatsappService,
   ) {}
 
-  // Helper para verificar existencias de entidades relacionadas
   private async checkRelatedEntities(dto: CreateAppointmentDto | UpdateAppointmentDto) {
     if (dto.clientId) {
       await this.clientService.findOne(dto.clientId);
@@ -37,26 +38,19 @@ export class AppointmentService {
     }
   }
 
-  // --- NUEVA FUNCIÓN: Validar Disponibilidad y Solapamiento ---
   private async validateAppointmentTime(
     employeeId: number,
     startTime: Date,
     endTime: Date,
-    appointmentIdToExclude?: number // Para edición, excluimos la propia cita
+    appointmentIdToExclude?: number
   ): Promise<void> {
-    // 1. Obtener el día de la semana de la cita
     const dayOfWeek = this.getDayOfWeekFromDate(startTime);
-
-    // 2. Obtener la disponibilidad del empleado para ese día
     const availabilities = await this.employeeAvailabilityService.findByEmployeeAndDay(employeeId, dayOfWeek);
 
-    // Convertir Date a HH:MM para comparación con la disponibilidad
     const appointmentStartTimeStr = startTime.toTimeString().substring(0, 5);
     const appointmentEndTimeStr = endTime.toTimeString().substring(0, 5);
 
-    // Encontrar un bloque de disponibilidad que contenga la cita
     const relevantAvailability = availabilities.find(av => {
-      // Comprobar si la cita cae dentro del bloque de disponibilidad
       return appointmentStartTimeStr >= av.startTime && appointmentEndTimeStr <= av.endTime;
     });
 
@@ -64,10 +58,9 @@ export class AppointmentService {
       throw new BadRequestException(`El empleado no está disponible en este horario (${dayOfWeek} de ${appointmentStartTimeStr} a ${appointmentEndTimeStr}).`);
     }
 
-    // 3. Contar citas existentes que se solapan
     let query = this.appointmentRepository.createQueryBuilder('appointment')
       .where('appointment.employeeId = :employeeId', { employeeId })
-      .andWhere('appointment.status IN (:...activeStatuses)', { activeStatuses: [AppointmentStatus.PENDIENTE, AppointmentStatus.CONFIRMADA] }) // Solo citas activas
+      .andWhere('appointment.status IN (:...activeStatuses)', { activeStatuses: [AppointmentStatus.PENDIENTE, AppointmentStatus.CONFIRMADA] })
       .andWhere(
         '(appointment.startTime < :endTime AND appointment.endTime > :startTime)',
         { startTime, endTime }
@@ -79,13 +72,11 @@ export class AppointmentService {
 
     const overlappingAppointmentsCount = await query.getCount();
 
-    // 4. Verificar maxAppointmentsAtOnce
     if (overlappingAppointmentsCount >= relevantAvailability.maxAppointmentsAtOnce) {
       throw new BadRequestException(`El empleado ya tiene el máximo de citas (${relevantAvailability.maxAppointmentsAtOnce}) agendadas simultáneamente en este horario.`);
     }
   }
 
-  // Helper para obtener el día de la semana en formato de enum
   private getDayOfWeekFromDate(date: Date): DayOfWeek {
     const days = [
       DayOfWeek.DOMINGO, DayOfWeek.LUNES, DayOfWeek.MARTES, DayOfWeek.MIERCOLES,
@@ -97,37 +88,65 @@ export class AppointmentService {
   async create(createAppointmentDto: CreateAppointmentDto): Promise<Appointment> {
     await this.checkRelatedEntities(createAppointmentDto);
 
-    // Convertir strings de fecha/hora a objetos Date
     const startTime = new Date(createAppointmentDto.startTime);
     const endTime = new Date(createAppointmentDto.endTime);
 
-    // Validar que la hora de inicio sea anterior a la hora de fin
     if (startTime >= endTime) {
       throw new BadRequestException('La hora de inicio debe ser anterior a la hora de fin.');
     }
 
-    // Validar disponibilidad y solapamiento
     await this.validateAppointmentTime(
       createAppointmentDto.employeeId,
       startTime,
       endTime
     );
 
-    // Regla de negocio: Si el estado es 'Realizada', el pago debe ser 'Pagado'
     if (createAppointmentDto.status === AppointmentStatus.REALIZADA && createAppointmentDto.paymentStatus !== PaymentStatus.PAGADO) {
       throw new BadRequestException('El estado de pago debe ser "Pagado" si el estado de la cita es "Realizada".');
     }
 
     const newAppointment = this.appointmentRepository.create({
       ...createAppointmentDto,
-      startTime, // Guardar como objeto Date
-      endTime,   // Guardar como objeto Date
+      startTime,
+      endTime,
     });
-    return this.appointmentRepository.save(newAppointment);
+    const savedAppointment = await this.appointmentRepository.save(newAppointment);
+
+    // Cargar relaciones para los mensajes
+    const fullAppointment = await this.appointmentRepository.findOne({
+        where: { id: savedAppointment.id },
+        relations: ['client', 'employee', 'treatment']
+    });
+
+    if (fullAppointment) {
+        // Notificación al empleado sobre la nueva cita (independientemente del estado inicial)
+        if (fullAppointment.employee?.phone) {
+            await this.whatsappService.sendNewAppointmentToEmployee(
+                fullAppointment.employee.phone,
+                fullAppointment.employee.name,
+                fullAppointment.client?.name || 'Cliente Desconocido',
+                fullAppointment.treatment?.name || 'Servicio Desconocido',
+                fullAppointment.startTime,
+                fullAppointment.status // Pasa el estado actual de la cita
+            );
+        }
+
+        // Notificación de confirmación al cliente (SOLO si el estado es CONFIRMADA)
+        if (fullAppointment.status === AppointmentStatus.CONFIRMADA && fullAppointment.client?.phone) {
+            await this.whatsappService.sendAppointmentConfirmationToClient(
+                fullAppointment.client.phone,
+                fullAppointment.client.name,
+                fullAppointment.employee.name,
+                fullAppointment.treatment.name,
+                fullAppointment.startTime
+            );
+        }
+    }
+
+    return savedAppointment;
   }
 
   async findAll(): Promise<Appointment[]> {
-    // Cargar relaciones eager (ya configurado en la entidad)
     return this.appointmentRepository.find();
   }
 
@@ -142,27 +161,23 @@ export class AppointmentService {
   async update(id: number, updateAppointmentDto: UpdateAppointmentDto): Promise<Appointment> {
     await this.checkRelatedEntities(updateAppointmentDto);
 
-    const currentAppointment = await this.findOne(id); // Obtener la cita actual para comparar
+    const currentAppointment = await this.findOne(id);
 
-    // Convertir strings de fecha/hora a objetos Date (si se proporcionan en el DTO)
     const newStartTime = updateAppointmentDto.startTime ? new Date(updateAppointmentDto.startTime) : currentAppointment.startTime;
     const newEndTime = updateAppointmentDto.endTime ? new Date(updateAppointmentDto.endTime) : currentAppointment.endTime;
     const newEmployeeId = updateAppointmentDto.employeeId ?? currentAppointment.employeeId;
 
-    // Validar que la hora de inicio sea anterior a la hora de fin
     if (newStartTime >= newEndTime) {
       throw new BadRequestException('La hora de inicio debe ser anterior a la hora de fin.');
     }
 
-    // Validar disponibilidad y solapamiento (excluyendo la propia cita si no se cambia el empleado/hora)
     await this.validateAppointmentTime(
       newEmployeeId,
       newStartTime,
       newEndTime,
-      id // Excluir la cita actual de la comprobación de solapamiento
+      id
     );
 
-    // Regla de negocio: Si el estado es 'Realizada', el pago debe ser 'Pagado'
     const newStatus = updateAppointmentDto.status ?? currentAppointment.status;
     const newPaymentStatus = updateAppointmentDto.paymentStatus ?? currentAppointment.paymentStatus;
 
@@ -173,13 +188,62 @@ export class AppointmentService {
     const appointment = await this.appointmentRepository.preload({
       id: id,
       ...updateAppointmentDto,
-      startTime: newStartTime, // Guardar como objeto Date
-      endTime: newEndTime,     // Guardar como objeto Date
+      startTime: newStartTime,
+      endTime: newEndTime,
     });
     if (!appointment) {
       throw new NotFoundException(`Cita con ID ${id} no encontrada para actualizar`);
     }
-    return this.appointmentRepository.save(appointment);
+    const updatedAppointment = await this.appointmentRepository.save(appointment);
+
+    // Cargar relaciones para los mensajes
+    const fullUpdatedAppointment = await this.appointmentRepository.findOne({
+        where: { id: updatedAppointment.id },
+        relations: ['client', 'employee', 'treatment']
+    });
+
+    if (fullUpdatedAppointment) {
+        // Notificación de confirmación al cliente (si el estado CAMBIA a CONFIRMADA)
+        if (newStatus === AppointmentStatus.CONFIRMADA && currentAppointment.status !== AppointmentStatus.CONFIRMADA && fullUpdatedAppointment.client?.phone) {
+            await this.whatsappService.sendAppointmentConfirmationToClient(
+                fullUpdatedAppointment.client.phone,
+                fullUpdatedAppointment.client.name,
+                fullUpdatedAppointment.employee.name,
+                fullUpdatedAppointment.treatment.name,
+                fullUpdatedAppointment.startTime
+            );
+        }
+
+        // Notificación de cancelación al empleado (si el estado CAMBIA a CANCELADA)
+        if (newStatus === AppointmentStatus.CANCELADA && currentAppointment.status !== AppointmentStatus.CANCELADA && fullUpdatedAppointment.employee?.phone) {
+            await this.whatsappService.sendAppointmentCancellationToEmployee(
+                fullUpdatedAppointment.employee.phone,
+                fullUpdatedAppointment.employee.name,
+                fullUpdatedAppointment.client?.name || 'Cliente Desconocido',
+                fullUpdatedAppointment.treatment?.name || 'Servicio Desconocido',
+                fullUpdatedAppointment.startTime
+            );
+        }
+
+        // Notificación de actualización al empleado (si otros campos cambian y no es solo confirmación/cancelación)
+        // Puedes refinar esta lógica para ser más específica sobre qué cambios notifican
+        const hasTimeChanged = newStartTime.getTime() !== currentAppointment.startTime.getTime() || newEndTime.getTime() !== currentAppointment.endTime.getTime();
+        const hasEmployeeChanged = newEmployeeId !== currentAppointment.employeeId;
+        const hasStatusChangedButNotConfirmOrCancel = newStatus !== currentAppointment.status && newStatus !== AppointmentStatus.CONFIRMADA && newStatus !== AppointmentStatus.CANCELADA;
+
+        if (fullUpdatedAppointment.employee?.phone && (hasTimeChanged || hasEmployeeChanged || hasStatusChangedButNotConfirmOrCancel)) {
+            await this.whatsappService.sendAppointmentUpdateToEmployee(
+                fullUpdatedAppointment.employee.phone,
+                fullUpdatedAppointment.employee.name,
+                fullUpdatedAppointment.client?.name || 'Cliente Desconocido',
+                fullUpdatedAppointment.treatment?.name || 'Servicio Desconocido',
+                fullUpdatedAppointment.startTime,
+                fullUpdatedAppointment.status // Pasa el nuevo estado
+            );
+        }
+    }
+
+    return updatedAppointment;
   }
 
   async remove(id: number): Promise<void> {
@@ -187,5 +251,14 @@ export class AppointmentService {
     if (result.affected === 0) {
       throw new NotFoundException(`Cita con ID ${id} no encontrada para eliminar`);
     }
+  }
+
+  async findByClientId(clientId: number): Promise<Appointment[]> {
+    await this.clientService.findOne(clientId);
+    
+    return this.appointmentRepository.find({
+      where: { clientId },
+      order: { startTime: 'DESC' },
+    });
   }
 }
