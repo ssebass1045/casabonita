@@ -1,8 +1,9 @@
 // File: my-spa/src/components/ManageClients.tsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import Modal from './Modal';
+import Modal from './Modal'; // Importa el componente Modal
 import ClientForm from './ClientForm';
+import ClientAppointmentsHistory from './ClientAppointmentsHistory'; // <-- Importa el nuevo componente
 
 const API_BASE_URL = 'http://localhost:3000';
 
@@ -20,7 +21,7 @@ interface Client {
   email?: string;
   age?: number;
   gender?: Gender;
-  observations?: string; // <-- NUEVO CAMPO
+  observations?: string;
 }
 
 const ManageClients = () => {
@@ -28,8 +29,12 @@ const ManageClients = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState<number | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isFormModalOpen, setIsFormModalOpen] = useState<boolean>(false); // Renombrado para claridad
   const [editingClient, setEditingClient] = useState<Client | undefined>(undefined);
+
+  // --- NUEVOS ESTADOS PARA EL MODAL DE HISTORIAL ---
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState<boolean>(false);
+  const [selectedClientForHistory, setSelectedClientForHistory] = useState<Client | null>(null);
 
   useEffect(() => {
     fetchClients();
@@ -86,24 +91,36 @@ const ManageClients = () => {
 
   const handleOpenCreateModal = () => {
     setEditingClient(undefined);
-    setIsModalOpen(true);
+    setIsFormModalOpen(true); // Usa el nuevo nombre de estado
   };
 
   const handleOpenEditModal = (client: Client) => {
     setEditingClient(client);
-    setIsModalOpen(true);
+    setIsFormModalOpen(true); // Usa el nuevo nombre de estado
   };
 
   const handleFormSuccess = () => {
-    setIsModalOpen(false);
+    setIsFormModalOpen(false); // Usa el nuevo nombre de estado
     setEditingClient(undefined);
     fetchClients(); // Recarga la lista
   };
 
   const handleFormCancel = () => {
-    setIsModalOpen(false);
+    setIsFormModalOpen(false); // Usa el nuevo nombre de estado
     setEditingClient(undefined);
   };
+
+  // --- NUEVAS FUNCIONES PARA EL HISTORIAL ---
+  const handleOpenHistoryModal = (client: Client) => {
+    setSelectedClientForHistory(client);
+    setIsHistoryModalOpen(true);
+  };
+
+  const handleCloseHistoryModal = () => {
+    setIsHistoryModalOpen(false);
+    setSelectedClientForHistory(null);
+  };
+  // --- FIN NUEVAS FUNCIONES ---
 
   if (isLoading) {
     return (
@@ -145,7 +162,7 @@ const ManageClients = () => {
               <th>Email</th>
               <th>Edad</th>
               <th>Género</th>
-              <th>Observaciones</th> {/* <-- NUEVA COLUMNA */}
+              <th>Observaciones</th>
               <th>Acciones</th>
             </tr>
           </thead>
@@ -158,7 +175,7 @@ const ManageClients = () => {
                 <td>{client.email || '-'}</td>
                 <td>{client.age || '-'}</td>
                 <td>{client.gender || '-'}</td>
-                <td>{client.observations?.substring(0, 50) || '-'}...</td> {/* <-- Mostrar observaciones */}
+                <td>{client.observations?.substring(0, 50) || '-'}...</td>
                 <td>
                   <button 
                     style={{ 
@@ -188,6 +205,22 @@ const ManageClients = () => {
                   >
                     {isDeleting === client.id ? 'Eliminando...' : 'Eliminar'}
                   </button>
+                  
+                  {/* BOTÓN PARA VER HISTORIAL */}
+                  <button 
+                    style={{ 
+                      marginLeft: '5px',
+                      backgroundColor: '#007bff',
+                      color: 'white',
+                      border: 'none',
+                      padding: '5px 10px',
+                      borderRadius: '4px',
+                      cursor: 'pointer'
+                    }}
+                    onClick={() => handleOpenHistoryModal(client)}
+                  >
+                    Historial
+                  </button>
                 </td>
               </tr>
             ))}
@@ -195,8 +228,9 @@ const ManageClients = () => {
         </table>
       )}
 
+      {/* Modal para Añadir/Editar Cliente */}
       <Modal
-        isOpen={isModalOpen}
+        isOpen={isFormModalOpen}
         onClose={handleFormCancel}
         title={editingClient ? 'Editar Cliente' : 'Añadir Nuevo Cliente'}
       >
@@ -206,6 +240,20 @@ const ManageClients = () => {
           onCancel={handleFormCancel}
         />
       </Modal>
+
+      {/* Modal para Historial de Citas */}
+      {selectedClientForHistory && ( // Solo renderiza si hay un cliente seleccionado
+        <Modal
+          isOpen={isHistoryModalOpen}
+          onClose={handleCloseHistoryModal}
+          title={`Historial de Citas de ${selectedClientForHistory.name}`}
+        >
+          <ClientAppointmentsHistory
+            clientId={selectedClientForHistory.id}
+            clientName={selectedClientForHistory.name}
+          />
+        </Modal>
+      )}
     </div>
   );
 };

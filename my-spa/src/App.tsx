@@ -17,6 +17,7 @@ import ManageProducts from './components/ManageProducts';
 import ManageClients from './components/ManageClients';
 import ManageAppointments from './components/ManageAppointments';
 import ManageEmployeeAvailabilities from './components/ManageEmployeeAvailabilities';
+import MetricsDashboard from './components/MetricsDashboard';
 import ChangePassword from './components/ChangePassword';
 
 // Componentes de las secciones públicas (ahora importados aquí)
@@ -62,6 +63,7 @@ function App() {
               <Route path="clients" element={<ManageClients />} />
               <Route path="appointments" element={<ManageAppointments />} />
               <Route path="employee-availabilities" element={<ManageEmployeeAvailabilities />} />
+              <Route path="metrics" element={<MetricsDashboard />} />
               <Route path="change-password" element={<ChangePassword />} />
               {/* Puedes añadir más rutas de admin aquí */}
             </Route>

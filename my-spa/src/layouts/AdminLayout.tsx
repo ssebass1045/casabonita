@@ -31,6 +31,7 @@ const AdminLayout = () => {
             <li><Link to="/admin/employees">Gestionar Empleados</Link></li>
             <li><Link to="/admin/clients">Gestionar Clientes</Link></li>
             <li><Link to="/admin/employee-availabilities">Gestionar Disponibilidad empleados</Link></li>
+            <li><Link to="/admin/metrics">Métricas</Link></li>
             <li><Link to="/admin/change-password">Cambiar Contraseña</Link></li>
             <li><button onClick={handleLogout}>Cerrar Sesión</button></li>
           </ul>

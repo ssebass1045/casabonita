@@ -7,7 +7,6 @@
     "@fullcalendar/interaction": "^6.1.18",
     "@fullcalendar/list": "^6.1.18",
     "@fullcalendar/react": "^6.1.18",
-    "@fullcalendar/resource-timeline": "^6.1.18",
     "@fullcalendar/timegrid": "^6.1.18",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
@@ -25,6 +24,7 @@
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.5.1",
     "react-scripts": "5.0.1",
+    "recharts": "^3.0.2",
     "typescript": "^4.9.5",
     "web-vitals": "^2.1.4"
   },
