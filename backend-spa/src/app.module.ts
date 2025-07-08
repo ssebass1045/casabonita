@@ -17,6 +17,7 @@ import { AppointmentModule } from './appointment/appointment.module';
 import { EmployeeAvailabilityModule } from './employee-availability/employee-availability.module';
 import { MetricsModule } from './metrics/metrics.module';
 import { WhatsappModule } from './whatsapp/whatsapp.module';
+import { InvoiceModule } from './invoice/invoice.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { WhatsappModule } from './whatsapp/whatsapp.module';
     EmployeeAvailabilityModule,
     MetricsModule,
     WhatsappModule,
+    InvoiceModule,
   ],
   controllers: [AppController],
   providers: [AppService, CloudinaryService],
