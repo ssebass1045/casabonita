@@ -1,9 +1,9 @@
 // File: my-spa/src/components/ManageClients.tsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import Modal from './Modal'; // Importa el componente Modal
+import Modal from './Modal';
 import ClientForm from './ClientForm';
-import ClientAppointmentsHistory from './ClientAppointmentsHistory'; // <-- Importa el nuevo componente
+import ClientAppointmentsHistory from './ClientAppointmentsHistory';
 
 const API_BASE_URL = 'http://localhost:3000';
 
@@ -29,10 +29,9 @@ const ManageClients = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState<number | null>(null);
-  const [isFormModalOpen, setIsFormModalOpen] = useState<boolean>(false); // Renombrado para claridad
+  const [isFormModalOpen, setIsFormModalOpen] = useState<boolean>(false);
   const [editingClient, setEditingClient] = useState<Client | undefined>(undefined);
 
-  // --- NUEVOS ESTADOS PARA EL MODAL DE HISTORIAL ---
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState<boolean>(false);
   const [selectedClientForHistory, setSelectedClientForHistory] = useState<Client | null>(null);
 
@@ -81,6 +80,8 @@ const ManageClients = () => {
         setClients(prevClients => 
           prevClients.filter(client => client.id !== clientId)
         );
+      } else if (err.response?.status === 400) { // <-- ¡AÑADE ESTE MANEJO DE ERROR!
+        setError(err.response?.data?.message || "No se puede eliminar el cliente.");
       } else {
         setError(err.message || "Error al eliminar el cliente.");
       }
@@ -91,26 +92,25 @@ const ManageClients = () => {
 
   const handleOpenCreateModal = () => {
     setEditingClient(undefined);
-    setIsFormModalOpen(true); // Usa el nuevo nombre de estado
+    setIsFormModalOpen(true);
   };
 
   const handleOpenEditModal = (client: Client) => {
     setEditingClient(client);
-    setIsFormModalOpen(true); // Usa el nuevo nombre de estado
+    setIsFormModalOpen(true);
   };
 
   const handleFormSuccess = () => {
-    setIsFormModalOpen(false); // Usa el nuevo nombre de estado
+    setIsFormModalOpen(false);
     setEditingClient(undefined);
     fetchClients(); // Recarga la lista
   };
 
   const handleFormCancel = () => {
-    setIsFormModalOpen(false); // Usa el nuevo nombre de estado
+    setIsFormModalOpen(false);
     setEditingClient(undefined);
   };
 
-  // --- NUEVAS FUNCIONES PARA EL HISTORIAL ---
   const handleOpenHistoryModal = (client: Client) => {
     setSelectedClientForHistory(client);
     setIsHistoryModalOpen(true);
@@ -120,7 +120,6 @@ const ManageClients = () => {
     setIsHistoryModalOpen(false);
     setSelectedClientForHistory(null);
   };
-  // --- FIN NUEVAS FUNCIONES ---
 
   if (isLoading) {
     return (
@@ -206,7 +205,6 @@ const ManageClients = () => {
                     {isDeleting === client.id ? 'Eliminando...' : 'Eliminar'}
                   </button>
                   
-                  {/* BOTÓN PARA VER HISTORIAL */}
                   <button 
                     style={{ 
                       marginLeft: '5px',
@@ -228,7 +226,6 @@ const ManageClients = () => {
         </table>
       )}
 
-      {/* Modal para Añadir/Editar Cliente */}
       <Modal
         isOpen={isFormModalOpen}
         onClose={handleFormCancel}
@@ -241,8 +238,7 @@ const ManageClients = () => {
         />
       </Modal>
 
-      {/* Modal para Historial de Citas */}
-      {selectedClientForHistory && ( // Solo renderiza si hay un cliente seleccionado
+      {selectedClientForHistory && (
         <Modal
           isOpen={isHistoryModalOpen}
           onClose={handleCloseHistoryModal}

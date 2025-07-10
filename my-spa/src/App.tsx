@@ -8,8 +8,16 @@ import PublicLayout from './layouts/PublicLayout';
 import PrivateLayout from './layouts/PrivateLayout';
 import AdminLayout from './layouts/AdminLayout';
 
-// Componentes de Página/Sección (Importa todos los que se usarán en las rutas)
+// Componentes de Página/Sección
 import Login from './components/Login';
+import Home from './components/Home';
+import About from './components/About';
+import Treatments from './components/Treatments';
+import Blog from './components/Blog';
+import Members from './components/Members';
+import Contact from './components/Contact';
+
+// Componentes de gestión del Admin
 import ManageTreatments from './components/ManageTreatments';
 import ManageBlogs from './components/ManageBlogs';
 import ManageEmployees from './components/ManageEmployees';
@@ -18,16 +26,9 @@ import ManageClients from './components/ManageClients';
 import ManageAppointments from './components/ManageAppointments';
 import ManageEmployeeAvailabilities from './components/ManageEmployeeAvailabilities';
 import MetricsDashboard from './components/MetricsDashboard';
+import SendCustomMessage from './components/SendCustomMessage';
+import EmployeePayroll from './components/EmployeePayroll';
 import ChangePassword from './components/ChangePassword';
-
-// Componentes de las secciones públicas (ahora importados aquí)
-import Home from './components/Home';
-import About from './components/About';
-import Treatments from './components/Treatments'; // Estos son los componentes de vista pública
-import Blog from './components/Blog';
-import Members from './components/Members';
-import Contact from './components/Contact';
-
 
 // Contexto
 import { AuthProvider } from './auth/authContext';
@@ -35,27 +36,26 @@ import { AuthProvider } from './auth/authContext';
 function App() {
   return (
     <AuthProvider>
-      <Router> {/* ÚNICO ROUTER EN TODA LA APP */}
+      <Router>
         <Routes>
           {/* Rutas Públicas (anidadas bajo PublicLayout) */}
           <Route path="/" element={<PublicLayout />}>
-             <Route index element={<Home />} /> {/* Ruta por defecto para / */}
+             <Route index element={<Home />} />
              <Route path="about" element={<About />} />
-             <Route path="treatments" element={<Treatments />} /> {/* Componente de vista pública */}
+             <Route path="treatments" element={<Treatments />} />
              <Route path="blog" element={<Blog />} />
              <Route path="members" element={<Members />} />
              <Route path="contact" element={<Contact />} />
-             {/* Puedes añadir más rutas públicas aquí si las necesitas */}
           </Route>
 
-          {/* Ruta de Login (fuera de PublicLayout, ya que es una página propia) */}
+          {/* Ruta de Login */}
           <Route path="/login" element={<Login />} />
 
-          {/* Rutas Privadas / Admin (anidadas bajo PrivateLayout y AdminLayout) */}
-          <Route element={<PrivateLayout />}> {/* Guardia de Autenticación */}
-            <Route path="/admin" element={<AdminLayout />}> {/* Layout del Admin con Outlet */}
-              {/* Rutas anidadas que se renderizarán dentro del Outlet de AdminLayout */}
-              <Route index element={<h2>Dashboard Admin (Placeholder)</h2>} /> {/* Ruta por defecto /admin */}
+          {/* Rutas Privadas / Admin */}
+          <Route element={<PrivateLayout />}>
+            <Route path="/admin" element={<AdminLayout />}>
+              {/* --- CAMBIO AQUÍ: Reemplaza el placeholder por el dashboard de métricas --- */}
+              <Route index element={<MetricsDashboard />} />
               <Route path="treatments" element={<ManageTreatments />} />
               <Route path="blogs" element={<ManageBlogs />} />
               <Route path="employees" element={<ManageEmployees />} />
@@ -64,8 +64,9 @@ function App() {
               <Route path="appointments" element={<ManageAppointments />} />
               <Route path="employee-availabilities" element={<ManageEmployeeAvailabilities />} />
               <Route path="metrics" element={<MetricsDashboard />} />
+              <Route path="send-message" element={<SendCustomMessage />} />
+              <Route path="payroll" element={<EmployeePayroll />} />
               <Route path="change-password" element={<ChangePassword />} />
-              {/* Puedes añadir más rutas de admin aquí */}
             </Route>
           </Route>
 

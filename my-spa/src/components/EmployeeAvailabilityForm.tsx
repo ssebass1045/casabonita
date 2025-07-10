@@ -1,11 +1,11 @@
 // File: my-spa/src/components/EmployeeAvailabilityForm.tsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { DayOfWeek } from '../enums/day-of-week.enum'; // <-- ¡CAMBIO AQUÍ!
 
 const API_BASE_URL = 'http://localhost:3000';
 
 // Importa el enum DayOfWeek desde la nueva ubicación centralizada
-import { DayOfWeek } from '../enums/day-of-week.enum'; // <-- ¡CAMBIO AQUÍ!
 
 // Interfaz para el empleado (solo lo necesario para el selector)
 interface Employee {

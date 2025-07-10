@@ -1,6 +1,8 @@
 // File: my-spa/src/components/ClientForm.tsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import PhoneInput from 'react-phone-number-input'; // <-- Importa el componente
+import 'react-phone-number-input/style.css'; // <-- Importa los estilos
 
 const API_BASE_URL = 'http://localhost:3000';
 
@@ -18,7 +20,7 @@ interface Client {
   email?: string;
   age?: number;
   gender?: Gender;
-  observations?: string; // <-- NUEVO CAMPO
+  observations?: string;
 }
 
 interface ClientFormData {
@@ -27,7 +29,7 @@ interface ClientFormData {
   email: string;
   age: string;
   gender: Gender | '';
-  observations: string; // <-- NUEVO CAMPO
+  observations: string;
 }
 
 interface ClientFormProps {
@@ -37,14 +39,13 @@ interface ClientFormProps {
 }
 
 const ClientForm: React.FC<ClientFormProps> = ({ client, onSuccess, onCancel }) => {
-  console.log('ClientForm: Componente renderizado.'); // NEW LOG A: Very early log
   const [formData, setFormData] = useState<ClientFormData>({
     name: '',
     phone: '',
     email: '',
     age: '',
     gender: '',
-    observations: '', // <-- Inicializar
+    observations: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,7 +53,6 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onSuccess, onCancel }) 
   const isEditing = !!client;
 
   useEffect(() => {
-    console.log('ClientForm: useEffect ejecutado.'); // NEW LOG B
     if (client) {
       setFormData({
         name: client.name || '',
@@ -60,7 +60,7 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onSuccess, onCancel }) 
         email: client.email || '',
         age: client.age ? client.age.toString() : '',
         gender: client.gender || '',
-        observations: client.observations || '', // <-- Pre-poblar
+        observations: client.observations || '',
       });
     }
   }, [client]);
@@ -73,8 +73,16 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onSuccess, onCancel }) 
     }));
   };
 
-  // Nueva función que contiene la lógica de envío real
-  const submitFormLogic = async () => {
+  // --- NUEVA FUNCIÓN para el input de teléfono ---
+  const handlePhoneChange = (value: string | undefined) => {
+    setFormData(prev => ({
+      ...prev,
+      phone: value || ''
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setIsSubmitting(true);
     setError(null);
 
@@ -108,15 +116,9 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onSuccess, onCancel }) 
       if (formData.gender) {
         submitData.gender = formData.gender;
       }
-      if (formData.observations.trim()) { // <-- Añadir al submitData
+      if (formData.observations.trim()) {
         submitData.observations = formData.observations.trim();
       }
-
-    console.log('ClientForm: Datos a enviar:', submitData); // LOG 4
-    console.log('ClientForm: URL:', `${API_BASE_URL}/clients`); // LOG 5
-    console.log('ClientForm: Método:', isEditing ? 'patch' : 'post'); // LOG 6
-    console.log('ClientForm: Axios global Authorization header:', axios.defaults.headers.common['Authorization']); // LOG 7
-
 
       const url = isEditing 
         ? `${API_BASE_URL}/clients/${client.id}` 
@@ -124,13 +126,12 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onSuccess, onCancel }) 
       
       const method = isEditing ? 'patch' : 'post';
 
-
       await axios[method](url, submitData);
-      console.log('ClientForm: Petición Axios enviada y exitosa.'); // LOG 8
+
       onSuccess();
 
     } catch (err: any) {
-    console.error('ClientForm: Error capturado en handleSubmit:', err); // LOG 9
+      console.error(`Error ${isEditing ? 'updating' : 'creating'} client:`, err);
       if (err.response?.status === 401) {
         setError('No tienes autorización. Por favor, inicia sesión nuevamente.');
       } else if (err.response?.status === 400) {
@@ -147,14 +148,7 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onSuccess, onCancel }) 
       }
     } finally {
       setIsSubmitting(false);
-          console.log('ClientForm: handleSubmit finalizado.'); // LOG 10
     }
-  };
-
-  // La función que se pasa directamente al onSubmit del formulario
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); // Esto DEBE ser lo primero
-    await submitFormLogic(); // Llama a la lógica de envío real
   };
 
   return (
@@ -193,12 +187,14 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onSuccess, onCancel }) 
         <label htmlFor="phone" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
           Teléfono
         </label>
-        <input
-          type="text"
+        <PhoneInput
           id="phone"
           name="phone"
           value={formData.phone}
-          onChange={handleInputChange}
+          onChange={handlePhoneChange}
+          defaultCountry="CO" // <-- País por defecto (Colombia)
+          international
+          countryCallingCodeEditable={false}
           style={{
             width: '100%',
             padding: '8px',

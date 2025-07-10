@@ -1,9 +1,10 @@
 // File: my-spa/src/components/ManageAppointments.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import Modal from './Modal';
 import AppointmentForm from './AppointmentForm';
 import AppointmentCalendar from './AppointmentCalendar';
+import { DayOfWeek } from '../enums/day-of-week.enum';
 
 const API_BASE_URL = 'http://localhost:3000';
 
@@ -59,21 +60,9 @@ interface Appointment {
   paymentMethod?: PaymentMethod;
   paymentStatus: PaymentStatus;
   notes?: string;
-  // Las relaciones se cargan eager en el backend, así que también las tendremos aquí
   client?: Client;
   employee?: Employee;
   treatment?: Treatment;
-}
-
-// La interfaz EmployeeAvailability ya usa el DayOfWeek importado
-enum DayOfWeek {
-  LUNES = 'Lunes',
-  MARTES = 'Martes',
-  MIERCOLES = 'Miércoles',
-  JUEVES = 'Jueves',
-  VIERNES = 'Viernes',
-  SABADO = 'Sábado',
-  DOMINGO = 'Domingo',
 }
 
 interface EmployeeAvailability {
@@ -86,10 +75,26 @@ interface EmployeeAvailability {
   employee?: Employee;
 }
 
+// Enums para ordenación (deben coincidir con el backend)
+enum AppointmentSortBy {
+  ID = 'id',
+  START_TIME = 'startTime',
+  CLIENT_NAME = 'client.name',
+  EMPLOYEE_NAME = 'employee.name',
+  STATUS = 'status',
+  PRICE = 'price',
+}
+
+enum SortOrder {
+  ASC = 'ASC',
+  DESC = 'DESC',
+}
+
 const ManageAppointments = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [employeeAvailabilities, setEmployeeAvailabilities] = useState<EmployeeAvailability[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -97,32 +102,66 @@ const ManageAppointments = () => {
   const [editingAppointment, setEditingAppointment] = useState<Appointment | undefined>(undefined);
   const [initialFormDate, setInitialFormDate] = useState<Date | null>(null);
   const [isGeneratingInvoice, setIsGeneratingInvoice] = useState<number | null>(null);
-  const [isGeneratingCombinedInvoice, setIsGeneratingCombinedInvoice] = useState<boolean>(false); // <-- NUEVO ESTADO
-  const [selectedAppointmentIds, setSelectedAppointmentIds] = useState<number[]>([]); // <-- NUEVO ESTADO
+  const [isGeneratingCombinedInvoice, setIsGeneratingCombinedInvoice] = useState<boolean>(false);
+  const [selectedAppointmentIds, setSelectedAppointmentIds] = useState<number[]>([]);
+  const [isSendingWhatsapp, setIsSendingWhatsapp] = useState<number | null>(null);
+  const [isSendingCombinedWhatsapp, setIsSendingCombinedWhatsapp] = useState<boolean>(false);
 
-  const fetchAllCalendarData = async () => {
+  // --- NUEVOS ESTADOS PARA PAGINACIÓN, FILTRADO Y ORDENACIÓN ---
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(10);
+  const [totalAppointments, setTotalAppointments] = useState<number>(0);
+  const [filterClientId, setFilterClientId] = useState<string>('');
+  const [filterEmployeeId, setFilterEmployeeId] = useState<string>('');
+  const [filterStatus, setFilterStatus] = useState<string>('');
+  const [filterPaymentStatus, setFilterPaymentStatus] = useState<string>('');
+  const [filterStartDate, setFilterStartDate] = useState<string>('');
+  const [filterEndDate, setFilterEndDate] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [sortBy, setSortBy] = useState<AppointmentSortBy>(AppointmentSortBy.START_TIME);
+  const [sortOrder, setSortOrder] = useState<SortOrder>(SortOrder.DESC);
+  // --- FIN NUEVOS ESTADOS ---
+
+  const fetchAllCalendarData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const [employeesRes, appointmentsRes, availabilitiesRes] = await Promise.all([
+      const appointmentParams = {
+        page: currentPage,
+        limit: itemsPerPage,
+        clientId: filterClientId || undefined,
+        employeeId: filterEmployeeId || undefined,
+        status: filterStatus || undefined,
+        paymentStatus: filterPaymentStatus || undefined,
+        startDate: filterStartDate || undefined,
+        endDate: filterEndDate || undefined,
+        search: searchTerm || undefined,
+        sortBy: sortBy,
+        sortOrder: sortOrder,
+      };
+
+      const [employeesRes, appointmentsRes, availabilitiesRes, clientsRes] = await Promise.all([
         axios.get<Employee[]>(`${API_BASE_URL}/employees`),
-        axios.get<Appointment[]>(`${API_BASE_URL}/appointments`),
+        axios.get<[Appointment[], number]>(`${API_BASE_URL}/appointments`, { params: appointmentParams }),
         axios.get<EmployeeAvailability[]>(`${API_BASE_URL}/employee-availabilities`),
+        axios.get<Client[]>(`${API_BASE_URL}/clients`),
       ]);
       setEmployees(employeesRes.data);
-      setAppointments(appointmentsRes.data);
+      setAppointments(appointmentsRes.data[0]);
+      setTotalAppointments(appointmentsRes.data[1]);
       setEmployeeAvailabilities(availabilitiesRes.data);
+      setClients(clientsRes.data);
     } catch (err: any) {
       console.error("Error fetching calendar data:", err);
       setError(err.message || "Error al cargar los datos del calendario.");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentPage, itemsPerPage, filterClientId, filterEmployeeId, filterStatus, filterPaymentStatus, filterStartDate, filterEndDate, searchTerm, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchAllCalendarData();
-  }, []);
+  }, [fetchAllCalendarData]);
 
   const handleOpenCreateModal = () => {
     setEditingAppointment(undefined);
@@ -134,7 +173,7 @@ const ManageAppointments = () => {
     setIsModalOpen(false);
     setEditingAppointment(undefined);
     setInitialFormDate(null);
-    fetchAllCalendarData(); // Recarga la lista
+    fetchAllCalendarData();
   };
 
   const handleFormCancel = () => {
@@ -143,7 +182,6 @@ const ManageAppointments = () => {
     setInitialFormDate(null);
   };
 
-  // Función para formatear fecha y hora
   const formatDateTime = (isoString: string) => {
     const date = new Date(isoString);
     return date.toLocaleString('es-ES', {
@@ -155,16 +193,13 @@ const ManageAppointments = () => {
     });
   };
 
-  // --- FUNCIÓN: Generar Factura Individual ---
   const handleGenerateInvoice = async (appointmentId: number) => {
     setIsGeneratingInvoice(appointmentId);
     setError(null);
-
     try {
       const response = await axios.get(`${API_BASE_URL}/invoices/${appointmentId}/generate`, {
         responseType: 'blob',
       });
-
       const blob = new Blob([response.data], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -174,27 +209,14 @@ const ManageAppointments = () => {
       link.click();
       link.parentNode?.removeChild(link);
       window.URL.revokeObjectURL(url);
-
-      console.log(`Factura para la cita ${appointmentId} generada y descargada.`);
-
     } catch (err: any) {
       console.error(`Error al generar factura para la cita ${appointmentId}:`, err);
-      if (err.response?.status === 401) {
-        setError("No tienes autorización para generar facturas. Por favor, inicia sesión nuevamente.");
-      } else if (err.response?.status === 400) {
-        setError(err.response?.data?.message || "La cita no cumple los requisitos para ser facturada (debe estar Realizada y Pagada).");
-      } else if (err.response?.status === 404) {
-        setError("Cita no encontrada para generar factura.");
-      } else {
-        setError(err.message || "Error desconocido al generar la factura.");
-      }
+      setError(err.response?.data?.message || "Error al generar la factura.");
     } finally {
       setIsGeneratingInvoice(null);
     }
   };
-  // --- FIN FUNCIÓN Generar Factura Individual ---
 
-  // --- NUEVA FUNCIÓN: Manejar Selección de Checkbox ---
   const handleCheckboxChange = (appointmentId: number, isChecked: boolean) => {
     setSelectedAppointmentIds(prevSelected => {
       if (isChecked) {
@@ -205,64 +227,98 @@ const ManageAppointments = () => {
     });
   };
 
-  // --- NUEVA FUNCIÓN: Generar Factura Combinada ---
   const handleGenerateCombinedInvoice = async () => {
     if (selectedAppointmentIds.length === 0) {
       setError("Selecciona al menos una cita para generar una factura combinada.");
       return;
     }
-
     setIsGeneratingCombinedInvoice(true);
     setError(null);
-
     try {
       const response = await axios.post(`${API_BASE_URL}/invoices/generate-combined`, {
         appointmentIds: selectedAppointmentIds
       }, {
-        responseType: 'blob', // Espera una respuesta binaria (el PDF)
+        responseType: 'blob',
       });
-
       const blob = new Blob([response.data], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `factura_combinada_${new Date().getTime()}.pdf`); // Nombre genérico o basado en cliente
+      link.setAttribute('download', `factura_combinada_${new Date().getTime()}.pdf`);
       document.body.appendChild(link);
       link.click();
       link.parentNode?.removeChild(link);
       window.URL.revokeObjectURL(url);
-
-      console.log(`Factura combinada generada y descargada para citas: ${selectedAppointmentIds.join(', ')}`);
-      setSelectedAppointmentIds([]); // Limpiar selección después de generar
-
+      setSelectedAppointmentIds([]);
     } catch (err: any) {
       console.error(`Error al generar factura combinada:`, err);
-      if (err.response?.status === 401) {
-        setError("No tienes autorización para generar facturas combinadas. Por favor, inicia sesión nuevamente.");
-      } else if (err.response?.status === 400) {
-        // Si el backend devuelve un mensaje de error específico (ej. citas de diferentes clientes)
-        const reader = new FileReader();
-        reader.onload = () => {
-          try {
-            const errorData = JSON.parse(reader.result as string);
-            setError(errorData.message || "Error de validación al generar factura combinada.");
-          } catch (parseError) {
-            setError("Error de validación al generar factura combinada (formato de error desconocido).");
-          }
-        };
-        reader.readAsText(err.response.data); // Leer el blob de error como texto
-      } else {
-        setError(err.message || "Error desconocido al generar la factura combinada.");
-      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const errorData = JSON.parse(reader.result as string);
+          setError(errorData.message || "Error de validación al generar factura combinada.");
+        } catch (parseError) {
+          setError("Error de validación al generar factura combinada (formato de error desconocido).");
+        }
+      };
+      reader.readAsText(err.response.data);
     } finally {
       setIsGeneratingCombinedInvoice(false);
     }
   };
-  // --- FIN NUEVA FUNCIÓN Generar Factura Combinada ---
 
+  const handleDeleteAppointment = async (appointmentId: number) => {
+    const confirmDelete = window.confirm(
+      `¿Estás seguro de que quieres eliminar esta cita?\n\nEsta acción no se puede deshacer.`
+    );
+    if (!confirmDelete) return;
+    setError(null);
+    try {
+      await axios.delete(`${API_BASE_URL}/appointments/${appointmentId}`);
+      fetchAllCalendarData();
+    } catch (err: any) {
+      console.error("Error deleting appointment:", err);
+      setError(err.response?.data?.message || "Error al eliminar la cita.");
+    }
+  };
+
+  const handleSendInvoiceByWhatsapp = async (appointmentId: number) => {
+    setIsSendingWhatsapp(appointmentId);
+    setError(null);
+    try {
+      const response = await axios.post(`${API_BASE_URL}/invoices/${appointmentId}/send-whatsapp`);
+      alert(response.data.message || 'Factura enviada por WhatsApp exitosamente.');
+    } catch (err: any) {
+      console.error('Error sending invoice by WhatsApp:', err);
+      setError(err.response?.data?.message || 'Error al enviar la factura por WhatsApp.');
+    } finally {
+      setIsSendingWhatsapp(null);
+    }
+  };
+
+  const handleSendCombinedInvoiceByWhatsapp = async () => {
+    if (selectedAppointmentIds.length === 0) {
+      setError("Selecciona al menos una cita para enviar una factura combinada por WhatsApp.");
+      return;
+    }
+    setIsSendingCombinedWhatsapp(true);
+    setError(null);
+    try {
+      const response = await axios.post(`${API_BASE_URL}/invoices/send-combined-whatsapp`, {
+        appointmentIds: selectedAppointmentIds
+      });
+      alert(response.data.message || 'Factura combinada enviada por WhatsApp exitosamente.');
+      setSelectedAppointmentIds([]);
+    } catch (err: any) {
+      console.error('Error sending combined invoice by WhatsApp:', err);
+      setError(err.response?.data?.message || 'Error al enviar la factura combinada por WhatsApp.');
+    } finally {
+      setIsSendingCombinedWhatsapp(false);
+    }
+  };
 
   if (isLoading) {
-    return <div>Cargando calendario...</div>;
+    return <div>Cargando calendario y citas...</div>;
   }
 
   if (error) {
@@ -274,18 +330,17 @@ const ManageAppointments = () => {
     );
   }
 
+  const totalPages = Math.ceil(totalAppointments / itemsPerPage);
+
   return (
     <div>
       <h2>Calendario de Citas</h2>
-
       <button 
         style={{ marginBottom: '20px', padding: '10px 20px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
         onClick={handleOpenCreateModal}
       >
         Agendar Nueva Cita (Manual)
       </button>
-
-      {/* Renderiza el componente del calendario */}
       <AppointmentCalendar
         appointments={appointments}
         employees={employees}
@@ -299,33 +354,111 @@ const ManageAppointments = () => {
           setIsModalOpen(true);
         }}
       />
-
-      {/* TABLA DE CITAS */}
+      <div style={{ marginBottom: '20px', padding: '15px', border: '1px solid #eee', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
+        <h3>Filtros y Búsqueda</h3>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
+          <div>
+            <label htmlFor="filterClientId">Cliente:</label>
+            <select id="filterClientId" value={filterClientId} onChange={(e) => setFilterClientId(e.target.value)} style={{ width: '100%', padding: '8px' }}>
+              <option value="">Todos</option>
+              {clients.map(client => (
+                <option key={client.id} value={client.id}>{client.name}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="filterEmployeeId">Empleado:</label>
+            <select id="filterEmployeeId" value={filterEmployeeId} onChange={(e) => setFilterEmployeeId(e.target.value)} style={{ width: '100%', padding: '8px' }}>
+              <option value="">Todos</option>
+              {employees.map(emp => (
+                <option key={emp.id} value={emp.id}>{emp.name}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="filterStatus">Estado Cita:</label>
+            <select id="filterStatus" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} style={{ width: '100%', padding: '8px' }}>
+              <option value="">Todos</option>
+              {Object.values(AppointmentStatus).map(status => (
+                <option key={status} value={status}>{status}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="filterPaymentStatus">Estado Pago:</label>
+            <select id="filterPaymentStatus" value={filterPaymentStatus} onChange={(e) => setFilterPaymentStatus(e.target.value)} style={{ width: '100%', padding: '8px' }}>
+              <option value="">Todos</option>
+              {Object.values(PaymentStatus).map(status => (
+                <option key={status} value={status}>{status}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="filterStartDate">Fecha Inicio:</label>
+            <input type="date" id="filterStartDate" value={filterStartDate} onChange={(e) => setFilterStartDate(e.target.value)} style={{ width: '100%', padding: '8px' }} />
+          </div>
+          <div>
+            <label htmlFor="filterEndDate">Fecha Fin:</label>
+            <input type="date" id="filterEndDate" value={filterEndDate} onChange={(e) => setFilterEndDate(e.target.value)} style={{ width: '100%', padding: '8px' }} />
+          </div>
+          <div>
+            <label htmlFor="searchTerm">Buscar:</label>
+            <input type="text" id="searchTerm" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Nombre, notas, etc." style={{ width: '100%', padding: '8px' }} />
+          </div>
+        </div>
+        <button onClick={() => {
+          setFilterClientId('');
+          setFilterEmployeeId('');
+          setFilterStatus('');
+          setFilterPaymentStatus('');
+          setFilterStartDate('');
+          setFilterEndDate('');
+          setSearchTerm('');
+          setCurrentPage(1);
+        }} style={{ marginTop: '15px', padding: '10px 20px', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+          Limpiar Filtros
+        </button>
+      </div>
       <h3>Listado de Citas</h3>
-      <button
-        style={{
-          marginBottom: '10px',
-          padding: '10px 20px',
-          backgroundColor: selectedAppointmentIds.length > 0 ? '#0056b3' : '#ccc',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: selectedAppointmentIds.length > 0 ? 'pointer' : 'not-allowed',
-          opacity: selectedAppointmentIds.length > 0 ? 1 : 0.6
-        }}
-        onClick={handleGenerateCombinedInvoice}
-        disabled={selectedAppointmentIds.length === 0 || isGeneratingCombinedInvoice}
-      >
-        {isGeneratingCombinedInvoice ? 'Generando Combinada...' : `Facturar Seleccionadas (${selectedAppointmentIds.length})`}
-      </button>
-
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+        <button
+          style={{
+            padding: '10px 20px',
+            backgroundColor: selectedAppointmentIds.length > 0 ? '#0056b3' : '#ccc',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: selectedAppointmentIds.length > 0 ? 'pointer' : 'not-allowed',
+            opacity: selectedAppointmentIds.length > 0 ? 1 : 0.6
+          }}
+          onClick={handleGenerateCombinedInvoice}
+          disabled={selectedAppointmentIds.length === 0 || isGeneratingCombinedInvoice}
+        >
+          {isGeneratingCombinedInvoice ? 'Generando...' : `Facturar Seleccionadas (${selectedAppointmentIds.length})`}
+        </button>
+        <button
+          style={{
+            padding: '10px 20px',
+            backgroundColor: selectedAppointmentIds.length > 0 ? '#28a745' : '#ccc',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: selectedAppointmentIds.length > 0 ? 'pointer' : 'not-allowed',
+            opacity: selectedAppointmentIds.length > 0 ? 1 : 0.6
+          }}
+          onClick={handleSendCombinedInvoiceByWhatsapp}
+          disabled={selectedAppointmentIds.length === 0 || isSendingCombinedWhatsapp}
+        >
+          {isSendingCombinedWhatsapp ? 'Enviando...' : `Enviar WhatsApp (${selectedAppointmentIds.length})`}
+        </button>
+      </div>
       {appointments.length === 0 ? (
-        <p>No hay citas para mostrar.</p>
+        <p>No hay citas para mostrar con los filtros actuales.</p>
       ) : (
         <table border={1} style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9em', marginTop: '20px' }}>
           <thead>
             <tr>
-              <th></th> {/* Columna para el checkbox */}
+              <th></th>
               <th>ID</th>
               <th>Cliente</th>
               <th>Profesional</th>
@@ -344,6 +477,7 @@ const ManageAppointments = () => {
             {appointments.map((appointment) => {
               const canBeFactured = appointment.status === AppointmentStatus.REALIZADA && appointment.paymentStatus === PaymentStatus.PAGADO;
               const isSelected = selectedAppointmentIds.includes(appointment.id);
+              const isPending = appointment.status === AppointmentStatus.PENDIENTE;
 
               return (
                 <tr key={appointment.id}>
@@ -352,7 +486,7 @@ const ManageAppointments = () => {
                       type="checkbox"
                       checked={isSelected}
                       onChange={(e) => handleCheckboxChange(appointment.id, e.target.checked)}
-                      disabled={!canBeFactured} // Solo se pueden seleccionar citas facturables
+                      disabled={!canBeFactured}
                     />
                   </td>
                   <td>{appointment.id}</td>
@@ -368,15 +502,7 @@ const ManageAppointments = () => {
                   <td>{appointment.notes?.substring(0, 50) || '-'}...</td>
                   <td>
                     <button 
-                      style={{ 
-                        marginRight: '5px',
-                        backgroundColor: '#ffc107',
-                        color: 'black',
-                        border: 'none',
-                        padding: '5px 10px',
-                        borderRadius: '4px',
-                        cursor: 'pointer'
-                      }}
+                      style={{ marginRight: '5px', backgroundColor: '#ffc107', color: 'black', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}
                       onClick={() => {
                         setEditingAppointment(appointment);
                         setIsModalOpen(true);
@@ -384,40 +510,27 @@ const ManageAppointments = () => {
                     >
                       Editar
                     </button>
-                    
-                    {/* BOTÓN FACTURAR INDIVIDUAL */}
                     <button
-                      style={{
-                        marginRight: '5px',
-                        backgroundColor: canBeFactured ? '#007bff' : '#ccc',
-                        color: 'white',
-                        border: 'none',
-                        padding: '5px 10px',
-                        borderRadius: '4px',
-                        cursor: canBeFactured ? 'pointer' : 'not-allowed'
-                      }}
+                      style={{ marginRight: '5px', backgroundColor: canBeFactured ? '#007bff' : '#ccc', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: canBeFactured ? 'pointer' : 'not-allowed' }}
                       onClick={() => handleGenerateInvoice(appointment.id)}
                       disabled={!canBeFactured || isGeneratingInvoice === appointment.id}
                     >
                       {isGeneratingInvoice === appointment.id ? 'Generando...' : 'Facturar'}
                     </button>
-
-                    {/* Botón Eliminar (puedes añadirlo si lo necesitas aquí) */}
-                    {/*
+                    <button
+                      style={{ marginRight: '5px', backgroundColor: canBeFactured ? '#28a745' : '#ccc', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: canBeFactured ? 'pointer' : 'not-allowed' }}
+                      onClick={() => handleSendInvoiceByWhatsapp(appointment.id)}
+                      disabled={!canBeFactured || isSendingWhatsapp === appointment.id}
+                    >
+                      {isSendingWhatsapp === appointment.id ? 'Enviando...' : 'Enviar WhatsApp'}
+                    </button>
                     <button
                       onClick={() => handleDeleteAppointment(appointment.id)}
-                      disabled={isDeleting === appointment.id}
-                      style={{
-                        backgroundColor: isDeleting === appointment.id ? '#ccc' : '#ff4444',
-                        color: 'white',
-                        border: 'none',
-                        padding: '5px 10px',
-                        cursor: isDeleting === appointment.id ? 'not-allowed' : 'pointer'
-                      }}
+                      disabled={!isPending}
+                      style={{ backgroundColor: isPending ? '#ff4444' : '#ccc', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: isPending ? 'pointer' : 'not-allowed' }}
                     >
-                      {isDeleting === appointment.id ? 'Eliminando...' : 'Eliminar'}
+                      Eliminar
                     </button>
-                    */}
                   </td>
                 </tr>
               );
@@ -425,7 +538,29 @@ const ManageAppointments = () => {
           </tbody>
         </table>
       )}
-
+      <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <button 
+          onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} 
+          disabled={currentPage === 1}
+          style={{ padding: '8px 15px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+        >
+          Anterior
+        </button>
+        <span>Página {currentPage} de {totalPages} (Total: {totalAppointments} citas)</span>
+        <button 
+          onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} 
+          disabled={currentPage === totalPages}
+          style={{ padding: '8px 15px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+        >
+          Siguiente
+        </button>
+        <select value={itemsPerPage} onChange={(e) => { setItemsPerPage(parseInt(e.target.value, 10)); setCurrentPage(1); }} style={{ padding: '8px', borderRadius: '4px' }}>
+          <option value={5}>5 por página</option>
+          <option value={10}>10 por página</option>
+          <option value={20}>20 por página</option>
+          <option value={50}>50 por página</option>
+        </select>
+      </div>
       <Modal
         isOpen={isModalOpen}
         onClose={handleFormCancel}

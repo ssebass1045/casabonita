@@ -1,49 +1,68 @@
 // File: my-spa/src/layouts/AdminLayout.tsx
-import React, { useContext } from 'react';
-import { Link, Outlet, useNavigate } from 'react-router-dom';
-import { AuthContext } from '../auth/authContext';
+import React from 'react';
+import { Outlet, Link } from 'react-router-dom'; // <-- Importa Link
+import AdminToolbar from '../components/AdminToolbar';
 
 const AdminLayout = () => {
-  const { user, logout } = useContext(AuthContext);
-  const navigate = useNavigate();
+  const layoutContainerStyle: React.CSSProperties = {
+    display: 'flex',
+    minHeight: 'calc(100vh - 56px)',
+  };
 
-  const handleLogout = () => {
-    logout();
-    // Opcional: Redirigir al login o a la página principal después del logout
-    navigate('/login');
+  const sidebarStyle: React.CSSProperties = {
+    flex: '0 0 250px',
+    backgroundColor: '#f8f9fa',
+    padding: '20px',
+    borderRight: '1px solid #dee2e6',
+  };
+
+  const mainContentStyle: React.CSSProperties = {
+    flex: 1,
+    padding: '20px',
+    overflowX: 'auto',
+  };
+
+  const navLinkStyle: React.CSSProperties = {
+    display: 'block',
+    padding: '10px 15px',
+    textDecoration: 'none',
+    color: '#343a40',
+    borderRadius: '5px',
+    marginBottom: '5px',
+  };
+
+  // Estilo para el enlace activo (puedes implementarlo con NavLink más adelante)
+  const activeLinkStyle: React.CSSProperties = {
+    ...navLinkStyle,
+    backgroundColor: '#e9ecef',
+    fontWeight: 'bold',
   };
 
   return (
-    <>
-      {/* Puedes añadir una cabecera común aquí si quieres */}
-      <header style={{ background: '#eee', padding: '10px', marginBottom: '20px' }}>
-        Panel de Administración - Bienvenido, {user?.username || 'Admin'}!
-      </header>
-
-      
-        {/* Barra lateral de navegación */}
-        <nav style={{ float: 'left', width: '200px', marginRight: '20px', borderRight: '1px solid #ccc', paddingRight: '20px' }}>
-          <ul>
-            <li><Link to="/admin/treatments">Gestionar Tratamientos</Link></li>
-            <li><Link to="/admin/blogs">Gestionar Blogs</Link></li>
-            <li><Link to="/admin/products">Gestionar Productos</Link></li>
-            <li><Link to="/admin/appointments">Gestionar Citas</Link></li>
-            <li><Link to="/admin/employees">Gestionar Empleados</Link></li>
-            <li><Link to="/admin/clients">Gestionar Clientes</Link></li>
-            <li><Link to="/admin/employee-availabilities">Gestionar Disponibilidad empleados</Link></li>
-            <li><Link to="/admin/metrics">Métricas</Link></li>
-            <li><Link to="/admin/change-password">Cambiar Contraseña</Link></li>
-            <li><button onClick={handleLogout}>Cerrar Sesión</button></li>
+    <div>
+      <AdminToolbar />
+      <div style={layoutContainerStyle}>
+        <nav style={sidebarStyle}>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            {/* --- CAMBIO AQUÍ: Usamos <Link> en lugar de <a> --- */}
+            <li><Link to="/admin/appointments" style={navLinkStyle}>Gestionar Citas</Link></li>
+            <li><Link to="/admin/clients" style={navLinkStyle}>Gestionar Clientes</Link></li>
+            <li><Link to="/admin/employees" style={navLinkStyle}>Gestionar Empleados</Link></li>
+            <li><Link to="/admin/products" style={navLinkStyle}>Gestionar Productos</Link></li>
+            <li><Link to="/admin/treatments" style={navLinkStyle}>Gestionar Tratamientos</Link></li>
+            <li><Link to="/admin/blogs" style={navLinkStyle}>Gestionar Blogs</Link></li>
+            <li><Link to="/admin/employee-availabilities" style={navLinkStyle}>Gestionar Disponibilidad</Link></li>
+            <li><Link to="/admin/metrics" style={navLinkStyle}>Métricas</Link></li>
+            <li><Link to="/admin/send-message" style={navLinkStyle}>Enviar Mensaje WhatsApp</Link></li>
+            <li><Link to="/admin/payroll" style={navLinkStyle}>Liquidación Empleados</Link></li>
           </ul>
         </nav>
 
-        {/* Área de contenido principal donde se renderizarán las rutas anidadas */}
-        <main style={{ marginLeft: '220px' }}>
-          <Outlet /> {/* Este componente renderiza el componente de la ruta hija activa */}
+        <main style={mainContentStyle}>
+          <Outlet />
         </main>
-    </>
-      
-    
+      </div>
+    </div>
   );
 };
 
