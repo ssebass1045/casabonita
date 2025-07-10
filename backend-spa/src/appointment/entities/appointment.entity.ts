@@ -1,8 +1,8 @@
 // File: backend-spa/src/appointment/entities/appointment.entity.ts
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { Client } from '../../client/entities/client.entity'; // Importa la entidad Client
-import { Employee } from '../../employee/entities/employee.entity'; // Importa la entidad Employee
-import { Treatment } from '../../treatment/entities/treatment.entity'; // Importa la entidad Treatment
+import { Client } from '../../client/entities/client.entity';
+import { Employee } from '../../employee/entities/employee.entity';
+import { Treatment } from '../../treatment/entities/treatment.entity';
 import { AppointmentStatus } from '../enums/appointment-status.enum';
 import { PaymentMethod } from '../enums/payment-method.enum';
 import { PaymentStatus } from '../enums/payment-status.enum';
@@ -12,31 +12,31 @@ export class Appointment {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Client, { eager: true }) // Relación con Cliente, carga el cliente automáticamente
-  @JoinColumn({ name: 'clientId' }) // Columna de la clave foránea
+  @ManyToOne(() => Client, { eager: true })
+  @JoinColumn({ name: 'clientId' })
   client: Client;
 
   @Column()
-  clientId: number; // Para almacenar el ID del cliente
+  clientId: number;
 
-  @ManyToOne(() => Employee, { eager: true }) // Relación con Empleado
+  @ManyToOne(() => Employee, { eager: true })
   @JoinColumn({ name: 'employeeId' })
   employee: Employee;
 
   @Column()
-  employeeId: number; // Para almacenar el ID del empleado
+  employeeId: number;
 
-  @ManyToOne(() => Treatment, { eager: true }) // Relación con Tratamiento/Servicio
+  @ManyToOne(() => Treatment, { eager: true })
   @JoinColumn({ name: 'treatmentId' })
   treatment: Treatment;
 
   @Column()
-  treatmentId: number; // Para almacenar el ID del tratamiento
+  treatmentId: number;
 
-  @Column({ type: 'timestamp' }) // Fecha y hora de inicio de la cita
+  @Column({ type: 'timestamp' })
   startTime: Date;
 
-  @Column({ type: 'timestamp' }) // Fecha y hora de fin de la cita
+  @Column({ type: 'timestamp' })
   endTime: Date;
 
   @Column({
@@ -46,7 +46,7 @@ export class Appointment {
   })
   status: AppointmentStatus;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true }) // Precio del servicio (modificable)
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
   price: number;
 
   @Column({
@@ -63,6 +63,9 @@ export class Appointment {
   })
   paymentStatus: PaymentStatus;
 
-  @Column({ type: 'text', nullable: true }) // Observaciones o notas de la cita
+  @Column({ type: 'text', nullable: true })
   notes: string;
+
+  @Column({ type: 'boolean', default: false }) // <-- ¡AÑADE ESTE CAMPO!
+  reminderSent: boolean; // Para rastrear si el recordatorio ya fue enviado
 }

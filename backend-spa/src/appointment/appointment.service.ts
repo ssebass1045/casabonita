@@ -1,10 +1,13 @@
 // File: backend-spa/src/appointment/appointment.service.ts
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, MoreThanOrEqual, LessThanOrEqual } from 'typeorm';
 import { Appointment } from './entities/appointment.entity';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
+// --- ¡AÑADE ESTAS IMPORTACIONES! ---
+import { GetAppointmentsDto, AppointmentSortBy, SortOrder } from './dto/get-appointments.dto';
+// --- FIN DE LAS IMPORTACIONES A AÑADIR ---
 import { ClientService } from '../client/client.service';
 import { EmployeeService } from '../employee/employee.service';
 import { TreatmentService } from '../treatment/treatment.service';
@@ -14,8 +17,12 @@ import { AppointmentStatus } from './enums/appointment-status.enum';
 import { PaymentStatus } from './enums/payment-status.enum';
 import { DayOfWeek } from '../employee-availability/enums/day-of-week.enum';
 
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 @Injectable()
 export class AppointmentService {
+  private readonly logger = new Logger(AppointmentService.name);
+
   constructor(
     @InjectRepository(Appointment)
     private appointmentRepository: Repository<Appointment>,
@@ -112,14 +119,13 @@ export class AppointmentService {
     });
     const savedAppointment = await this.appointmentRepository.save(newAppointment);
 
-    // Cargar relaciones para los mensajes
     const fullAppointment = await this.appointmentRepository.findOne({
         where: { id: savedAppointment.id },
         relations: ['client', 'employee', 'treatment']
     });
 
     if (fullAppointment) {
-        // Notificación al empleado sobre la nueva cita (independientemente del estado inicial)
+        // Notificación al empleado sobre la nueva cita (siempre es útil)
         if (fullAppointment.employee?.phone) {
             await this.whatsappService.sendNewAppointmentToEmployee(
                 fullAppointment.employee.phone,
@@ -127,13 +133,15 @@ export class AppointmentService {
                 fullAppointment.client?.name || 'Cliente Desconocido',
                 fullAppointment.treatment?.name || 'Servicio Desconocido',
                 fullAppointment.startTime,
-                fullAppointment.status // Pasa el estado actual de la cita
+                fullAppointment.status
             );
         }
 
-        // Notificación de confirmación al cliente (SOLO si el estado es CONFIRMADA)
+        // Notificación al cliente SOLO si la cita se crea como "Confirmada"
         if (fullAppointment.status === AppointmentStatus.CONFIRMADA && fullAppointment.client?.phone) {
-            await this.whatsappService.sendAppointmentConfirmationToClient(
+          this.logger.log(`Enviando confirmación de cita al cliente: ${fullAppointment.client.phone}`); 
+          await delay(7000); // Retraso de 7 segundos
+          await this.whatsappService.sendAppointmentConfirmationToClient(
                 fullAppointment.client.phone,
                 fullAppointment.client.name,
                 fullAppointment.employee.name,
@@ -146,8 +154,71 @@ export class AppointmentService {
     return savedAppointment;
   }
 
-  async findAll(): Promise<Appointment[]> {
-    return this.appointmentRepository.find();
+  async findAll(queryDto: GetAppointmentsDto): Promise<[Appointment[], number]> {
+    const { page, limit, clientId, employeeId, status, paymentStatus, startDate, endDate, search, sortBy, sortOrder } = queryDto;
+
+    const queryBuilder = this.appointmentRepository.createQueryBuilder('appointment')
+      .leftJoinAndSelect('appointment.client', 'client')
+      .leftJoinAndSelect('appointment.employee', 'employee')
+      .leftJoinAndSelect('appointment.treatment', 'treatment');
+
+    if (clientId) {
+      queryBuilder.andWhere('appointment.clientId = :clientId', { clientId });
+    }
+    if (employeeId) {
+      queryBuilder.andWhere('appointment.employeeId = :employeeId', { employeeId });
+    }
+    if (status) {
+      queryBuilder.andWhere('appointment.status = :status', { status });
+    }
+    if (paymentStatus) {
+      queryBuilder.andWhere('appointment.paymentStatus = :paymentStatus', { paymentStatus });
+    }
+    if (startDate) {
+      queryBuilder.andWhere('appointment.startTime >= :startDate', { startDate: new Date(startDate) });
+    }
+    if (endDate) {
+      const endOfDay = new Date(endDate);
+      endOfDay.setDate(endOfDay.getDate() + 1);
+      queryBuilder.andWhere('appointment.startTime < :endDate', { endDate: endOfDay });
+    }
+    if (search) {
+      queryBuilder.andWhere(
+        '(LOWER(client.name) LIKE :search OR LOWER(employee.name) LIKE :search OR LOWER(treatment.name) LIKE :search OR LOWER(appointment.notes) LIKE :search)',
+        { search: `%${search.toLowerCase()}%` }
+      );
+    }
+
+    let orderByColumn: string;
+    switch (sortBy) {
+      case AppointmentSortBy.CLIENT_NAME:
+        orderByColumn = 'client.name';
+        break;
+      case AppointmentSortBy.EMPLOYEE_NAME:
+        orderByColumn = 'employee.name';
+        break;
+      case AppointmentSortBy.ID:
+        orderByColumn = 'appointment.id';
+        break;
+      case AppointmentSortBy.START_TIME:
+        orderByColumn = 'appointment.startTime';
+        break;
+      case AppointmentSortBy.STATUS:
+        orderByColumn = 'appointment.status';
+        break;
+      case AppointmentSortBy.PRICE:
+        orderByColumn = 'appointment.price';
+        break;
+      default:
+        orderByColumn = 'appointment.startTime';
+    }
+    queryBuilder.orderBy(orderByColumn, sortOrder);
+
+    const actualPage = page ?? 1;
+    const actualLimit = limit ?? 10;
+    queryBuilder.skip((actualPage - 1) * actualLimit).take(actualLimit);
+
+    return queryBuilder.getManyAndCount();
   }
 
   async findOne(id: number): Promise<Appointment> {
@@ -196,7 +267,6 @@ export class AppointmentService {
     }
     const updatedAppointment = await this.appointmentRepository.save(appointment);
 
-    // Cargar relaciones para los mensajes
     const fullUpdatedAppointment = await this.appointmentRepository.findOne({
         where: { id: updatedAppointment.id },
         relations: ['client', 'employee', 'treatment']
@@ -214,31 +284,31 @@ export class AppointmentService {
             );
         }
 
-        // Notificación de cancelación al empleado (si el estado CAMBIA a CANCELADA)
-        if (newStatus === AppointmentStatus.CANCELADA && currentAppointment.status !== AppointmentStatus.CANCELADA && fullUpdatedAppointment.employee?.phone) {
-            await this.whatsappService.sendAppointmentCancellationToEmployee(
-                fullUpdatedAppointment.employee.phone,
-                fullUpdatedAppointment.employee.name,
-                fullUpdatedAppointment.client?.name || 'Cliente Desconocido',
-                fullUpdatedAppointment.treatment?.name || 'Servicio Desconocido',
-                fullUpdatedAppointment.startTime
-            );
+        // Notificación de actualización al empleado (si otros campos cambian)
+        const changes: string[] = [];
+        if (newStartTime.getTime() !== currentAppointment.startTime.getTime() || newEndTime.getTime() !== currentAppointment.endTime.getTime()) {
+            changes.push(`La nueva hora es ${newStartTime.toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })}`);
+        }
+        if (newEmployeeId !== currentAppointment.employeeId) {
+            changes.push(`El nuevo profesional asignado es ${fullUpdatedAppointment.employee.name}`);
+        }
+        if (newStatus !== currentAppointment.status) {
+            changes.push(`El nuevo estado es ${newStatus}`);
         }
 
-        // Notificación de actualización al empleado (si otros campos cambian y no es solo confirmación/cancelación)
-        // Puedes refinar esta lógica para ser más específica sobre qué cambios notifican
-        const hasTimeChanged = newStartTime.getTime() !== currentAppointment.startTime.getTime() || newEndTime.getTime() !== currentAppointment.endTime.getTime();
-        const hasEmployeeChanged = newEmployeeId !== currentAppointment.employeeId;
-        const hasStatusChangedButNotConfirmOrCancel = newStatus !== currentAppointment.status && newStatus !== AppointmentStatus.CONFIRMADA && newStatus !== AppointmentStatus.CANCELADA;
-
-        if (fullUpdatedAppointment.employee?.phone && (hasTimeChanged || hasEmployeeChanged || hasStatusChangedButNotConfirmOrCancel)) {
+        if (changes.length > 0 && fullUpdatedAppointment.employee?.phone) {
+            // --- ¡CORRECCIÓN AQUÍ! ---
+            if (newStatus === AppointmentStatus.CONFIRMADA && currentAppointment.status !== AppointmentStatus.CONFIRMADA) {
+                this.logger.log('Esperando 7 segundos antes de enviar la actualización al empleado...');
+                await delay(7000);
+            }
             await this.whatsappService.sendAppointmentUpdateToEmployee(
                 fullUpdatedAppointment.employee.phone,
                 fullUpdatedAppointment.employee.name,
                 fullUpdatedAppointment.client?.name || 'Cliente Desconocido',
                 fullUpdatedAppointment.treatment?.name || 'Servicio Desconocido',
                 fullUpdatedAppointment.startTime,
-                fullUpdatedAppointment.status // Pasa el nuevo estado
+                changes // <-- Pasa el array de cambios, no el estado
             );
         }
     }

@@ -1,14 +1,20 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { NestExpressApplication } from '@nestjs/platform-express'; // <-- Importa NestExpressApplication
+import { join } from 'path'; // <-- Importa join de path
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.useGlobalPipes(new ValidationPipe({
     transform: true,
   }));
-
+// --- NUEVA CONFIGURACIÓN PARA ARCHIVOS ESTÁTICOS ---
+  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+    prefix: '/uploads/', // Esto hará que los archivos en la carpeta 'uploads' sean accesibles desde la URL /uploads
+  });
+  // --- FIN NUEVA CONFIGURACIÓN ---
   app.enableCors();
 
   const port = process.env.PORT || 3000;

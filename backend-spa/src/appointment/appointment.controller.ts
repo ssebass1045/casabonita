@@ -1,11 +1,12 @@
 // File: backend-spa/src/appointment/appointment.controller.ts
 import {
   Controller, Get, Post, Body, Patch, Param, Delete, UseGuards,
-  ParseIntPipe, ValidationPipe
+  ParseIntPipe, ValidationPipe, Query // <-- Importa Query
 } from '@nestjs/common';
 import { AppointmentService } from './appointment.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
+import { GetAppointmentsDto } from './dto/get-appointments.dto'; // <-- Importa el nuevo DTO
 import { AuthGuard } from '@nestjs/passport';
 
 @Controller('appointments')
@@ -35,11 +36,10 @@ export class AppointmentController {
     return this.appointmentService.remove(id);
   }
 
-  // --- Rutas Públicas ---
-
+  // --- RUTA findAll MODIFICADA ---
   @Get()
-  findAll() {
-    return this.appointmentService.findAll();
+  findAll(@Query(ValidationPipe) query: GetAppointmentsDto) { // <-- Acepta el DTO de consulta
+    return this.appointmentService.findAll(query);
   }
 
   @Get(':id')
@@ -47,8 +47,7 @@ export class AppointmentController {
     return this.appointmentService.findOne(id);
   }
 
-  // --- NUEVA RUTA: Obtener citas por ID de Cliente ---
-  @UseGuards(AuthGuard('jwt')) // Proteger esta ruta, solo admins pueden ver historial
+  @UseGuards(AuthGuard('jwt'))
   @Get('client/:clientId')
   findByClientId(@Param('clientId', ParseIntPipe) clientId: number) {
     return this.appointmentService.findByClientId(clientId);

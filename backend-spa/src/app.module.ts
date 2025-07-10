@@ -1,5 +1,6 @@
 
 import { Module } from '@nestjs/common';
+import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config'; // 
 import { AppController } from './app.controller';
@@ -18,6 +19,7 @@ import { EmployeeAvailabilityModule } from './employee-availability/employee-ava
 import { MetricsModule } from './metrics/metrics.module';
 import { WhatsappModule } from './whatsapp/whatsapp.module';
 import { InvoiceModule } from './invoice/invoice.module';
+import { TaskSchedulingModule } from './task-scheduling/task-scheduling.module';
 
 @Module({
   imports: [
@@ -37,6 +39,7 @@ import { InvoiceModule } from './invoice/invoice.module';
       synchronize: true,
       logging: true,
     }),
+    ScheduleModule.forRoot(),
     TreatmentModule,
     BlogModule,
     AuthModule,
@@ -50,6 +53,7 @@ import { InvoiceModule } from './invoice/invoice.module';
     MetricsModule,
     WhatsappModule,
     InvoiceModule,
+    TaskSchedulingModule,
   ],
   controllers: [AppController],
   providers: [AppService, CloudinaryService],
