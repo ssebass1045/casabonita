@@ -1,11 +1,12 @@
 // File: my-spa/src/components/ManageAppointments.tsx
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
 import axios from 'axios';
 import Modal from './Modal';
 import AppointmentForm from './AppointmentForm';
 import AppointmentCalendar from './AppointmentCalendar';
 import { DayOfWeek } from '../enums/day-of-week.enum';
 import { toast } from 'react-toastify'; // Importa toast
+import { AuthContext, UserRole } from '../auth/authContext';
 
 const API_BASE_URL = 'http://localhost:3000';
 
@@ -121,11 +122,38 @@ const ManageAppointments = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [sortBy, setSortBy] = useState<AppointmentSortBy>(AppointmentSortBy.START_TIME);
   const [sortOrder, setSortOrder] = useState<SortOrder>(SortOrder.DESC);
+
+
+  const [searchInput, setSearchInput] = useState<string>(''); // Para el valor inmediato del input
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>(''); // Para el valor que se envía a la API
+  
+  const { hasRole } = useContext(AuthContext);
   // --- FIN NUEVOS ESTADOS ---
 
-  const fetchAllCalendarData = useCallback(async () => {
+
+  // --- useEffect para el Debouncing ---
+  useEffect(() => {
+    const timerId = setTimeout(() => {
+      setDebouncedSearchTerm(searchInput);
+    }, 500); // Espera 500ms después de que el usuario deja de escribir
+
+    return () => {
+      clearTimeout(timerId); // Limpia el temporizador si el usuario sigue escribiendo
+    };
+  }, [searchInput]); // Este efecto se ejecuta cada vez que el input cambia
+
+
+ 
+  useEffect(() => {
+    const timerId = setTimeout(() => {
+      setDebouncedSearchTerm(searchInput);
+    }, 500);
+    return () => clearTimeout(timerId);
+  }, [searchInput]);
+
+  const fetchAllCalendarData = async () => {
     setIsLoading(true);
-    setError(null); // Limpiar error de la tabla
+    setError(null);
     try {
       const appointmentParams = {
         page: currentPage,
@@ -136,7 +164,7 @@ const ManageAppointments = () => {
         paymentStatus: filterPaymentStatus || undefined,
         startDate: filterStartDate || undefined,
         endDate: filterEndDate || undefined,
-        search: searchTerm || undefined,
+        search: debouncedSearchTerm || undefined,
         sortBy: sortBy,
         sortOrder: sortOrder,
       };
@@ -147,6 +175,7 @@ const ManageAppointments = () => {
         axios.get<EmployeeAvailability[]>(`${API_BASE_URL}/employee-availabilities`),
         axios.get<Client[]>(`${API_BASE_URL}/clients`),
       ]);
+
       setEmployees(employeesRes.data);
       setAppointments(appointmentsRes.data[0]);
       setTotalAppointments(appointmentsRes.data[1]);
@@ -155,15 +184,17 @@ const ManageAppointments = () => {
     } catch (err: any) {
       console.error("Error fetching calendar data:", err);
       setError(err.message || "Error al cargar los datos del calendario.");
-      toast.error("Error al cargar los datos del calendario."); // Notificación de error
+      toast.error("Error al cargar los datos del calendario.");
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage, itemsPerPage, filterClientId, filterEmployeeId, filterStatus, filterPaymentStatus, filterStartDate, filterEndDate, searchTerm, sortBy, sortOrder]);
-
-  useEffect(() => {
+  };
+    
+    
+    useEffect(() => {
     fetchAllCalendarData();
-  }, [fetchAllCalendarData]);
+  }, [currentPage, itemsPerPage, filterClientId, filterEmployeeId, filterStatus, filterPaymentStatus, filterStartDate, filterEndDate, debouncedSearchTerm, sortBy, sortOrder]);
+
 
   const handleOpenCreateModal = () => {
     setEditingAppointment(undefined);
@@ -355,6 +386,8 @@ const ManageAppointments = () => {
   return (
     <div className="admin-content-container"> {/* Contenedor principal */}
       <h2>Calendario de Citas</h2>
+      { hasRole (UserRole.ADMIN) &&( 
+
       <button 
         className="action-button"
         style={{ backgroundColor: 'var(--color-success)' }} // Usar color de éxito
@@ -362,6 +395,8 @@ const ManageAppointments = () => {
       >
         Agendar Nueva Cita (Manual)
       </button>
+
+      )}
       <AppointmentCalendar
         appointments={appointments}
         employees={employees}
@@ -424,7 +459,7 @@ const ManageAppointments = () => {
           </div>
           <div className="form-group">
             <label htmlFor="searchTerm" className="form-label">Buscar:</label>
-            <input type="text" id="searchTerm" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Nombre, notas, etc." className="form-input" />
+            <input type="text" id="searchTerm" value={searchInput} onChange={(e) => setSearchInput(e.target.value)} placeholder="Nombre, notas, etc." className="form-input" />
           </div>
         </div>
         <button onClick={() => {
@@ -434,7 +469,7 @@ const ManageAppointments = () => {
           setFilterPaymentStatus('');
           setFilterStartDate('');
           setFilterEndDate('');
-          setSearchTerm('');
+          setSearchInput('');
           setCurrentPage(1);
         }} className="action-button" style={{ backgroundColor: 'var(--color-danger)' }}>
           Limpiar Filtros
@@ -532,13 +567,17 @@ const ManageAppointments = () => {
                     >
                       {isSendingWhatsapp === appointment.id ? 'Enviando...' : 'Enviar WhatsApp'}
                     </button>
-                    <button
-                      className="action-button delete"
-                      onClick={() => handleDeleteAppointment(appointment.id)}
-                      disabled={!isPending}
-                    >
+
+                    { hasRole(UserRole.ADMIN) && (
+                      
+                      <button
+                        className="action-button delete"
+                        onClick={() => handleDeleteAppointment(appointment.id)}
+                        disabled={!isPending}
+                      >
                       Eliminar
                     </button>
+                    )}
                   </td>
                 </tr>
               );

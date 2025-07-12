@@ -1,9 +1,10 @@
 // File: my-spa/src/components/ManageClients.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import Modal from './Modal';
 import ClientForm from './ClientForm';
 import ClientAppointmentsHistory from './ClientAppointmentsHistory';
+import { AuthContext, UserRole } from '../auth/authContext';
 
 const API_BASE_URL = 'http://localhost:3000';
 
@@ -34,6 +35,9 @@ const ManageClients = () => {
 
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState<boolean>(false);
   const [selectedClientForHistory, setSelectedClientForHistory] = useState<Client | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+
+  const { hasRole } = useContext(AuthContext);
 
   useEffect(() => {
     fetchClients();
@@ -121,6 +125,12 @@ const ManageClients = () => {
     setSelectedClientForHistory(null);
   };
 
+  const filteredClients = clients.filter(client =>
+    client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    client.phone?.includes(searchTerm) ||
+    client.email?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   if (isLoading) {
     return (
       <div>
@@ -142,14 +152,26 @@ const ManageClients = () => {
     <div>
       <h2>Gestionar Clientes</h2>
 
+    {/* --- BUSCADOR Y BOTÓN CONDICIONAL --- */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <input
+          type="text"
+          placeholder="Buscar por nombre, teléfono o email..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={{ padding: '8px', width: '300px', borderRadius: '4px', border: '1px solid #ccc' }}
+        />
+        {hasRole(UserRole.ADMIN) && (
+
       <button 
         style={{ marginBottom: '20px', padding: '10px 20px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
         onClick={handleOpenCreateModal}
       >
         Añadir Nuevo Cliente
       </button>
-
-      {clients.length === 0 ? (
+      )}
+      </div>
+      {filteredClients.length === 0 ? (
         <p>No hay clientes para mostrar.</p>
       ) : (
         <table border={1} style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -176,6 +198,8 @@ const ManageClients = () => {
                 <td>{client.gender || '-'}</td>
                 <td>{client.observations?.substring(0, 50) || '-'}...</td>
                 <td>
+                  {hasRole(UserRole.ADMIN) && (
+                   <>
                   <button 
                     style={{ 
                       marginRight: '5px',
@@ -186,12 +210,12 @@ const ManageClients = () => {
                       borderRadius: '4px',
                       cursor: 'pointer'
                     }}
-                    onClick={() => handleOpenEditModal(client)}
-                  >
-                    Editar
-                  </button>
-                  
-                  <button 
+                      onClick={() => handleOpenEditModal(client)}
+                      >
+                      Editar
+                    </button>
+                    
+                    <button 
                     onClick={() => handleDeleteClient(client.id, client.name)}
                     disabled={isDeleting === client.id}
                     style={{ 
@@ -201,9 +225,11 @@ const ManageClients = () => {
                       padding: '5px 10px',
                       cursor: isDeleting === client.id ? 'not-allowed' : 'pointer'
                     }}
-                  >
+                    >
                     {isDeleting === client.id ? 'Eliminando...' : 'Eliminar'}
                   </button>
+                   </> 
+                  )}
                   
                   <button 
                     style={{ 

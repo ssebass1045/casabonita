@@ -6,10 +6,18 @@ import axios from 'axios';
 // 1. Define la URL base de tu API backend
 const API_BASE_URL = 'http://localhost:3000'; // <-- Asegúrate que el puerto 3000 sea el de tu backend
 
+// --- ¡AÑADE ESTE ENUM! ---
+export enum UserRole {
+  ADMIN = 'admin',
+  STAFF = 'staff',
+}
+
+
 // 2. Define la estructura esperada del payload del token JWT
 interface DecodedToken {
   username: string;
   sub: number; // ID del usuario
+  role: UserRole; // <-- ¡AÑADE ESTE CAMPO!
   iat: number;
   exp: number;
 }
@@ -20,6 +28,7 @@ interface AuthContextType {
   token: string | null;      // El token JWT crudo o null
   login: (username: string, password: string) => Promise<void>; // Función de login
   logout: () => void;      // Función de logout
+  hasRole: (role: UserRole) => boolean; // <-- ¡AÑADE ESTA FUNCIÓN!
 }
 
 // 4. Define las Props del Provider
@@ -88,9 +97,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // useEffect se encargará de limpiar axios.defaults.headers
   };
 
+  // --- ¡AÑADE ESTA FUNCIÓN HELPER! ---
+  const hasRole = (role: UserRole): boolean => {
+    return user?.role === role;
+  };
+
   // 10. Provee el contexto
   return (
-    <AuthContext.Provider value={{ user, token, login, logout }}>
+    <AuthContext.Provider value={{ user, token, login, logout, hasRole }}>
       {children}
     </AuthContext.Provider>
   );

@@ -32,9 +32,11 @@ import MetricsDashboard from './components/MetricsDashboard';
 import SendCustomMessage from './components/SendCustomMessage';
 import EmployeePayroll from './components/EmployeePayroll';
 import ChangePassword from './components/ChangePassword';
+import Dashboard from './components/Dashboard';
 
 // Contexto
 import { AuthProvider } from './auth/authContext';
+import ManageUsers from './components/ManageUsers';
 
 function App() {
   return (
@@ -70,7 +72,7 @@ function App() {
           <Route element={<PrivateLayout />}>
             <Route path="/admin" element={<AdminLayout />}>
               {/* --- CAMBIO AQUÍ: Reemplaza el placeholder por el dashboard de métricas --- */}
-              <Route index element={<MetricsDashboard />} />
+              <Route index element={<Dashboard />} />
               <Route path="treatments" element={<ManageTreatments />} />
               <Route path="blogs" element={<ManageBlogs />} />
               <Route path="employees" element={<ManageEmployees />} />
@@ -81,6 +83,7 @@ function App() {
               <Route path="metrics" element={<MetricsDashboard />} />
               <Route path="send-message" element={<SendCustomMessage />} />
               <Route path="payroll" element={<EmployeePayroll />} />
+              <Route path="users" element={<ManageUsers />} />
               <Route path="change-password" element={<ChangePassword />} />
             </Route>
           </Route>
