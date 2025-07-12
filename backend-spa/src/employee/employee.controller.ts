@@ -9,15 +9,21 @@ import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { Express } from 'express'; // Necesario para el tipo Express.Multer.File
+import { Roles } from '../auth/decorators/roles.decorator'; // <-- Importa el decorador
+import { UserRole } from '../user/entities/user.entity'; // <-- Importa el enum
+import { RolesGuard } from '../auth/guards/roles.guard'; // <-- Importa el guardia
 
+
+//@UseGuards(AuthGuard('jwt'), RolesGuard) // Protege todas las rutas de este controlador con el guardia JWT
 @Controller('employees') // Define el prefijo de ruta para este controlador (/employees)
 export class EmployeeController {
   constructor(private readonly employeeService: EmployeeService) {}
 
   // --- Rutas Protegidas (requieren autenticación JWT) ---
 
-  @UseGuards(AuthGuard('jwt')) // Protege esta ruta con el guardia JWT
+  @UseGuards(AuthGuard('jwt'), RolesGuard) // Protege esta ruta con el guardia JWT
   @Post() // Maneja peticiones POST a /employees
+  @Roles(UserRole.ADMIN) // <-- Aplica el decorador
   @UseInterceptors(FileInterceptor('image')) // Intercepta un archivo del campo 'image'
   create(
     @Body(ValidationPipe) createEmployeeDto: CreateEmployeeDto, // Valida el cuerpo de la petición con el DTO
@@ -27,8 +33,9 @@ export class EmployeeController {
     return this.employeeService.create(createEmployeeDto, file);
   }
 
-  @UseGuards(AuthGuard('jwt')) // Protege esta ruta con el guardia JWT
+  @UseGuards(AuthGuard('jwt'), RolesGuard) // Protege esta ruta con el guardia JWT
   @Patch(':id') // Maneja peticiones PATCH a /employees/:id
+  @Roles(UserRole.ADMIN) // <-- Aplica el decorador
   @UseInterceptors(FileInterceptor('image')) // Intercepta un archivo del campo 'image'
   update(
     @Param('id', ParseIntPipe) id: number, // Extrae y parsea el ID de los parámetros de la ruta
@@ -39,8 +46,9 @@ export class EmployeeController {
     return this.employeeService.update(id, updateEmployeeDto, file);
   }
 
-  @UseGuards(AuthGuard('jwt')) // Protege esta ruta con el guardia JWT
+  @UseGuards(AuthGuard('jwt'), RolesGuard) // Protege esta ruta con el guardia JWT
   @Delete(':id') // Maneja peticiones DELETE a /employees/:id
+  @Roles(UserRole.ADMIN) // <-- Aplica el decorador
   remove(@Param('id', ParseIntPipe) id: number) { // Extrae y parsea el ID
     // Llama al servicio para eliminar el empleado
     return this.employeeService.remove(id);

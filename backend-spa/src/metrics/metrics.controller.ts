@@ -4,6 +4,10 @@ import { AuthGuard } from '@nestjs/passport';
 import { MetricsService } from './metrics.service';
 import { IsNumber, Min, Max, IsString, IsNotEmpty } from 'class-validator';
 import { Transform } from 'class-transformer';
+import { Roles } from '../auth/decorators/roles.decorator'; // <-- Importa el decorador
+import { UserRole } from '../user/entities/user.entity'; // <-- Importa el enum
+import { RolesGuard } from '../auth/guards/roles.guard'; // <-- Importa el guardia
+
 
 class GetEmployeePayrollDto {
   @IsString()
@@ -21,14 +25,17 @@ class GetEmployeePayrollDto {
   commissionRate: number;
 }
 
-@UseGuards(AuthGuard('jwt'))
+@UseGuards(AuthGuard('jwt'), RolesGuard)
+//@Roles(UserRole.ADMIN)
 @Controller('metrics')
 export class MetricsController {
   private readonly logger = new Logger(MetricsController.name);
 
   constructor(private readonly metricsService: MetricsService) {}
 
+  //@UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('income/monthly')
+  @Roles(UserRole.ADMIN)
   async getMonthlyIncome(
     @Query('year', ParseIntPipe) year: number,
     @Query('month', ParseIntPipe) month: number,
@@ -36,17 +43,23 @@ export class MetricsController {
     return this.metricsService.getMonthlyIncome(year, month);
   }
 
+  //@UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('income/daily')
+  @Roles(UserRole.ADMIN)
   async getDailyIncome(@Query('date') date: string): Promise<number> {
     return this.metricsService.getDailyIncome(date);
   }
 
+  //@UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('services/top')
+  @Roles(UserRole.ADMIN)
   async getTopServices(@Query('limit', new ParseIntPipe({ optional: true })) limit?: number): Promise<any[]> {
     return this.metricsService.getTopServices(limit);
   }
 
+  //@UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('appointments/status-counts')
+  @Roles(UserRole.ADMIN)
   async getAppointmentStatusCounts(
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
@@ -54,7 +67,9 @@ export class MetricsController {
     return this.metricsService.getAppointmentStatusCounts(startDate, endDate);
   }
 
+  //@UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('clients/new-count')
+  @Roles(UserRole.ADMIN)
   async getNewClientsCount(
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
@@ -62,7 +77,9 @@ export class MetricsController {
     return this.metricsService.getNewClientsCount(startDate, endDate);
   }
 
+  //@UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('employees/performance')
+  @Roles(UserRole.ADMIN)
   async getEmployeePerformance(
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
@@ -70,7 +87,9 @@ export class MetricsController {
     return this.metricsService.getEmployeePerformance(startDate, endDate);
   }
 
+  //@UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('employees/:employeeId/payroll')
+  @Roles(UserRole.ADMIN)
   async getEmployeePayroll(
     @Param('employeeId', ParseIntPipe) employeeId: number,
     @Query(ValidationPipe) query: GetEmployeePayrollDto,

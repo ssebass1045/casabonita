@@ -11,15 +11,20 @@ import { AuthGuard } from '@nestjs/passport';
 import { Express } from 'express'; // Necesario para el tipo Express.Multer.File
 // Multer no se usa directamente aquí, pero su tipo sí a través de Express
 // import { Multer } from 'multer';
+import { Roles } from '../auth/decorators/roles.decorator'; // <-- Importa el decorador
+import { UserRole } from '../user/entities/user.entity'; // <-- Importa el enum
+import { RolesGuard } from '../auth/guards/roles.guard'; // <-- Importa el guardia
 
+//@UseGuards(AuthGuard('jwt'), RolesGuard) // Protege todas las rutas de este controlador
 @Controller('treatments')
 export class TreatmentController {
   constructor(private readonly treatmentService: TreatmentService) {}
 
   // --- Rutas Protegidas ---
 
-  @UseGuards(AuthGuard('jwt')) // Protegido
+  @UseGuards(AuthGuard('jwt'), RolesGuard) // Protegido
   @Post()
+  @Roles(UserRole.ADMIN) // Solo ADMIN puede crear tratamientos
   @UseInterceptors(FileInterceptor('image')) // Intercepta archivo del campo 'image'
   create(
     @Body(ValidationPipe) createTreatmentDto: CreateTreatmentDto,
@@ -29,8 +34,9 @@ export class TreatmentController {
     return this.treatmentService.create(createTreatmentDto, file);
   }
 
-  @UseGuards(AuthGuard('jwt')) // Protegido
+  @UseGuards(AuthGuard('jwt'), RolesGuard) // Protegido
   @Patch(':id')
+  @Roles(UserRole.ADMIN) // Solo ADMIN puede actualizar tratamientos
   @UseInterceptors(FileInterceptor('image')) // Intercepta archivo del campo 'image'
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -41,8 +47,9 @@ export class TreatmentController {
     return this.treatmentService.update(id, updateTreatmentDto, file);
   }
 
-  @UseGuards(AuthGuard('jwt')) // Protegido
+  @UseGuards(AuthGuard('jwt'), RolesGuard) // Protegido
   @Delete(':id')
+  @Roles(UserRole.ADMIN) // Solo ADMIN puede eliminar tratamientos
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.treatmentService.remove(id);
   }

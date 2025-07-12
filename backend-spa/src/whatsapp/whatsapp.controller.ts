@@ -7,6 +7,9 @@ import { CloudinaryService } from '../cloudinary/cloudinary.service'; // <-- Imp
 import { Gender } from '../client/enums/gender.enum';
 import { IsString, IsNotEmpty, IsOptional, IsInt, Min, IsEnum } from 'class-validator';
 import { Type } from 'class-transformer';
+import { Roles } from '../auth/decorators/roles.decorator'; // <-- Importa el decorador
+import { UserRole } from '../user/entities/user.entity'; // <-- Importa el enum
+import { RolesGuard } from '../auth/guards/roles.guard'; // <-- Importa el guardia
 
 class SendCustomMessageDto {
   @IsString()
@@ -30,7 +33,7 @@ class SendCustomMessageDto {
   gender?: Gender;
 }
 
-@UseGuards(AuthGuard('jwt'))
+@UseGuards(AuthGuard('jwt'), RolesGuard)
 @Controller('whatsapp')
 export class WhatsappController {
   constructor(
@@ -39,6 +42,7 @@ export class WhatsappController {
   ) {}
 
   @Post('send-custom-message')
+  @Roles(UserRole.ADMIN) // <-- Usa el decorador
   @UseInterceptors(FileInterceptor('image'))
   @HttpCode(HttpStatus.OK)
   async sendCustomMessage(

@@ -7,8 +7,12 @@ import { AppointmentService } from '../appointment/appointment.service';
 import { WhatsappService } from '../whatsapp/whatsapp.service'; // <-- Importa WhatsappService
 import { Appointment } from '../appointment/entities/appointment.entity';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { UserRole } from '../user/entities/user.entity';
+import { RolesGuard } from '../auth/guards/roles.guard';
 
-@UseGuards(AuthGuard('jwt'))
+//@UseGuards(AuthGuard('jwt'), RolesGuard)
+//@Roles(UserRole.ADMIN, UserRole.STAFF)
 @Controller('invoices')
 export class InvoiceController {
   constructor(
@@ -19,7 +23,9 @@ export class InvoiceController {
   ) {}
 
   // Endpoint para generar factura individual (ya existente)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get(':appointmentId/generate')
+  @Roles(UserRole.ADMIN, UserRole.STAFF)
   async generateInvoice(
     @Param('appointmentId', ParseIntPipe) appointmentId: number,
     @Res() res: Response,
@@ -44,7 +50,9 @@ export class InvoiceController {
   }
 
   // Endpoint para generar factura combinada (ya existente)
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Post('generate-combined')
+  @Roles(UserRole.ADMIN, UserRole.STAFF)
   async generateCombinedInvoice(
     @Body('appointmentIds') appointmentIds: number[],
     @Res() res: Response,
@@ -82,7 +90,9 @@ export class InvoiceController {
   }
 
   // --- NUEVO ENDPOINT: sendInvoiceByWhatsapp ---
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Post(':appointmentId/send-whatsapp')
+  @Roles(UserRole.ADMIN, UserRole.STAFF)
   async sendInvoiceByWhatsapp(
     @Param('appointmentId', ParseIntPipe) appointmentId: number,
   ): Promise<{ message: string }> {
@@ -108,7 +118,9 @@ export class InvoiceController {
   }
 
   // --- NUEVO ENDPOINT: sendCombinedInvoiceByWhatsapp ---
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Post('send-combined-whatsapp')
+  @Roles(UserRole.ADMIN, UserRole.STAFF)
   async sendCombinedInvoiceByWhatsapp(
     @Body('appointmentIds') appointmentIds: number[],
   ): Promise<{ message: string }> {
