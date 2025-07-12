@@ -1,6 +1,6 @@
 // File: my-spa/src/components/TreatmentsSection.tsx
 import React from 'react';
-import Card from './Card'; // Importa el componente Card
+import Card from './Card';
 
 interface Treatment {
   id: number;
@@ -21,23 +21,10 @@ const TreatmentsSection: React.FC<TreatmentsSectionProps> = ({ treatments }) => 
     window.open(whatsappUrl, '_blank');
   };
 
-  const sectionStyle: React.CSSProperties = {
-    padding: '40px 20px',
-    textAlign: 'center',
-  };
-
-  const gridStyle: React.CSSProperties = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-    gap: '20px',
-    marginTop: '20px',
-    justifyItems: 'center',
-  };
-
   return (
-    <section id="treatments" style={sectionStyle}>
-      <h2>Nuestros Tratamientos</h2>
-      <div style={gridStyle}>
+    <section id="treatments" className="section section-alt-background"> {/* Aplicamos clases */}
+      <h2 className="section-title">Nuestros Tratamientos</h2> {/* Aplicamos clase */}
+      <div className="cards-grid"> {/* Aplicamos clase */}
         {treatments.map(treatment => (
           <Card
             key={treatment.id}

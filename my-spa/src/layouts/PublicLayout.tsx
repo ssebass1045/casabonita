@@ -8,64 +8,34 @@ import AdminToolbar from '../components/AdminToolbar';
 const PublicLayout = () => {
   const { user } = useContext(AuthContext);
 
-  // Estilo para la barra de navegación pública
-  const navStyle: React.CSSProperties = {
-    position: 'sticky',
-    top: user ? '56px' : '0',
-    width: '100%',
-    backgroundColor: 'white',
-    zIndex: 1000,
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-    padding: '0 20px', // Añadimos padding horizontal
-  };
-
-  // --- NUEVOS ESTILOS para la lista y los enlaces ---
-  const ulStyle: React.CSSProperties = {
-    display: 'flex',
-    justifyContent: 'space-between', // Distribuye el espacio
-    alignItems: 'center',
-    listStyle: 'none',
-    margin: 0,
-    padding: '15px 0',
-    height: '100%',
-  };
-
-  const linkGroupStyle: React.CSSProperties = {
-    display: 'flex',
-    gap: '20px', // Espacio entre los enlaces
-  };
-
-  const linkStyle: React.CSSProperties = {
-    textDecoration: 'none',
-    color: '#333',
-    fontWeight: 500,
-  };
-  // --- FIN NUEVOS ESTILOS ---
+  // La altura del AdminToolbar es de aproximadamente 56px (padding + altura de línea)
+  const topOffset = user ? '56px' : '0'; 
 
   return (
     <>
+      {/* Muestra el AdminToolbar solo si el usuario está logueado */}
       {user && <AdminToolbar />}
       
       <div className='App'>
-        <nav style={navStyle}>
-          {/* --- CAMBIO AQUÍ: Aplicamos los nuevos estilos y estructura --- */}
-          <ul style={ulStyle}>
+        {/* Aplicamos la clase public-navbar y el top dinámico */}
+        <nav className="public-navbar" style={{ top: topOffset }}>
+          <ul className="public-navbar-list">
             <li>
-              <HashLink to="/#welcome" style={{ ...linkStyle, fontWeight: 'bold', fontSize: '1.2em' }}>
+              <HashLink to="/#welcome" className="public-navbar-brand">
                 Casa Bonita SPA
               </HashLink>
             </li>
-            <li style={linkGroupStyle}>
-              <HashLink smooth to="/#about" style={linkStyle}>Conoce</HashLink>
-              <HashLink smooth to="/#treatments" style={linkStyle}>Tratamientos</HashLink>
-              <HashLink smooth to="/#products" style={linkStyle}>Productos</HashLink>
-              <HashLink smooth to="/#blogs" style={linkStyle}>Blog</HashLink>
-              <HashLink smooth to="/#employees" style={linkStyle}>Equipo</HashLink>
-              <HashLink smooth to="/#contact" style={linkStyle}>Contacto</HashLink>
+            <li className="public-navbar-group">
+              <HashLink smooth to="/#about" className="public-navbar-link">Conoce</HashLink>
+              <HashLink smooth to="/#treatments" className="public-navbar-link">Tratamientos</HashLink>
+              <HashLink smooth to="/#products" className="public-navbar-link">Productos</HashLink>
+              <HashLink smooth to="/#blogs" className="public-navbar-link">Blog</HashLink>
+              <HashLink smooth to="/#employees" className="public-navbar-link">Equipo</HashLink>
+              <HashLink smooth to="/#contact" className="public-navbar-link">Contacto</HashLink>
             </li>
             <li>
               {!user && (
-                <RouterLink to="/login" style={{ ...linkStyle, fontWeight: 'bold' }}>Login</RouterLink>
+                <RouterLink to="/login" className="public-navbar-link login-button">Login</RouterLink>
               )}
             </li>
           </ul>

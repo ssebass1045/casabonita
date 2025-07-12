@@ -1,64 +1,33 @@
 // File: my-spa/src/layouts/AdminLayout.tsx
 import React from 'react';
-import { Outlet, Link } from 'react-router-dom'; // <-- Importa Link
+import { Outlet, Link } from 'react-router-dom';
 import AdminToolbar from '../components/AdminToolbar';
 
 const AdminLayout = () => {
-  const layoutContainerStyle: React.CSSProperties = {
-    display: 'flex',
-    minHeight: 'calc(100vh - 56px)',
-  };
-
-  const sidebarStyle: React.CSSProperties = {
-    flex: '0 0 250px',
-    backgroundColor: '#f8f9fa',
-    padding: '20px',
-    borderRight: '1px solid #dee2e6',
-  };
-
-  const mainContentStyle: React.CSSProperties = {
-    flex: 1,
-    padding: '20px',
-    overflowX: 'auto',
-  };
-
-  const navLinkStyle: React.CSSProperties = {
-    display: 'block',
-    padding: '10px 15px',
-    textDecoration: 'none',
-    color: '#343a40',
-    borderRadius: '5px',
-    marginBottom: '5px',
-  };
-
-  // Estilo para el enlace activo (puedes implementarlo con NavLink más adelante)
-  const activeLinkStyle: React.CSSProperties = {
-    ...navLinkStyle,
-    backgroundColor: '#e9ecef',
-    fontWeight: 'bold',
-  };
-
   return (
     <div>
       <AdminToolbar />
-      <div style={layoutContainerStyle}>
-        <nav style={sidebarStyle}>
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-            {/* --- CAMBIO AQUÍ: Usamos <Link> en lugar de <a> --- */}
-            <li><Link to="/admin/appointments" style={navLinkStyle}>Gestionar Citas</Link></li>
-            <li><Link to="/admin/clients" style={navLinkStyle}>Gestionar Clientes</Link></li>
-            <li><Link to="/admin/employees" style={navLinkStyle}>Gestionar Empleados</Link></li>
-            <li><Link to="/admin/products" style={navLinkStyle}>Gestionar Productos</Link></li>
-            <li><Link to="/admin/treatments" style={navLinkStyle}>Gestionar Tratamientos</Link></li>
-            <li><Link to="/admin/blogs" style={navLinkStyle}>Gestionar Blogs</Link></li>
-            <li><Link to="/admin/employee-availabilities" style={navLinkStyle}>Gestionar Disponibilidad</Link></li>
-            <li><Link to="/admin/metrics" style={navLinkStyle}>Métricas</Link></li>
-            <li><Link to="/admin/send-message" style={navLinkStyle}>Enviar Mensaje WhatsApp</Link></li>
-            <li><Link to="/admin/payroll" style={navLinkStyle}>Liquidación Empleados</Link></li>
+      <div className="admin-layout-container"> {/* Aplicamos la clase principal */}
+        <nav className="admin-sidebar"> {/* Aplicamos la clase de barra lateral */}
+          <ul className="admin-sidebar-list"> {/* Aplicamos la clase de lista */}
+            {/* Usamos las clases para los enlaces de la barra lateral */}
+            <li><Link to="/admin" className="admin-sidebar-link">Dashboard</Link></li>
+            <li><Link to="/admin/appointments" className="admin-sidebar-link">Gestionar Citas</Link></li>
+            <li><Link to="/admin/clients" className="admin-sidebar-link">Gestionar Clientes</Link></li>
+            <li><Link to="/admin/employees" className="admin-sidebar-link">Gestionar Empleados</Link></li>
+            <li><Link to="/admin/products" className="admin-sidebar-link">Gestionar Productos</Link></li>
+            <li><Link to="/admin/treatments" className="admin-sidebar-link">Gestionar Tratamientos</Link></li>
+            <li><Link to="/admin/blogs" className="admin-sidebar-link">Gestionar Blogs</Link></li>
+            <li><Link to="/admin/employee-availabilities" className="admin-sidebar-link">Gestionar Disponibilidad</Link></li>
+            <li><Link to="/admin/metrics" className="admin-sidebar-link">Métricas</Link></li>
+            <li><Link to="/admin/send-message" className="admin-sidebar-link">Enviar Mensaje WhatsApp</Link></li>
+            <li><Link to="/admin/payroll" className="admin-sidebar-link">Liquidación Empleados</Link></li>
+            <li><Link to="/admin/change-password" className="admin-sidebar-link">Cambiar Contraseña</Link></li>
+            {/* El enlace "Ver Sitio Público" ya está en AdminToolbar */}
           </ul>
         </nav>
 
-        <main style={mainContentStyle}>
+        <main className="admin-main-content"> {/* Aplicamos la clase de contenido principal */}
           <Outlet />
         </main>
       </div>

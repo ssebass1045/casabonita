@@ -1,38 +1,889 @@
+/* File: my-spa/src/App.css */
+
+/* --- CSS Reset Básico --- */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+body, h1, h2, h3, h4, h5, h6, p, ul, ol, li, figure, figcaption, blockquote, dl, dd {
+    margin: 0;
+    padding: 0;
+}
+
+ul, ol {
+    list-style: none;
+}
+
+a {
+    text-decoration: none;
+    color: inherit; /* Hereda el color del texto del padre por defecto */
+}
+
+img, picture, video, canvas, svg {
+    display: block;
+    max-width: 100%;
+}
+
+input, button, textarea, select {
+    font: inherit;
+}
+
+/* --- Variables CSS (Sistema de Diseño - Ajustadas para Figurbell Spa) --- */
+:root {
+    /* Colores extraídos y adaptados de Figurbell Spa */
+    --color-primary-figurbell: #B59726; /* Color dorado/ocre principal */
+    --color-secondary-figurbell: #808B8D; /* Gris medio, usado para descripciones */
+    --color-text-dark-figurbell: #222222; /* Negro muy oscuro para títulos */
+    --color-text-light-figurbell: #444444; /* Gris oscuro para texto general */
+    --color-bg-light-figurbell: #F5F5F5; /* Fondo muy claro/grisáceo */
+    --color-bg-medium-figurbell: #DAE2E5; /* Gris claro para fondos alternos */
+    --color-bg-dark-figurbell: #000000; /* Negro para fondos muy oscuros o texto sobre claro */
+    --color-white-figurbell: #FFFFFF; /* Blanco */
+
+    /* Sobrescribiendo tus variables existentes para alinearse con Figurbell */
+    --color-primary: var(--color-primary-figurbell); /* Acciones principales */
+    --color-secondary: var(--color-secondary-figurbell); /* Texto secundario, bordes */
+    --color-accent: var(--color-primary-figurbell); /* Para resaltar, similar al primario */
+    --color-success: #28a745; /* Mantener por ahora si no hay equivalente claro */
+    --color-danger: #dc3545; /* Mantener por ahora si no hay equivalente claro */
+    --color-info: #17a2b8; /* Mantener por ahora si no hay equivalente claro */
+    --color-warning: #ffc107; /* Mantener por ahora si no hay equivalente claro */
+
+    --color-text-dark: var(--color-text-dark-figurbell);
+    --color-text-light: var(--color-text-light-figurbell);
+    --color-text-white: var(--color-white-figurbell);
+
+    --color-bg-light: var(--color-bg-light-figurbell);
+    --color-bg-medium: var(--color-bg-medium-figurbell);
+    --color-bg-dark: var(--color-bg-dark-figurbell);
+    --color-border: var(--color-bg-medium-figurbell); /* Usar un color claro de fondo como borde */
+
+    /* Espaciado (basado en múltiplos de 8px o 16px para consistencia) */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    --spacing-xxl: 48px;
+
+    /* Tipografía (ajustada para Figurbell) */
+    --font-family-base: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    --font-size-base: 1rem; /* 16px */
+    --font-size-sm: 0.875rem; /* 14px */
+    --font-size-md: 1.125rem; /* 18px */
+    --font-size-lg: 1.25rem; /* 20px */
+    --font-size-xl: 1.5rem; /* 24px */
+    --font-size-xxl: 2rem; /* 32px */
+    /* Figurbell usa un tamaño de fuente que tiende a ser más grande para títulos y párrafos */
+    --font-size-hero-title: 3.5rem; /* Ajustar según lo que veas en la referencia */
+    --font-size-hero-subtitle: 1.8rem;
+    --font-size-hero-description: 1.15rem;
+
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-bold: 700;
+    --font-weight-extrabold: 800; /* Podría ser útil para títulos grandes */
+
+    /* Sombras */
+    --shadow-xs: 0 0px 1px rgba(0, 0, 0, 0.03); /* Sombra muy sutil */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.15);
+    /* La sombra de Figurbell es más sutil o casi inexistente en algunos elementos */
+    --shadow-figurbell-card: 0px 4px 10px rgba(0, 0, 0, 0.08); /* Una sombra más ligera */
+
+
+    /* Bordes */
+    --border-radius-sm: 4px;
+    --border-radius-md: 8px;
+    --border-radius-lg: 12px; /* Más pronunciado para algunos elementos */
+}
+
+/* --- Estilos Base para Elementos HTML (Ajustados) --- */
+body {
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-base);
+    line-height: 1.5;
+    color: var(--color-text-light-figurbell); /* Usar el gris oscuro de Figurbell */
+    background-color: var(--color-bg-light-figurbell); /* Usar el fondo claro de Figurbell */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--spacing-md);
+    color: var(--color-text-dark-figurbell); /* Títulos más oscuros */
+    line-height: 1.2; /* Ajustar el line-height para títulos */
+}
+
+h1 { font-size: var(--font-size-xxl); }
+h2 { font-size: var(--font-size-xl); }
+h3 { font-size: var(--font-size-lg); }
+
+p {
+    margin-bottom: var(--spacing-md);
+    color: var(--color-text-light-figurbell);
+}
+
+a {
+    color: var(--color-primary-figurbell); /* Enlaces con el color primario de Figurbell */
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+button {
+    padding: var(--spacing-sm) var(--spacing-lg); /* Padding ligeramente más generoso */
+    border: none; /* Figurbell no usa bordes en los botones principales */
+    border-radius: var(--border-radius-sm);
+    background-color: var(--color-primary-figurbell);
+    color: var(--color-text-white);
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    font-weight: var(--font-weight-medium);
+    text-transform: uppercase; /* Los botones de Figurbell usan mayúsculas */
+    letter-spacing: 0.5px;
+}
+
+button:hover {
+    background-color: #a08522; /* Un tono un poco más oscuro del dorado */
+    box-shadow: var(--shadow-sm); /* Una pequeña sombra al pasar el ratón */
+}
+
+button:disabled {
+    background-color: var(--color-secondary-figurbell);
+    cursor: not-allowed;
+}
+
+/* --- Clases de Utilidad Globales --- */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-md);
+}
+
+.section-padding {
+    padding: var(--spacing-xl) var(--spacing-md);
+}
+
+.text-center {
+    text-align: center;
+}
+
+.shadow-md {
+    box-shadow: var(--shadow-md);
+}
+
+.rounded-md {
+    border-radius: var(--border-radius-md);
+}
+
+/* --- Estilos específicos para el contenedor principal de la app --- */
 .App {
-  text-align: center;
+    /* No hay estilos aquí por ahora, el layout lo manejan los componentes */
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+/* --- Estilos para la Barra de Navegación Pública (PublicLayout) --- */
+.public-navbar {
+    position: sticky;
+    top: 0; /* Asegura que se fije en la parte superior */
+    width: 100%;
+    background-image: url('./assets/imagenes/pexels-photo-347139.webp'); /* Reemplaza con la ruta real de tu imagen */
+    background-size: cover;    /* Asegura que la imagen cubra todo el espacio sin perder proporción */
+    background-repeat: no-repeat; /* Evita que la imagen se repita */
+    background-position: center; /* Centra la imagen */
+    z-index: 1000;
+    box-shadow: var(--shadow-sm); /* Sombra sutil */
+    padding: 0 var(--spacing-md); /* Padding horizontal */
+    height: 80px; /* Aumentar la altura de la barra de navegación */
+    display: flex;
+    align-items: center;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.public-navbar-list {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    list-style: none;
+    margin: 0;
+    padding: 0; /* Ya tiene padding en el .public-navbar */
+    width: 100%;
+    max-width: 1200px; /* Limitar el ancho como un contenedor */
+    margin: 0 auto; /* Centrar la lista */
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+.public-navbar-brand {
+    font-family: 'Playfair Display', serif; /* Usaremos una fuente similar a la de Figurbell */
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-dark-figurbell); /* Color oscuro para el logo */
+    text-decoration: none;
+    transition: color 0.2s ease-in-out;
 }
 
-.App-link {
-  color: #61dafb;
+.public-navbar-brand:hover {
+    color: var(--color-primary-figurbell);
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.public-navbar-group {
+    display: flex;
+    gap: var(--spacing-lg); /* Espacio entre los enlaces aumentado */
+}
+
+.public-navbar-link {
+    text-decoration: none;
+    color: var(--color-text-light-figurbell); /* Color de texto más claro para los enlaces */
+    font-weight: var(--font-weight-medium);
+    transition: color 0.2s ease-in-out;
+    padding: var(--spacing-sm) 0; /* Pequeño padding para área de clic */
+    position: relative;
+}
+
+.public-navbar-link:hover {
+    color: var(--color-primary-figurbell);
+}
+
+.public-navbar-link::after { /* Subrayado sutil al pasar el ratón */
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: var(--color-primary-figurbell);
+    transition: width 0.3s ease-in-out;
+}
+
+.public-navbar-link:hover::after {
+    width: 100%;
+}
+
+/* Estilo para el enlace de Login en el navbar */
+.public-navbar-link.login-button {
+    background-color: var(--color-primary-figurbell);
+    color: var(--color-text-white);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--border-radius-sm);
+    text-transform: uppercase;
+    font-weight: var(--font-weight-bold);
+    letter-spacing: 0.5px;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.public-navbar-link.login-button:hover {
+    background-color: #080701;
+    text-decoration: none; /* Quitar el subrayado por defecto del hover */
+}
+
+.public-navbar-link.login-button::after {
+    display: none; /* Ocultar el subrayado para el botón de login */
+}
+
+
+/* --- Estilos para la Barra de Herramientas de Admin (AdminToolbar) --- */
+.admin-toolbar {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    background-color: var(--color-bg-dark-figurbell); /* Fondo oscuro */
+    color: var(--color-text-white); /* Texto blanco */
+    z-index: 1001;
+    padding: var(--spacing-sm) var(--spacing-md);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+    box-shadow: var(--shadow-md);
+}
+
+.admin-toolbar-group {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+}
+
+.admin-toolbar-link {
+    color: var(--color-text-white);
+    text-decoration: none;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    transition: background-color 0.2s ease-in-out;
+}
+
+.admin-toolbar-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.admin-toolbar-button {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border: none;
+    border-radius: var(--border-radius-sm);
+    background-color: var(--color-danger); /* Color rojo para el botón de cerrar sesión */
+    color: var(--color-text-white);
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.admin-toolbar-button:hover {
+    background-color: #bd2130;
+}
+
+/* --- Estilos para el Layout del Admin (AdminLayout) --- */
+.admin-layout-container {
+    display: flex;
+    min-height: calc(100vh - 56px);
+}
+
+.admin-sidebar {
+    flex: 0 0 250px;
+    background-color: var(--color-bg-light-figurbell);
+    padding: var(--spacing-md);
+    border-right: 1px solid var(--color-border);
+}
+
+.admin-sidebar-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.admin-sidebar-link {
+    display: block;
+    padding: var(--spacing-sm) var(--spacing-md);
+    text-decoration: none;
+    color: var(--color-text-dark-figurbell);
+    border-radius: var(--border-radius-sm);
+    margin-bottom: var(--spacing-xs);
+    transition: background-color 0.2s ease-in-out;
+}
+
+.admin-sidebar-link:hover {
+    background-color: var(--color-bg-medium-figurbell);
+}
+
+.admin-main-content {
+    flex: 1;
+    padding: var(--spacing-md);
+    overflow-x: auto;
+}
+
+/* --- Estilos para la Sección de Bienvenida (Home.tsx) --- */
+#welcome {
+    /* **CAMBIO CLAVE: Layout Flexbox para dividir en dos columnas** */
+    display: flex; /* Convierte el contenedor en un flex container */
+    flex-direction: row; /* Organiza los elementos hijos en una fila (texto a la izquierda, imágenes a la derecha) */
+    align-items: center; /* Alinea los elementos hijos verticalmente en el centro */
+    justify-content: space-between; /* Distribuye el espacio para empujar los elementos a los extremos */
+
+    padding: 60px 40px; /* Padding general para la sección */
+    min-height: 600px; /* Altura mínima para asegurar espacio */
+    box-sizing: border-box; /* Incluye padding y borde en el tamaño total del elemento */
+    text-align: left; /* Alinea el texto a la izquierda por defecto dentro de esta sección */
+
+    /* **1. Fondo de Imagen para la Sección Welcome** */
+    /* La imagen de las "hojas/flores" que ya tenías */
+    background-image: url('https://www.figurbellspa.com.co/wp-content/uploads/Recursos-02.webp');
+    background-position: left center; /* La posicionamos más al centro-izquierda */
+    background-repeat: no-repeat;
+    background-size: 210px auto;
+
+    /* Color de fondo principal (blanco pastel como Figurbell) */
+    background-color: var(--color-bg-light-figurbell); /* Asume que esta variable es un blanco/crema sutil */
+}
+
+/* **Nuevo Contenedor para el Contenido de Texto y Botones** */
+.hero-content-wrapper {
+    flex: 1; /* Permite que este contenedor ocupe el espacio disponible */
+    max-width: 55%; /* Limita su ancho para dejar espacio a las imágenes */
+    padding-right: var(--spacing-xl); /* Espacio entre el texto y la zona de imágenes */
+    text-align: left; /* Asegura que el texto dentro de este wrapper esté a la izquierda */
+    display: flex; /* Hace que el contenido interno se apile verticalmente */
+    flex-direction: column;
+    align-items: flex-start; /* Alinea los ítems internos al inicio (izquierda) */
+}
+
+/* **Nuevo Contenedor para el Logo** */
+.hero-logo-container {
+    margin-bottom: var(--spacing-lg); /* Espacio debajo del logo */
+}
+
+.hero-logo-container img {
+    max-height: 80px; /* Tamaño del logo */
+    width: auto;
+}
+
+
+#welcome .section-title {
+    font-size: var(--font-size-hero-title);
+    font-weight: var(--font-weight-extrabold);
+    color: var(--color-primary-figurbell);
+    margin-bottom: var(--spacing-sm);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    line-height: 1.2; /* Ajuste para evitar que el título sea demasiado alto */
+}
+
+#welcome .section-description {
+    font-size: var(--font-size-hero-subtitle);
+    color: var(--color-text-dark-figurbell);
+    max-width: 700px; /* Mantener un ancho máximo para este subtítulo */
+    margin-bottom: var(--spacing-md); /* Espacio más pequeño */
+    font-weight: var(--font-weight-medium);
+}
+
+#welcome p.hero-long-description {
+    font-size: var(--font-size-hero-description);
+    color: var(--color-text-light-figurbell);
+    max-width: 800px; /* Mantener un ancho máximo */
+    margin: 0 0 var(--spacing-xl) 0; /* Ajustar márgenes, sin auto horizontal */
+    line-height: 1.6;
+    font-weight: var(--font-weight-normal);
+}
+
+/* Contenedor de botones en la sección hero */
+.hero-buttons-container {
+    display: flex;
+    justify-content: flex-start; /* Alinea los botones a la izquierda */
+    gap: var(--spacing-md); /* Espacio entre los botones reducido */
+    margin-top: var(--spacing-md); /* Menos espacio arriba */
+    flex-wrap: wrap;
+}
+
+.hero-buttons-container .elementor-button {
+    /* **2. Botones más pequeños** */
+    min-width: 150px; /* Ancho mínimo más pequeño */
+    padding: var(--spacing-sm) var(--spacing-lg); /* Padding más pequeño */
+    border-radius: var(--border-radius-md); /* Bordes ligeramente menos redondeados */
+    text-transform: uppercase;
+    font-weight: var(--font-weight-bold);
+    letter-spacing: 0.5px; /* Menos espacio entre letras */
+    font-size: var(--font-size-sm); /* Texto más pequeño */
+    box-shadow: var(--shadow-xs); /* Sombra más sutil */
+}
+
+/* Los estilos de color de los botones 'book-now' y 'our-services' se mantienen igual */
+.hero-buttons-container .elementor-button.book-now {
+    background-color: var(--color-primary-figurbell);
+    color: var(--color-text-white);
+}
+
+.hero-buttons-container .elementor-button.book-now:hover {
+    background-color: #a08522;
+    box-shadow: var(--shadow-md);
+}
+
+.hero-buttons-container .elementor-button.our-services {
+    background-color: var(--color-white-figurbell);
+    color: var(--color-text-dark-figurbell);
+    border: 1px solid var(--color-border); /* Borde sutil */
+}
+
+.hero-buttons-container .elementor-button.our-services:hover {
+    background-color: var(--color-bg-medium-figurbell);
+    box-shadow: var(--shadow-md);
+}
+
+/* **Nuevo Contenedor para las Imágenes del Hero (lado derecho)** */
+.hero-images-display {
+    flex: 1; /* Permite que este contenedor ocupe el espacio disponible */
+    max-width: 45%; /* Limita su ancho para las imágenes */
+    display: flex;
+    flex-direction: column; /* Apila las imágenes verticalmente */
+    align-items: flex-end; /* Alinea las imágenes a la derecha */
+    gap: var(--spacing-md); /* Espacio entre las imágenes */
+    position: relative; /* Para posibles posicionamientos absolutos de hojas, etc. */
+}
+
+.hero-main-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--border-radius-lg); /* Bordes redondeados */
+    box-shadow: var(--shadow-lg); /* Sombra más pronunciada */
+    object-fit: cover; /* Asegura que la imagen cubra el área sin distorsión */
+}
+
+/* Estilos para las imágenes secundarias (si las añades) */
+.hero-secondary-image {
+    max-width: 150px; /* Ajusta el tamaño de las imágenes secundarias */
+    height: auto;
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-sm);
+    /* Puedes usar position: absolute si quieres un control muy preciso de su posición */
+}
+
+/* --- Estilos para Secciones Generales --- */
+/* Esta clase se usará en todas las secciones para aplicar padding y centrar el contenido principal */
+.section {
+    padding: var(--spacing-xxl) var(--spacing-md); /* Un padding generoso para todas las secciones */
+    max-width: 1200px; /* Limita el ancho del contenido de la sección */
+    margin: 0 auto; /* Centra la sección en la página */
+    display: flex;
+    flex-direction: column;
+    /* REMOVIDO: align-items: center; <-- ESTO CAUSABA EL PROBLEMA DE LAS TARJETAS APILADAS */
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Título de las secciones */
+.section-title {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-dark-figurbell);
+    margin-bottom: var(--spacing-lg);
+    text-align: center; /* ¡NUEVO! Asegura que el título esté centrado */
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    width: 100%; /* Asegura que el título tome todo el ancho para centrarse correctamente */
+}
+
+/* Descripción de las secciones */
+.section-description {
+    font-size: var(--font-size-base);
+    color: var(--color-text-light-figurbell);
+    line-height: 1.6;
+    max-width: 800px; /* Limita el ancho de la descripción */
+    margin: 0 auto var(--spacing-xl) auto; /* Centra el párrafo y añade margen inferior */
+    text-align: center; /* ¡NUEVO! Centra el texto dentro de la descripción */
+    width: 100%; /* Asegura que la descripción tome todo el ancho para centrarse correctamente */
+}
+
+/* --- Fondos para las secciones (NUEVOS ESTILOS) --- */
+
+/* Fondo para la sección "Conoce Casa Bonita" */
+#about.section-custom-bg-1 {
+   /* background-color: var(--color-bg-light-figurbell);*/ /* Un color de fondo claro */
+    /* Puedes añadir una imagen de fondo sutil aquí si lo deseas */
+     background-image: url('./assets/imagenes/bodegon-spa-flor-orquidea-exfoliacion-corporal-natural-elementos-decorativos-planos_169016-11108.avif'); 
+     background-position: center; 
+     background-size: cover; 
+     background-repeat: no-repeat; 
+}
+
+/* Fondo para la sección de "Tratamientos" */
+#treatments.section-custom-bg-2 {
+    background-color: #F8F8F8; /* Un gris muy claro, casi blanco */
+    /* background-image: url('../assets/images/fondo-treatments.png'); */
+    /* background-position: center; */
+    /* background-size: cover; */
+    /* background-repeat: no-repeat; */
+}
+
+/* Fondo para la sección de "Productos" */
+#products.section-custom-bg-3 {
+    background-color: #EFEFEF; /* Un gris claro un poco más oscuro */
+    /* background-image: url('../assets/images/fondo-products.png'); */
+    /* background-position: center; */
+    /* background-size: cover; */
+    /* background-repeat: no-repeat; */
+}
+
+/* Fondo para la sección de "Equipo" */
+#employees.section-custom-bg-4 {
+    background-color: var(--color-bg-light-figurbell); /* O un color diferente */
+    /* background-image: url('../assets/images/fondo-employees.png'); */
+    /* background-position: center; */
+    /* background-size: cover; */
+    /* background-repeat: no-repeat; */
+}
+
+/* Fondo para la sección de "Blog" */
+#blogs.section-custom-bg-5 {
+    background-color: #F2F2F2; /* Otro tono de gris claro */
+    /* background-image: url('../assets/images/fondo-blogs.png'); */
+    /* background-position: center; */
+    /* background-size: cover; */
+    /* background-repeat: no-repeat; */
+}
+
+
+/* --- Estilos para el Contenedor de Tarjetas (Grids) --- */
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Columnas responsivas, ligeramente más pequeñas */
+    gap: var(--spacing-xl);
+    margin-top: var(--spacing-xxl);
+    justify-items: center; /* Centra los items dentro de cada celda de la cuadrícula */
+    width: 100%; /* ¡IMPORTANTE! Asegura que la cuadrícula ocupe todo el ancho disponible */
+    max-width: 1200px; /* Opcional: limita el ancho máximo del grid si no quieres que se estire demasiado */
+}
+
+/* --- Estilos para el Componente Card --- */
+.card {
+    border: none; /* Figurbell parece usar menos bordes visibles */
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-figurbell-card); /* Sombra más sutil */
+    overflow: hidden;
+    max-width: 350px;
+    text-align: left; /* Alineación del texto a la izquierda como Figurbell */
+    background-color: var(--color-white-figurbell);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg); /* Una sombra más pronunciada al pasar el ratón */
+}
+
+.card-image {
+    width: 100%;
+    height: 200px; /* Altura de imagen de tarjeta ligeramente menor */
+    object-fit: cover;
+}
+
+.card-content {
+    padding: var(--spacing-md);
+}
+
+.card-title {
+    font-size: var(--font-size-lg);
+    margin-bottom: var(--spacing-sm);
+    color: var(--color-text-dark-figurbell);
+    font-weight: var(--font-weight-bold);
+}
+
+.card-description {
+    font-size: var(--font-size-sm);
+    color: var(--color-secondary-figurbell);
+    line-height: 1.5;
+    margin-bottom: var(--spacing-md);
+}
+
+.card-price { /* Nuevo estilo para el precio si aplica */
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary-figurbell);
+    margin-bottom: var(--spacing-sm);
+}
+
+.card-button {
+    display: block; /* Ocupa todo el ancho */
+    padding: var(--spacing-sm) var(--spacing-md);
+    background-color: var(--color-primary-figurbell);
+    color: var(--color-text-white);
+    border: none;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    font-size: var(--font-size-base);
+    transition: background-color 0.2s ease-in-out;
+    width: 100%;
+    margin-top: var(--spacing-sm); /* Pequeño margen superior para separar del texto */
+    text-transform: uppercase;
+    font-weight: var(--font-weight-medium);
+}
+
+.card-button:hover {
+    background-color: #a08522;
+    opacity: 1;
+}
+
+/* --- Estilos específicos para la sección de Contacto (Footer) --- */
+#contact {
+    padding-top: var(--spacing-xxl);
+    padding-bottom: var(--spacing-xxl);
+    background-color: var(--color-bg-dark-figurbell); /* Fondo muy oscuro */
+    color: var(--color-text-white);
+    text-align: center; /* Asegura que el contenido esté centrado */
+}
+
+#contact .section-title {
+    color: var(--color-text-white); /* Título blanco */
+}
+
+#contact .section-description {
+    color: var(--color-bg-medium-figurbell); /* Un gris claro para la descripción */
+    max-width: 600px; /* Limita el ancho de la descripción */
+    margin-left: auto; /* Centra el párrafo con max-width */
+    margin-right: auto; /* Centra el párrafo con max-width */
+    margin-bottom: var(--spacing-xl);
+}
+
+.contact-links {
+    display: flex;
+    justify-content: center; /* Centra los enlaces */
+    flex-wrap: wrap; /* Permite que los enlaces se envuelvan en pantallas pequeñas */
+    gap: var(--spacing-xl); /* Mayor espacio entre enlaces */
+    margin-top: var(--spacing-lg);
+}
+
+.contact-link {
+    color: var(--color-primary-figurbell); /* Color dorado para los enlaces de contacto */
+    font-weight: var(--font-weight-medium);
+    transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm); /* Espacio entre icono y texto */
+    font-size: var(--font-size-lg); /* Hacer los enlaces un poco más grandes */
+}
+
+.contact-link:hover {
+    color: var(--color-white-figurbell); /* Blanco al pasar el ratón */
+    transform: translateY(-2px);
+    text-decoration: none; /* Asegurar que no se subraya */
+}
+
+.contact-link svg { /* Si usas íconos para WhatsApp/Email */
+    fill: var(--color-primary-figurbell);
+    width: 28px; /* ¡NUEVO! Tamaño del icono en Contacto */
+    height: 28px;
+    transition: fill 0.2s ease-in-out;
+}
+
+.contact-link:hover svg {
+    fill: var(--color-white-figurbell);
+}
+
+/* --- Estilos para los iconos sociales al final de la página --- */
+.footer-social-icons {
+    display: flex;
+    flex-direction: column; /* Apila el título y los iconos */
+    justify-content: center;
+    align-items: center; /* Centra el contenido */
+    gap: var(--spacing-md);
+    padding: var(--spacing-xl) 0;
+    background-color: var(--color-bg-light-figurbell); /* O el color de fondo de tu footer */
+    border-top: 1px solid var(--color-border); /* Separador visual */
+    text-align: center; /* Centra el texto "Síguenos en" */
+}
+
+.footer-social-icons h3 {
+    margin-bottom: var(--spacing-sm);
+    color: var(--color-text-dark-figurbell);
+    font-size: var(--font-size-lg);
+}
+
+.hero-social-icons { /* Cambiado a .footer-social-links-container para mayor claridad, pero mantendré tu nombre de clase actual por ahora */
+    display: flex;
+    gap: var(--spacing-lg); /* Espacio entre los iconos */
+    justify-content: center;
+    align-items: center;
+}
+
+.footer-social-icon { /* Esta es la clase que controla el tamaño del círculo y el icono dentro */
+    width: 50px; /* ¡NUEVO! Tamaño del círculo del icono social */
+    height: 50px;
+    border-radius: 50%;
+    background-color: var(--color-secondary-figurbell); /* Color de fondo del círculo */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+    box-shadow: var(--shadow-sm); /* Sombra sutil para el círculo */
+}
+
+.footer-social-icon:hover {
+    background-color: var(--color-primary-figurbell);
+    transform: translateY(-3px) scale(1.05); /* Ligeramente más grande al pasar el mouse */
+}
+
+.footer-social-icon svg {
+    fill: var(--color-white-figurbell);
+    width: 28px; /* ¡NUEVO! Tamaño del SVG dentro del círculo */
+    height: 28px;
+}
+
+/* --- Media Queries para Responsive Design --- */
+@media (max-width: 992px) {
+    #welcome {
+        flex-direction: column; /* Apila el contenido y las imágenes en pantallas medianas */
+        padding: 40px 20px;
+        min-height: auto;
+    }
+
+    .hero-content-wrapper,
+    .hero-images-display {
+        max-width: 100%; /* Ocupan todo el ancho */
+        padding-right: 0;
+        margin-bottom: var(--spacing-xl); /* Espacio entre el texto y las imágenes apiladas */
+        align-items: center; /* Centrar elementos internos para pantallas pequeñas */
+        text-align: center;
+    }
+
+    .hero-buttons-container {
+        justify-content: center; /* Centrar botones */
+    }
+
+    .hero-logo-container {
+        margin-bottom: var(--spacing-md);
+    }
+
+    .hero-logo-container img {
+        max-height: 60px; /* Logo más pequeño en móviles */
+    }
+
+    #welcome .section-title {
+        font-size: var(--font-size-xxl); /* Título más pequeño en móviles */
+    }
+
+    #welcome .section-description {
+        font-size: var(--font-size-md);
+    }
+
+    #welcome p.hero-long-description {
+        font-size: var(--font-size-base);
+    }
+
+    .section-title {
+        font-size: var(--font-size-xl); /* Ajustar el tamaño del título general en pantallas más pequeñas */
+    }
+    .section-description {
+        font-size: var(--font-size-base);
+    }
+    .footer-social-icon {
+        width: 40px; /* Tamaño del círculo del icono social en móviles */
+        height: 40px;
+    }
+    .footer-social-icon svg {
+        width: 22px; /* Tamaño del SVG dentro del círculo en móviles */
+        height: 22px;
+    }
+}
+
+@media (max-width: 768px) {
+    .public-navbar-list {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: var(--spacing-md);
+    }
+
+    .public-navbar-group {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+        width: 100%;
+    }
+
+    .public-navbar-link {
+        width: 100%;
+        padding: var(--spacing-sm) 0;
+    }
+
+    .public-navbar-brand {
+        margin-bottom: var(--spacing-md);
+    }
+
+    .cards-grid {
+        grid-template-columns: 1fr; /* Una columna en pantallas pequeñas */
+    }
+
+    .section {
+        padding: var(--spacing-xl) var(--spacing-sm); /* Menos padding en móviles */
+    }
+    .section-title {
+        font-size: var(--font-size-lg);
+    }
+    .section-description {
+        font-size: var(--font-size-sm);
+    }
+    .contact-link {
+        font-size: var(--font-size-base);
+    }
+    .contact-link svg {
+        width: 24px;
+        height: 24px;
+    }
 }

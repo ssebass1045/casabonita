@@ -3,6 +3,9 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import './App.css';
 
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 // Layouts
 import PublicLayout from './layouts/PublicLayout';
 import PrivateLayout from './layouts/PrivateLayout';
@@ -37,6 +40,18 @@ function App() {
   return (
     <AuthProvider>
       <Router>
+        <ToastContainer
+          position="top-right"
+          autoClose={5000} // El toast se cierra después de 5 segundos
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+        />
         <Routes>
           {/* Rutas Públicas (anidadas bajo PublicLayout) */}
           <Route path="/" element={<PublicLayout />}>

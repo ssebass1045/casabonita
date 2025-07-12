@@ -1,6 +1,6 @@
 // File: my-spa/src/components/EmployeesSection.tsx
 import React from 'react';
-import Card from './Card'; // Importa el componente Card
+import Card from './Card';
 
 interface Employee {
   id: number;
@@ -10,33 +10,20 @@ interface Employee {
   imageUrl?: string;
 }
 
+// --- ¡ASEGÚRATE DE QUE ESTA INTERFAZ ESTÉ ASÍ! ---
 interface EmployeesSectionProps {
   employees: Employee[];
 }
 
 const EmployeesSection: React.FC<EmployeesSectionProps> = ({ employees }) => {
-  const sectionStyle: React.CSSProperties = {
-    padding: '40px 20px',
-    textAlign: 'center',
-  };
-
-  const gridStyle: React.CSSProperties = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-    gap: '20px',
-    marginTop: '20px',
-    justifyItems: 'center',
-  };
-
   return (
-    <section id="employees" style={sectionStyle}>
-      <h2>Nuestro Equipo</h2>
-      <div style={gridStyle}>
+    <section id="employees" className="section section-alt-background">
+      <h2 className="section-title">Nuestro Equipo</h2>
+      <div className="cards-grid">
         {employees.map(employee => (
           <Card
             key={employee.id}
             title={employee.name}
-            // Combina especialidad y descripción para una bio completa
             description={`${employee.specialty || 'Especialista'}. ${employee.description || ''}`}
             imageUrl={employee.imageUrl}
             // No incluimos botón para esta tarjeta
