@@ -23,6 +23,8 @@ interface Client {
   age?: number;
   gender?: Gender;
   observations?: string;
+  dni?: string; // <-- NUEVO CAMPO
+  dateOfBirth?: string; // <-- NUEVO CAMPO
 }
 
 const ManageClients = () => {
@@ -156,7 +158,7 @@ const ManageClients = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <input
           type="text"
-          placeholder="Buscar por nombre, teléfono o email..."
+          placeholder="Buscar por nombre, dni, teléfono o email..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           style={{ padding: '8px', width: '300px', borderRadius: '4px', border: '1px solid #ccc' }}
@@ -179,6 +181,8 @@ const ManageClients = () => {
             <tr>
               <th>ID</th>
               <th>Nombre</th>
+              <th>DNI</th>
+              <th>Fecha de Nacimiento</th>
               <th>Teléfono</th>
               <th>Email</th>
               <th>Edad</th>
@@ -192,6 +196,8 @@ const ManageClients = () => {
               <tr key={client.id}>
                 <td>{client.id}</td>
                 <td>{client.name}</td>
+                <td>{client.dni || '-'}</td>
+                <td>{client.dateOfBirth ? new Date(client.dateOfBirth).toLocaleDateString('es-ES') : '-'}</td>
                 <td>{client.phone || '-'}</td>
                 <td>{client.email || '-'}</td>
                 <td>{client.age || '-'}</td>

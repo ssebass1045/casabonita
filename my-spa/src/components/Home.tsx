@@ -120,7 +120,7 @@ const Home = () => {
                     </div>
 
                     <h1 className="section-title">Casa Bonita SPA</h1>
-                    <p className="section-description">Centro Estético de Tratamientos Faciales y Corporales</p>
+                    <p className="section-description">Centro Estético de Tratamientos Faciales, Corporales y de belleza</p>
 
                     <p className="hero-long-description">
                         No es vanidad, es Amor propio. Descubre Tratamientos Faciales y Corporales excepcionales de alta calidad y efectividad en <b className="tx-bg">Casa Bonita SPA</b>. ¡Reserva ahora y regálate el cuidado que mereces!
@@ -128,7 +128,7 @@ const Home = () => {
 
                     <div className="hero-buttons-container">
                         <a
-                            href="https://wa.me/573101234567"
+                            href="https://wa.me/573217571992"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="elementor-button book-now"
@@ -166,7 +166,7 @@ const Home = () => {
             </section>
 
             {/* Sección "Conoce Casa Bonita" - Mantener o ajustar si es necesario */}
-            <section id="about" className="section section-alt-background">
+            <section id="about" className="section section-custom-bg-1">
                 <h2 className="section-title">Conoce Casa Bonita</h2>
                 <p className="section-description">
                     Casa Bonita SPA nace del deseo profundo de brindar bienestar, belleza y armonía en un solo lugar. Somos más que un centro de estética: somos un refugio donde cuerpo, mente y espíritu se equilibran en un ambiente de tranquilidad y cuidado personalizado.
@@ -201,7 +201,7 @@ Elíjenos porque tu bienestar es nuestra prioridad. Te invitamos a vivir una exp
                 <p className="section-description">¡Nos encantaría saber de ti!</p>
                 <div className="contact-links">
                     <a
-                        href="https://wa.me/573101234567"
+                        href="https://wa.me/573217571992"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="contact-link"
@@ -209,7 +209,7 @@ Elíjenos porque tu bienestar es nuestra prioridad. Te invitamos a vivir una exp
                         WhatsApp
                     </a>
                     <a
-                        href="mailto:info@casabonita.com"
+                        href="casabonitacentroestetico@gmail.com"
                         className="contact-link"
                     >
                         Email
@@ -222,10 +222,10 @@ Elíjenos porque tu bienestar es nuestra prioridad. Te invitamos a vivir una exp
             <div className="footer-social-icons">
                 <h3>Síguenos en</h3>
                 <div className="hero-social-icons"> {/* Puedes reutilizar `hero-social-icons` o crear una nueva clase si quieres estilos específicos para el footer */}
-                    <a href="https://www.instagram.com/figurbell/" target="_blank" rel="noopener noreferrer" className="footer-social-icon">
+                    <a href="https://www.instagram.com/casabonitacentroestetico/" target="_blank" rel="noopener noreferrer" className="footer-social-icon">
                         <InstagramIcon />
                     </a>
-                    <a href="https://www.facebook.com/figurbell" target="_blank" rel="noopener noreferrer" className="footer-social-icon">
+                    <a href="https://www.facebook.com/casabonitacentroestetico/" target="_blank" rel="noopener noreferrer" className="footer-social-icon">
                         <FacebookIcon />
                     </a>
                 </div>

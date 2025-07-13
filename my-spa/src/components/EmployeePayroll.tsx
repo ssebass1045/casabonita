@@ -1,6 +1,7 @@
 // File: my-spa/src/components/EmployeePayroll.tsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const API_BASE_URL = 'http://localhost:3000';
 
@@ -37,7 +38,7 @@ const EmployeePayroll = () => {
         setEmployees(response.data);
       } catch (err: any) {
         console.error("Error fetching employees:", err);
-        setError("Error al cargar la lista de empleados.");
+        toast.error("Error al cargar la lista de empleados.");
       }
     };
     fetchEmployees();
@@ -46,11 +47,11 @@ const EmployeePayroll = () => {
   const handleCalculatePayroll = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError(null);
+    toast.error(null);
     setPayrollResult(null);
 
     if (!selectedEmployeeId || !startDate || !endDate || !commissionRate) {
-      setError("Por favor, selecciona un empleado, un rango de fechas y una tasa de comisión.");
+      toast.warn("Por favor, selecciona un empleado, un rango de fechas y una tasa de comisión.");
       setIsLoading(false);
       return;
     }
@@ -64,14 +65,15 @@ const EmployeePayroll = () => {
         }
       });
       setPayrollResult(response.data);
+      toast.success("Liquidación calculada exitosamente.");
     } catch (err: any) {
       console.error("Error calculating payroll:", err);
       if (err.response?.status === 401) {
-        setError("No tienes autorización para calcular la liquidación.");
+        toast.error("No tienes autorización para calcular la liquidación.");
       } else if (err.response?.status === 404) {
-        setError("Empleado no encontrado o no hay datos para el rango de fechas.");
+        toast.error("Empleado no encontrado o no hay datos para el rango de fechas.");
       } else {
-        setError(err.response?.data?.message || "Error al calcular la liquidación.");
+        toast.error(err.response?.data?.message || "Error al calcular la liquidación.");
       }
     } finally {
       setIsLoading(false);

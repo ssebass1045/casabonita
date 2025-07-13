@@ -17,7 +17,7 @@ interface BlogsSectionProps {
 
 const BlogsSection: React.FC<BlogsSectionProps> = ({ blogs }) => {
   return (
-    <section id="blogs" className="section">
+    <section id="blogs" className="section section-custom-bg-5">
       <h2 className="section-title">Nuestro Blog</h2>
       <div className="cards-grid">
         {blogs.map(blog => (

@@ -34,7 +34,7 @@ const ChangePassword = () => {
     try {
       const payload = { newPassword };
       // El token JWT ya se envía globalmente por axios
-      await axios.patch(`${API_BASE_URL}/user/password`, payload);
+      await axios.patch(`${API_BASE_URL}/users/password`, payload);
 
       setSuccessMessage('¡Contraseña actualizada correctamente!');
       setNewPassword('');

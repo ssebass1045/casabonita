@@ -17,7 +17,7 @@ interface EmployeesSectionProps {
 
 const EmployeesSection: React.FC<EmployeesSectionProps> = ({ employees }) => {
   return (
-    <section id="employees" className="section section-alt-background">
+    <section id="employees" className="section section-custom-bg-4">
       <h2 className="section-title">Nuestro Equipo</h2>
       <div className="cards-grid">
         {employees.map(employee => (

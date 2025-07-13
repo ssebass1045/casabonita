@@ -1,6 +1,7 @@
 // File: my-spa/src/components/ClientAppointmentsHistory.tsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import Modal from './Modal';
 
 const API_BASE_URL = 'http://localhost:3000';
 
@@ -71,6 +72,8 @@ const ClientAppointmentsHistory: React.FC<ClientAppointmentsHistoryProps> = ({ c
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [notesToShow, setNotesToShow] = useState<string | null>(null);
+
 
   useEffect(() => {
     const fetchClientAppointments = async () => {
@@ -150,12 +153,33 @@ const ClientAppointmentsHistory: React.FC<ClientAppointmentsHistoryProps> = ({ c
                 <td>${parseFloat(appointment.price?.toString() || '0').toFixed(2) || '0.00'}</td>
                 <td>{appointment.paymentMethod || '-'}</td>
                 <td>{appointment.paymentStatus}</td>
-                <td>{appointment.notes?.substring(0, 50) || '-'}...</td>
+                <td>
+                  {appointment.notes ? (
+                    <button 
+                      className="action-button" 
+                      style={{ backgroundColor: 'var(--color-info)' }}
+                      onClick={() => setNotesToShow(appointment.notes!)}
+                    >
+                      Ver Notas
+                    </button>
+                  ) : (
+                    '-'
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       )}
+      <Modal
+        isOpen={!!notesToShow} // El modal se abre si 'notesToShow' no es nulo
+        onClose={() => setNotesToShow(null)} // El modal se cierra al establecer 'notesToShow' a nulo
+        title="Notas de la Cita"
+      >
+        <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', maxHeight: '60vh', overflowY: 'auto' }}>
+          {notesToShow}
+        </div>
+      </Modal>
     </div>
   );
 };

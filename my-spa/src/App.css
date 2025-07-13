@@ -413,8 +413,10 @@ button:disabled {
 }
 
 .hero-logo-container img {
-    max-height: 80px; /* Tamaño del logo */
-    width: auto;
+    
+    max-height: 300px; /* Tamaño del logo */
+    width:auto;
+    margin-left: 250px;
 }
 
 
@@ -466,26 +468,37 @@ button:disabled {
     box-shadow: var(--shadow-xs); /* Sombra más sutil */
 }
 
-/* Los estilos de color de los botones 'book-now' y 'our-services' se mantienen igual */
+/* Botón ¡RESERVAR AHORA! */
 .hero-buttons-container .elementor-button.book-now {
-    background-color: var(--color-primary-figurbell);
-    color: var(--color-text-white);
+  background-color: var(--color-primary-figurbell);
+  color: var(--color-text-white);
+  padding: 14px 20px; /* 👇 AJUSTE: Padding específico para este botón */
 }
 
 .hero-buttons-container .elementor-button.book-now:hover {
-    background-color: #a08522;
-    box-shadow: var(--shadow-md);
+  background-color: #a08522;
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
+/* Botón NUESTROS SERVICIOS */
 .hero-buttons-container .elementor-button.our-services {
-    background-color: var(--color-white-figurbell);
-    color: var(--color-text-dark-figurbell);
-    border: 1px solid var(--color-border); /* Borde sutil */
+  background-color: var(--color-white-figurbell);
+  color: var(--color-text-dark-figurbell);
+  border: 1px solid var(--color-border);
+  gap: var(--spacing-sm); /* Espacio entre el texto y el ícono */
 }
 
 .hero-buttons-container .elementor-button.our-services:hover {
-    background-color: var(--color-bg-medium-figurbell);
-    box-shadow: var(--shadow-md);
+  background-color: var(--color-bg-medium-figurbell);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+/* Estilo para el ícono de flecha SVG */
+.elementor-button.our-services .elementor-button-icon svg {
+  width: 1em;  /* Hace el icono proporcional al tamaño de la fuente */
+  height: 1em;
 }
 
 /* **Nuevo Contenedor para las Imágenes del Hero (lado derecho)** */
@@ -557,9 +570,9 @@ button:disabled {
 
 /* Fondo para la sección "Conoce Casa Bonita" */
 #about.section-custom-bg-1 {
-   /* background-color: var(--color-bg-light-figurbell);*/ /* Un color de fondo claro */
+    background-color: #f4a16a; /* Un color de fondo claro */
     /* Puedes añadir una imagen de fondo sutil aquí si lo deseas */
-     background-image: url('./assets/imagenes/bodegon-spa-flor-orquidea-exfoliacion-corporal-natural-elementos-decorativos-planos_169016-11108.avif'); 
+     /*background-image: url('./assets/imagenes/bodegon-spa-flor-orquidea-exfoliacion-corporal-natural-elementos-decorativos-planos_169016-11108.avif'); */
      background-position: center; 
      background-size: cover; 
      background-repeat: no-repeat; 
@@ -567,20 +580,20 @@ button:disabled {
 
 /* Fondo para la sección de "Tratamientos" */
 #treatments.section-custom-bg-2 {
-    background-color: #F8F8F8; /* Un gris muy claro, casi blanco */
-    /* background-image: url('../assets/images/fondo-treatments.png'); */
-    /* background-position: center; */
-    /* background-size: cover; */
-    /* background-repeat: no-repeat; */
+    background-color: var(--color-bg-light-figurbell); /* Un gris muy claro, casi blanco */
+    /*background-image: url('./assets/imagenes/hdwallpaperfacemanwomancouple.jpg'); */
+    background-position: center; 
+    background-size: cover; 
+    background-repeat: no-repeat;
 }
 
 /* Fondo para la sección de "Productos" */
 #products.section-custom-bg-3 {
-    background-color: #EFEFEF; /* Un gris claro un poco más oscuro */
-    /* background-image: url('../assets/images/fondo-products.png'); */
-    /* background-position: center; */
-    /* background-size: cover; */
-    /* background-repeat: no-repeat; */
+    background-color: #e7e0e0; /* Un gris claro un poco más oscuro */
+    background-image: url('./assets/imagenes/bodegon-spa-flor-orquidea-exfoliacion-corporal-natural-elementos-decorativos-planos_169016-11108.avif'); 
+    background-position: center; 
+    background-size: cover; 
+    background-repeat: no-repeat; 
 }
 
 /* Fondo para la sección de "Equipo" */
@@ -594,11 +607,11 @@ button:disabled {
 
 /* Fondo para la sección de "Blog" */
 #blogs.section-custom-bg-5 {
-    background-color: #F2F2F2; /* Otro tono de gris claro */
-    /* background-image: url('../assets/images/fondo-blogs.png'); */
-    /* background-position: center; */
-    /* background-size: cover; */
-    /* background-repeat: no-repeat; */
+    /*background-color: #F2F2F2;*/ /* Otro tono de gris claro */
+    background-image: url('./assets/imagenes/istockphoto-1459373176-612x612.jpg');
+    background-position: center; 
+    background-size: cover; 
+    background-repeat: no-repeat; 
 }
 
 

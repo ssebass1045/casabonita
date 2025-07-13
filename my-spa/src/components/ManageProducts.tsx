@@ -1,8 +1,12 @@
 // File: my-spa/src/components/ManageProducts.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import Modal from './Modal';
 import ProductForm from './ProductForm';
+import { toast } from 'react-toastify';
+import { AuthContext, UserRole } from '../auth/authContext'; // Importa AuthContext y UserRole
+
+import RecordProductSaleForm from './RecordProductSaleForm';
 
 const API_BASE_URL = 'http://localhost:3000'; // Asegúrate que el puerto sea el de tu backend
 
@@ -22,6 +26,10 @@ const ManageProducts = () => {
   const [isDeleting, setIsDeleting] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
+
+  const [isRecordSaleModalOpen, setIsRecordSaleModalOpen] = useState<boolean>(false);
+
+  const { hasRole } = useContext(AuthContext); // Para permisos
 
   useEffect(() => {
     fetchProducts();
@@ -90,12 +98,30 @@ const ManageProducts = () => {
     setIsModalOpen(false);
     setEditingProduct(undefined);
     fetchProducts(); // Recarga la lista
+    toast.success('Producto guardado exitosamente');
   };
 
   const handleFormCancel = () => {
     setIsModalOpen(false);
     setEditingProduct(undefined);
   };
+
+  // --- FUNCIONES PARA REGISTRAR VENTA ---
+  const handleOpenRecordSaleModal = () => {
+    setIsRecordSaleModalOpen(true);
+  };
+
+  const handleRecordSaleSuccess = () => {
+    setIsRecordSaleModalOpen(false);
+    // Opcional: Recargar productos si la venta afecta el stock (aunque no lo tenemos)
+    // fetchProducts();
+    // toast.success("Venta registrada exitosamente."); // El formulario ya muestra el toast
+  };
+
+  const handleRecordSaleCancel = () => {
+    setIsRecordSaleModalOpen(false);
+  };
+  // --- FIN FUNCIONES REGISTRAR VENTA ---
 
   if (isLoading) {
     return (
@@ -115,15 +141,29 @@ const ManageProducts = () => {
   }
 
   return (
-    <div>
+    <div className="admin-content-container">
       <h2>Gestionar Productos</h2>
 
-      <button 
-        style={{ marginBottom: '20px', padding: '10px 20px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-        onClick={handleOpenCreateModal}
-      >
-        Añadir Nuevo Producto
-      </button>
+      <div style={{ marginBottom: '20px', display: 'flex', gap: '10px', justifyContent: 'flex-start' }}>
+        {hasRole(UserRole.ADMIN) && (
+          <button 
+            className="action-button"
+            style={{ backgroundColor: 'var(--color-success)' }}
+            onClick={handleOpenCreateModal}
+          >
+            Añadir Nuevo Producto
+          </button>
+        )}
+        {hasRole(UserRole.ADMIN)  && ( // Ambos roles pueden registrar ventas
+          <button 
+            className="action-button"
+            style={{ backgroundColor: 'var(--color-info)' }} // Un color diferente para registrar venta
+            onClick={handleOpenRecordSaleModal}
+          >
+            Registrar Venta
+          </button>
+        )}
+      </div>
 
       {products.length === 0 ? (
         <p>No hay productos para mostrar.</p>
@@ -201,6 +241,18 @@ const ManageProducts = () => {
           product={editingProduct}
           onSuccess={handleFormSuccess}
           onCancel={handleFormCancel}
+        />
+      </Modal>
+
+      {/* --- MODAL PARA REGISTRAR VENTA --- */}
+      <Modal
+        isOpen={isRecordSaleModalOpen}
+        onClose={handleRecordSaleCancel}
+        title="Registrar Venta de Producto"
+      >
+        <RecordProductSaleForm
+          onSuccess={handleRecordSaleSuccess}
+          onCancel={handleRecordSaleCancel}
         />
       </Modal>
     </div>

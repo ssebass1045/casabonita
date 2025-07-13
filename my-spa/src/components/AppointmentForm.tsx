@@ -87,6 +87,18 @@ interface AppointmentFormProps {
   onCancel: () => void;
 }
 
+const NOTES_TEMPLATE = `MOTIVO DE CONSULTA:
+
+ENFERMEDAD ACTUAL:
+
+EXAMEN MEDICO:
+
+ANALISIS:
+
+CONDUCTA:
+
+DIAGNOSTICO:`;
+
 const AppointmentForm: React.FC<AppointmentFormProps> = ({ appointment, initialDate, onSuccess, onCancel }) => { // <-- Recibe initialDate
   const [formData, setFormData] = useState<AppointmentFormData>({
     clientId: '',
@@ -99,7 +111,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ appointment, initialD
     price: '',
     paymentMethod: '',
     paymentStatus: PaymentStatus.PENDIENTE,
-    notes: '',
+    notes: NOTES_TEMPLATE,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -157,7 +169,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ appointment, initialD
         price: appointment.price ? appointment.price.toString() : '',
         paymentMethod: appointment.paymentMethod || '',
         paymentStatus: appointment.paymentStatus,
-        notes: appointment.notes || '',
+        notes: appointment.notes || NOTES_TEMPLATE,
       });
       // Pre-poblar el display del cliente si estamos editando
       if (appointment.client) {
@@ -168,6 +180,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ appointment, initialD
             ...prev,
             date: initialDate.toISOString().split('T')[0],
             time: initialDate.toTimeString().substring(0, 5),
+            notes: NOTES_TEMPLATE
         }));
     }
   }, [appointment, initialDate]); // <-- Añade initialDate a las dependencias

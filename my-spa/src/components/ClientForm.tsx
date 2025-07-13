@@ -21,6 +21,8 @@ interface Client {
   age?: number;
   gender?: Gender;
   observations?: string;
+   dni?: string; // <-- NUEVO CAMPO
+  dateOfBirth?: string; // <-- NUEVO CAMPO (string para el input)
 }
 
 interface ClientFormData {
@@ -30,6 +32,8 @@ interface ClientFormData {
   age: string;
   gender: Gender | '';
   observations: string;
+  dni: string; // <-- NUEVO CAMPO
+  dateOfBirth: string; // <-- NUEVO CAMPO
 }
 
 interface ClientFormProps {
@@ -46,6 +50,8 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onSuccess, onCancel }) 
     age: '',
     gender: '',
     observations: '',
+    dni: '', // <-- Inicializar
+    dateOfBirth: '', // <-- Inicializar
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,6 +67,8 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onSuccess, onCancel }) 
         age: client.age ? client.age.toString() : '',
         gender: client.gender || '',
         observations: client.observations || '',
+        dni: client.dni || '', // <-- Pre-poblar
+        dateOfBirth: client.dateOfBirth ? client.dateOfBirth.split('T')[0] : '',
       });
     }
   }, [client]);
@@ -119,6 +127,10 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onSuccess, onCancel }) 
       if (formData.observations.trim()) {
         submitData.observations = formData.observations.trim();
       }
+      if (formData.dni.trim()) {
+        submitData.dni = formData.dni.trim(); 
+      }
+      if (formData.dateOfBirth) submitData.dateOfBirth = formData.dateOfBirth; // <-- Añadir al submitData
 
       const url = isEditing 
         ? `${API_BASE_URL}/clients/${client.id}` 
@@ -179,6 +191,33 @@ const ClientForm: React.FC<ClientFormProps> = ({ client, onSuccess, onCancel }) 
             fontSize: '14px'
           }}
           placeholder="Ej: Ana García"
+        />
+      </div>
+
+      {/* Campo DNI */}
+      <div className="form-group">
+        <label htmlFor="dni" className="form-label">DNI / Cédula</label>
+        <input
+          type="text"
+          id="dni"
+          name="dni"
+          value={formData.dni}
+          onChange={handleInputChange}
+          className="form-input"
+          placeholder="Ej: 123456789"
+        />
+      </div>
+
+      {/* Campo Fecha de Nacimiento */}
+      <div className="form-group">
+        <label htmlFor="dateOfBirth" className="form-label">Fecha de Nacimiento</label>
+        <input
+          type="date"
+          id="dateOfBirth"
+          name="dateOfBirth"
+          value={formData.dateOfBirth}
+          onChange={handleInputChange}
+          className="form-input"
         />
       </div>
 
