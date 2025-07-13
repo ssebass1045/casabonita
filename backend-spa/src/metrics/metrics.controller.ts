@@ -98,4 +98,41 @@ export class MetricsController {
     // Pasa la tasa de comisión al servicio
     return this.metricsService.getEmployeePayroll(employeeId, query.startDate, query.endDate, query.commissionRate);
   }
+  @Get('products/sales-income')
+  @Roles(UserRole.ADMIN) // Solo ADMIN puede ver estas métricas
+  async getProductSalesIncome(
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+  ): Promise<number> {
+    return this.metricsService.getProductSalesIncome(startDate, endDate);
+  }
+
+  // --- NUEVO ENDPOINT: getDailyProductSalesIncome ---
+  @Get('products/sales-income/daily')
+  @Roles(UserRole.ADMIN)
+  async getDailyProductSalesIncome(@Query('date') date: string): Promise<number> {
+    return this.metricsService.getDailyProductSalesIncome(date);
+  }
+
+  @Get('clients/upcoming-birthdays')
+  @Roles(UserRole.ADMIN)
+  async getUpcomingBirthdays(
+    @Query('days', new ParseIntPipe({ optional: true })) days?: number
+  ): Promise<any[]> {
+    return this.metricsService.getUpcomingBirthdays(days);
+  }
+
+  @Get('products/top-selling')
+  @Roles(UserRole.ADMIN) // Solo ADMIN puede ver estas métricas
+  async getTopSellingProducts(
+    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number
+  ): Promise<any[]> {
+    return this.metricsService.getTopSellingProducts(limit);
+  }
+
+  @Get('income/monthly-trend')
+  @Roles(UserRole.ADMIN)
+  async getMonthlyIncomeTrend(): Promise<any[]> {
+    return this.metricsService.getMonthlyIncomeTrend();
+  }
 }

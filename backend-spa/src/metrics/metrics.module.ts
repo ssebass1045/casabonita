@@ -4,12 +4,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { MetricsService } from './metrics.service';
 import { MetricsController } from './metrics.controller';
 import { Appointment } from '../appointment/entities/appointment.entity';
-import { Client } from '../client/entities/client.entity'; // <-- Importa la entidad Client
-import { Employee } from '../employee/entities/employee.entity'; 
+import { Client } from '../client/entities/client.entity';
+import { Employee } from '../employee/entities/employee.entity';
+import { ProductSale } from '../product-sale/entities/product-sale.entity'; // <-- Importa ProductSale
+import { Product } from '../product/entities/product.entity'; // <-- Importa Product
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Appointment, Client, Employee]), // <-- Añade Client aquí
+    TypeOrmModule.forFeature([Appointment, Client, Employee, ProductSale, Product]), // <-- Añade ProductSale y Product aquí
   ],
   controllers: [MetricsController],
   providers: [MetricsService],

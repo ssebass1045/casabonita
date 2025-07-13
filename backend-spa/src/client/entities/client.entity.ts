@@ -28,4 +28,10 @@ export class Client {
 
   @Column({ type: 'text', nullable: true }) 
   observations: string;
+
+   @Column({ unique: true, nullable: true }) // <-- NUEVO CAMPO: DNI
+  dni: string;
+
+  @Column({ type: 'date', nullable: true }) // <-- NUEVO CAMPO: Fecha de Nacimiento
+  dateOfBirth: Date;
 }

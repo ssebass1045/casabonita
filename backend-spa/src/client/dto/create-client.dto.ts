@@ -1,5 +1,5 @@
 // File: backend-spa/src/client/dto/create-client.dto.ts
-import { IsString, IsNotEmpty, IsOptional, IsInt, Min, Max, IsEmail, IsEnum } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsInt, Min, Max, IsEmail, IsEnum, IsDateString } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { Gender } from '../enums/gender.enum';
 
@@ -36,4 +36,13 @@ export class CreateClientDto {
   @IsString()
   @IsOptional() 
   observations?: string;
+
+  @IsString() // <-- NUEVO CAMPO
+  @IsOptional()
+  dni?: string;
+
+  @IsDateString() // <-- NUEVO CAMPO
+  @IsOptional()
+  dateOfBirth?: string; // Se recibe como string YYYY-MM-DD
+
 }

@@ -1,8 +1,9 @@
 // File: backend-spa/src/user/user.controller.ts
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseIntPipe, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseIntPipe, ValidationPipe, Request } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { Roles } from '../auth/decorators/roles.decorator'; // <-- Importa el decorador
 import { UserRole } from './entities/user.entity'; // <-- Importa el enum
@@ -36,10 +37,15 @@ export class UserController {
   }
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Patch(':id')
-  @Roles(UserRole.ADMIN) // <-- Solo ADMIN puede actualizar
-  update(@Param('id', ParseIntPipe) id: number, @Body(ValidationPipe) updateUserDto: UpdateUserDto) {
-    return this.userService.update(id, updateUserDto);
+  @Patch('password')
+  @Roles(UserRole.ADMIN, UserRole.STAFF) // Permitir a ambos roles cambiar su propia contraseña
+  async updateOwnPassword(
+    @Request() req, // Obtiene el usuario autenticado del token JWT
+    @Body(ValidationPipe) updatePasswordDto: UpdatePasswordDto, // <-- ¡AÑADE ValidationPipe AQUÍ!
+  ): Promise<{ message: string }> {
+    const userId = req.user.userId; // Obtiene el ID del usuario del payload del token
+    await this.userService.updatePassword(userId, updatePasswordDto);
+    return { message: 'Contraseña actualizada correctamente' };
   }
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)

@@ -20,6 +20,7 @@ import { MetricsModule } from './metrics/metrics.module';
 import { WhatsappModule } from './whatsapp/whatsapp.module';
 import { InvoiceModule } from './invoice/invoice.module';
 import { TaskSchedulingModule } from './task-scheduling/task-scheduling.module';
+import { ProductSaleModule } from './product-sale/product-sale.module';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { TaskSchedulingModule } from './task-scheduling/task-scheduling.module';
     WhatsappModule,
     InvoiceModule,
     TaskSchedulingModule,
+    ProductSaleModule,
   ],
   controllers: [AppController],
   providers: [AppService, CloudinaryService],
