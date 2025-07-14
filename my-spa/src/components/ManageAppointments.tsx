@@ -8,7 +8,8 @@ import { DayOfWeek } from '../enums/day-of-week.enum';
 import { toast } from 'react-toastify'; // Importa toast
 import { AuthContext, UserRole } from '../auth/authContext';
 
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+
 
 // Definiciones de Enums (deben coincidir con el backend)
 enum AppointmentStatus {

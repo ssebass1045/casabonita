@@ -4,7 +4,8 @@ import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
 
 // 1. Define la URL base de tu API backend
-const API_BASE_URL = 'http://localhost:3000'; // <-- Asegúrate que el puerto 3000 sea el de tu backend
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+ // <-- Asegúrate que el puerto 3000 sea el de tu backend
 
 // --- ¡AÑADE ESTE ENUM! ---
 export enum UserRole {

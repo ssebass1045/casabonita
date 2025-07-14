@@ -3,7 +3,8 @@ import React, { useState, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../auth/authContext';
 
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+
 
 const ChangePassword = () => {
   const [newPassword, setNewPassword] = useState<string>('');

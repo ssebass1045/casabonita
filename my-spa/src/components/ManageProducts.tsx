@@ -8,7 +8,8 @@ import { AuthContext, UserRole } from '../auth/authContext'; // Importa AuthCont
 
 import RecordProductSaleForm from './RecordProductSaleForm';
 
-const API_BASE_URL = 'http://localhost:3000'; // Asegúrate que el puerto sea el de tu backend
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+ // Asegúrate que el puerto sea el de tu backend
 
 interface Product {
   id: number;

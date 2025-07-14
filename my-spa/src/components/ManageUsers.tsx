@@ -5,7 +5,8 @@ import { toast } from 'react-toastify';
 import Modal from './Modal';
 import UserForm from './UserForm'; // Crearemos este formulario en el siguiente paso
 
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+
 
 export enum UserRole {
   ADMIN = 'admin',

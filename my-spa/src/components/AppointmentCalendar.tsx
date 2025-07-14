@@ -12,7 +12,8 @@ import AppointmentForm from './AppointmentForm';
 // Importa el enum DayOfWeek desde la nueva ubicación centralizada
 import { DayOfWeek } from '../enums/day-of-week.enum';
 
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+
 
 // Interfaces de datos (deben coincidir con el backend)
 interface Client { id: number; name: string; }

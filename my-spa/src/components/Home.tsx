@@ -21,7 +21,8 @@ import spaLogo from '../assets/imagenes/logo-casabonita.png'; // <--- RUTA A TU 
 // import heroSideImage1 from '../assets/images/hero-side-1.jpg';
 // import heroSideImage2 from '../assets/images/hero-side-2.jpg';
 
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+
 
 // --- Interfaces para todos los datos públicos (Mantener igual) ---
 interface Treatment {

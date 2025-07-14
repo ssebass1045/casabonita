@@ -4,7 +4,8 @@ import axios from 'axios';
 import PhoneInput from 'react-phone-number-input'; // <-- Importa el componente
 import 'react-phone-number-input/style.css'; // <-- Importa los estilos
 
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+
 
 enum Gender {
   MASCULINO = 'Masculino',

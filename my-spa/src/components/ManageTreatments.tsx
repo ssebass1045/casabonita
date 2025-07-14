@@ -4,7 +4,8 @@ import axios from 'axios';
 import Modal from './Modal';
 import TreatmentForm from './TreatmentForm';
 
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+
 
 interface Treatment {
   id: number;
