@@ -42,8 +42,8 @@ import { ProductSaleModule } from './product-sale/product-sale.module';
       url: process.env.DATABASE_URL, // <-- Usa la URL completa
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-      
-      synchronize: true,
+
+      synchronize: false,
       logging: true,
     }),
     ScheduleModule.forRoot(),
