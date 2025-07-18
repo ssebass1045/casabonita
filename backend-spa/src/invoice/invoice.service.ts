@@ -26,7 +26,7 @@ export class InvoiceService {
       // Logo
       const logoPath = path.join(__dirname, '../../../my-spa/src/assets/imagenes/logo-casabonita.png');
       if (fs.existsSync(logoPath)) {
-        doc.image(logoPath, doc.page.width / 2 - 50, 30, { width: 100 });
+        doc.image(logoPath, doc.page.width / 2 - 40, 30, { width: 80 });
         doc.moveDown(5);
       }
 
@@ -43,7 +43,7 @@ export class InvoiceService {
       // Info de Factura
       const appointmentDate = new Date(appointment.startTime);
       doc.moveDown().fontSize(12).text(`Factura No: ${appointment.id}`, { align: 'right' });
-      doc.text(`Fecha: ${appointmentDate.toLocaleDateString('es-ES')}`, { align: 'right' });
+      doc.text(`Fecha: ${appointmentDate.toLocaleDateString('es-ES', { timeZone: 'America/Bogota'})}`, { align: 'right' });
 
       // Cliente
       doc.moveDown().fillColor('#0c4a6e').fontSize(14).text('Información del Cliente:', { underline: true });
@@ -57,7 +57,7 @@ export class InvoiceService {
       doc.fillColor('black').fontSize(12);
       doc.text(`Servicio: ${appointment.treatment?.name || 'N/A'}`);
       doc.text(`Profesional: ${appointment.employee?.name || 'N/A'}`);
-      doc.text(`Fecha y Hora: ${appointmentDate.toLocaleString('es-ES', { dateStyle: 'full', timeStyle: 'short' })}`);
+      doc.text(`Fecha y Hora: ${appointmentDate.toLocaleString('es-ES', { dateStyle: 'full', timeStyle: 'short', timeZone: 'America/Bogota' })}`);
       doc.text(`Estado de la Cita: ${appointment.status}`);
 
       // Pago
@@ -108,7 +108,7 @@ export class InvoiceService {
     try {
       const logoPath = path.join(__dirname, '../../../my-spa/src/assets/imagenes/logo-casabonita.png');
       if (fs.existsSync(logoPath)) {
-        doc.image(logoPath, doc.page.width / 2 - 50, 30, { width: 100 });
+        doc.image(logoPath, doc.page.width / 2 - 40, 30, { width: 80 });
         doc.moveDown(5);
       }
 
@@ -138,10 +138,10 @@ export class InvoiceService {
         const price = parseFloat(app.price?.toString() || '0');
         total += price;
 
-        doc.fontSize(12).text(`Cita #${app.id} - ${date.toLocaleDateString('es-ES')}`);
+        doc.fontSize(12).text(`Cita #${app.id} - ${date.toLocaleDateString('es-ES', { timeZone: 'America/Bogota' })}`);
         doc.fontSize(10).text(`  Servicio: ${app.treatment?.name || 'N/A'}`);
         doc.text(`  Profesional: ${app.employee?.name || 'N/A'}`);
-        doc.text(`  Fecha y Hora: ${date.toLocaleString('es-ES', { dateStyle: 'full', timeStyle: 'short' })}`);
+        doc.text(`  Fecha y Hora: ${date.toLocaleString('es-ES', { dateStyle: 'full', timeStyle: 'short', timeZone: 'America/Bogota' })}`);
         doc.text(`  Precio: $${price.toFixed(2)}`);
         doc.moveDown(0.5);
       });
