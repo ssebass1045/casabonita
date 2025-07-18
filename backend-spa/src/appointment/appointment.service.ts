@@ -54,8 +54,14 @@ export class AppointmentService {
     const dayOfWeek = this.getDayOfWeekFromDate(startTime);
     const availabilities = await this.employeeAvailabilityService.findByEmployeeAndDay(employeeId, dayOfWeek);
 
-    const appointmentStartTimeStr = startTime.toTimeString().substring(0, 5);
-    const appointmentEndTimeStr = endTime.toTimeString().substring(0, 5);
+    const timeOptions: Intl.DateTimeFormatOptions = {
+      timeZone: 'America/Bogota',
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23' // Formato 24h (00-23) para evitar errores de parseo
+    };
+    const appointmentStartTimeStr = new Intl.DateTimeFormat('es-CO', timeOptions).format(startTime);
+    const appointmentEndTimeStr = new Intl.DateTimeFormat('es-CO', timeOptions).format(endTime);
 
     const relevantAvailability = availabilities.find(av => {
       return appointmentStartTimeStr >= av.startTime && appointmentEndTimeStr <= av.endTime;
@@ -89,7 +95,8 @@ export class AppointmentService {
       DayOfWeek.DOMINGO, DayOfWeek.LUNES, DayOfWeek.MARTES, DayOfWeek.MIERCOLES,
       DayOfWeek.JUEVES, DayOfWeek.VIERNES, DayOfWeek.SABADO
     ];
-    return days[date.getDay()];
+    const zoneDate = new Date(date.toLocaleString('en-US', { timeZone: 'America/Bogota' }));
+    return days[zoneDate.getDay()];
   }
 
   async create(createAppointmentDto: CreateAppointmentDto): Promise<Appointment> {
