@@ -1,10 +1,10 @@
 // File: backend-spa/src/product/product.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Like } from 'typeorm';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { Product } from './entities/product.entity';
+import { Product, ProductCategory } from './entities/product.entity';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 @Injectable()
@@ -37,8 +37,19 @@ export class ProductService {
     return this.productRepository.save(newProduct);
   }
 
-  async findAll(): Promise<Product[]> {
-    return this.productRepository.find();
+  // MODIFICADO: findAll ahora acepta filtros
+  async findAll(category?: ProductCategory, search?: string): Promise<Product[]> {
+    const where: any = {};
+
+    if (category) {
+      where.category = category;
+    }
+
+    if (search) {
+      where.name = Like(`%${search}%`); // Búsqueda por nombre parcial
+    }
+
+    return this.productRepository.find({ where });
   }
 
   async findOne(id: number): Promise<Product> {

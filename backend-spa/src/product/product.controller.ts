@@ -1,7 +1,7 @@
 // File: backend-spa/src/product/product.controller.ts
 import {
   Controller, Get, Post, Body, Patch, Param, Delete, UseGuards,
-  ParseIntPipe, ValidationPipe, UseInterceptors, UploadedFile
+  ParseIntPipe, ValidationPipe, UseInterceptors, UploadedFile, Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ProductService } from './product.service';
@@ -12,6 +12,7 @@ import { Express } from 'express';
 import { Roles } from '../auth/decorators/roles.decorator'; // <-- Importa el decorador
 import { UserRole } from '../user/entities/user.entity'; // <-- Importa el enum
 import { RolesGuard } from '../auth/guards/roles.guard'; // <-- Importa el guardia
+import { ProductCategory } from './entities/product.entity';
 
 //@UseGuards(AuthGuard('jwt'), RolesGuard) // <-- Aplica el guardia globalmente
 @Controller('products')
@@ -52,9 +53,13 @@ export class ProductController {
 
   // --- Rutas Públicas ---
 
+  // MODIFICADO: findAll ahora usa @Query para recibir los filtros
   @Get()
-  findAll() {
-    return this.productService.findAll();
+  findAll(
+    @Query('category') category?: ProductCategory,
+    @Query('search') search?: string,
+  ) {
+    return this.productService.findAll(category, search);
   }
 
   @Get(':id')

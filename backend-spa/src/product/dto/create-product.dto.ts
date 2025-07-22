@@ -1,6 +1,16 @@
 // File: backend-spa/src/product/dto/create-product.dto.ts
-import { IsString, IsNotEmpty, IsOptional, IsNumber, Min, IsBoolean } from 'class-validator';
+import {
+  IsString,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsNumber,
+  Min,
+  IsBoolean,
+} from 'class-validator';
 import { Transform } from 'class-transformer'; // Asegúrate de que esta importación esté aquí
+import { ProductCategory } from '../entities/product.entity';
+
 
 export class CreateProductDto {
   @IsString()
@@ -33,6 +43,9 @@ export class CreateProductDto {
   })
   @IsBoolean({ message: 'isActive must be a boolean value' }) // <-- Mensaje de error más específico
   isActive?: boolean;
+
+  @IsEnum(ProductCategory) // Validación para el enum
+  category: ProductCategory;
 
   @IsString()
   @IsOptional()
