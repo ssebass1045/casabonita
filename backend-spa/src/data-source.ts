@@ -16,7 +16,7 @@ export const AppDataSource = new DataSource({
   type: 'postgres', // Especifica el driver directamente
   url: process.env.DATABASE_URL, // <-- Usa la URL completa
   entities: [__dirname + '/**/*.entity{.ts,.js}'], // Busca todas tus entidades
-  migrations: [__dirname + '/migrations/*.ts, .js'], // Aquí se guardarán tus migraciones
+  migrations: [__dirname + '/migrations/*{.ts,.js}'], // Aquí se guardarán tus migraciones
   ssl:
     process.env.NODE_ENV === 'production'
       ? { rejectUnauthorized: false }
