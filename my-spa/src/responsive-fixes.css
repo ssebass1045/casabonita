@@ -1,0 +1,244 @@
+/* File: my-spa/src/responsive-fixes.css */
+/* Correcciones para responsividad del menú público y panel de admin */
+
+/* === CORRECCIONES PARA EL MENÚ PÚBLICO === */
+
+/* Mejorar la responsividad del navbar público */
+.public-navbar {
+    min-height: 80px !important; /* Cambiar height fijo por min-height */
+}
+
+.public-navbar-list {
+    flex-wrap: wrap !important; /* Permitir que los elementos se envuelvan */
+}
+
+/* Mejoras específicas para móviles en el menú público */
+@media (max-width: 768px) {
+    .public-navbar {
+        min-height: auto !important; /* Permitir altura automática en móviles */
+        padding: var(--spacing-sm) var(--spacing-md) !important;
+    }
+
+    .public-navbar-list {
+        flex-direction: column !important;
+        align-items: center !important; /* Centrar elementos en móviles */
+        gap: var(--spacing-sm) !important;
+        padding: var(--spacing-sm) 0 !important;
+    }
+
+    .public-navbar-brand {
+        order: -1 !important; /* Asegurar que el brand esté primero */
+        margin-bottom: var(--spacing-sm) !important;
+        font-size: var(--font-size-lg) !important; /* Reducir tamaño en móviles */
+    }
+
+    .public-navbar-group {
+        flex-direction: column !important;
+        gap: var(--spacing-sm) !important;
+        width: 100% !important;
+        align-items: center !important;
+        text-align: center !important;
+    }
+
+    .public-navbar-link {
+        padding: var(--spacing-xs) var(--spacing-sm) !important;
+        font-size: var(--font-size-sm) !important; /* Reducir tamaño de fuente */
+        width: auto !important; /* No ocupar todo el ancho */
+    }
+
+    .public-navbar-link.login-button {
+        margin-top: var(--spacing-sm) !important;
+        padding: var(--spacing-sm) var(--spacing-md) !important;
+    }
+}
+
+/* === MENÚ HAMBURGUESA PARA EL PANEL DE ADMIN === */
+
+/* Botón hamburguesa (oculto por defecto) */
+.admin-hamburger-button {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--color-text-white);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: var(--spacing-xs);
+    border-radius: var(--border-radius-sm);
+    transition: background-color 0.2s ease-in-out;
+}
+
+.admin-hamburger-button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Estilos para el ícono hamburguesa */
+.hamburger-icon {
+    display: flex;
+    flex-direction: column;
+    width: 24px;
+    height: 18px;
+    justify-content: space-between;
+}
+
+.hamburger-line {
+    width: 100%;
+    height: 2px;
+    background-color: var(--color-text-white);
+    transition: all 0.3s ease-in-out;
+    transform-origin: center;
+}
+
+/* Animación del ícono cuando está activo */
+.admin-hamburger-button.active .hamburger-line:nth-child(1) {
+    transform: rotate(45deg) translate(6px, 6px);
+}
+
+.admin-hamburger-button.active .hamburger-line:nth-child(2) {
+    opacity: 0;
+}
+
+.admin-hamburger-button.active .hamburger-line:nth-child(3) {
+    transform: rotate(-45deg) translate(6px, -6px);
+}
+
+/* Overlay para cerrar el menú al hacer clic fuera */
+.admin-sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.admin-sidebar-overlay.active {
+    display: block;
+    opacity: 1;
+}
+
+/* Mejoras para el sidebar del admin */
+.admin-sidebar {
+    transition: transform 0.3s ease-in-out;
+}
+
+/* === RESPONSIVE DESIGN PARA EL PANEL DE ADMIN === */
+@media (max-width: 992px) {
+    /* Mostrar el botón hamburguesa */
+    .admin-hamburger-button {
+        display: block;
+    }
+
+    /* Ocultar el sidebar por defecto en móviles */
+    .admin-sidebar {
+        position: fixed;
+        top: 56px; /* Altura del AdminToolbar */
+        left: 0;
+        height: calc(100vh - 56px);
+        z-index: 1000;
+        transform: translateX(-100%); /* Oculto por defecto */
+        box-shadow: var(--shadow-lg);
+        overflow-y: auto;
+    }
+
+    /* Mostrar el sidebar cuando está activo */
+    .admin-sidebar.active {
+        transform: translateX(0);
+    }
+
+    /* Ajustar el contenido principal */
+    .admin-main-content {
+        width: 100%;
+        margin-left: 0;
+        padding: var(--spacing-md);
+    }
+
+    /* Ajustar el layout container */
+    .admin-layout-container {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Ajustes adicionales para pantallas muy pequeñas */
+    .admin-sidebar {
+        width: 280px; /* Ancho fijo para móviles */
+    }
+
+    .admin-main-content {
+        padding: var(--spacing-sm);
+    }
+
+    /* Hacer los enlaces del sidebar más grandes para touch */
+    .admin-sidebar-link {
+        padding: var(--spacing-md) var(--spacing-lg) !important;
+        font-size: var(--font-size-base) !important;
+    }
+}
+
+/* === MEJORAS GENERALES DE ANIMACIÓN === */
+
+/* Transiciones suaves para todos los elementos interactivos */
+.admin-sidebar-link,
+.public-navbar-link,
+.admin-toolbar-link {
+    transition: all 0.2s ease-in-out;
+}
+
+/* Mejorar la experiencia táctil en móviles */
+@media (max-width: 768px) {
+    .public-navbar-link,
+    .admin-sidebar-link {
+        min-height: 44px; /* Tamaño mínimo recomendado para touch */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+/* === CORRECCIONES ADICIONALES === */
+
+/* Asegurar que el contenido no se solape con el navbar fijo */
+@media (max-width: 768px) {
+    .App {
+        padding-top: 0; /* Remover padding superior si existe */
+    }
+    
+    /* Ajustar el primer elemento después del navbar */
+    #welcome {
+        margin-top: 0 !important;
+        padding-top: var(--spacing-lg) !important;
+    }
+}
+
+/* Mejorar la visibilidad del texto en el navbar público con fondo de imagen */
+.public-navbar-link,
+.public-navbar-brand {
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    background-color: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(2px);
+    border-radius: var(--border-radius-sm);
+    transition: all 0.2s ease-in-out;
+}
+
+.public-navbar-link:hover,
+.public-navbar-brand:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+@media (max-width: 768px) {
+    .public-navbar-link,
+    .public-navbar-brand {
+        background-color: rgba(255, 255, 255, 0.9);
+        color: var(--color-text-dark-figurbell) !important;
+        text-shadow: none;
+    }
+    
+    .public-navbar-link.login-button {
+        background-color: var(--color-primary-figurbell) !important;
+        color: var(--color-text-white) !important;
+    }
+}

@@ -6,6 +6,7 @@ import './App.css';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+
 // Layouts
 import PublicLayout from './layouts/PublicLayout';
 import PrivateLayout from './layouts/PrivateLayout';
@@ -14,6 +15,7 @@ import AdminLayout from './layouts/AdminLayout';
 // Componentes de Página/Sección
 import Login from './components/Login';
 import Home from './components/Home';
+import ProductStore from './components/ProductStore';
 import About from './components/About';
 import Treatments from './components/Treatments';
 import Blog from './components/Blog';
@@ -57,12 +59,13 @@ function App() {
         <Routes>
           {/* Rutas Públicas (anidadas bajo PublicLayout) */}
           <Route path="/" element={<PublicLayout />}>
-             <Route index element={<Home />} />
-             <Route path="about" element={<About />} />
-             <Route path="treatments" element={<Treatments />} />
-             <Route path="blog" element={<Blog />} />
-             <Route path="members" element={<Members />} />
-             <Route path="contact" element={<Contact />} />
+            <Route index element={<Home />} />
+            <Route path="store" element={<ProductStore />} />
+            <Route path="about" element={<About />} />
+            <Route path="treatments" element={<Treatments />} />
+            <Route path="blog" element={<Blog />} />
+            <Route path="members" element={<Members />} />
+            <Route path="contact" element={<Contact />} />
           </Route>
 
           {/* Ruta de Login */}
@@ -79,7 +82,10 @@ function App() {
               <Route path="products" element={<ManageProducts />} />
               <Route path="clients" element={<ManageClients />} />
               <Route path="appointments" element={<ManageAppointments />} />
-              <Route path="employee-availabilities" element={<ManageEmployeeAvailabilities />} />
+              <Route
+                path="employee-availabilities"
+                element={<ManageEmployeeAvailabilities />}
+              />
               <Route path="metrics" element={<MetricsDashboard />} />
               <Route path="send-message" element={<SendCustomMessage />} />
               <Route path="payroll" element={<EmployeePayroll />} />
@@ -90,7 +96,6 @@ function App() {
 
           {/* Ruta Catch-all o Not Found (Opcional) */}
           <Route path="*" element={<h1>404 - Página no encontrada</h1>} />
-
         </Routes>
       </Router>
     </AuthProvider>

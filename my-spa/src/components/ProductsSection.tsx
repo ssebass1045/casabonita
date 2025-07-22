@@ -1,5 +1,6 @@
 // File: my-spa/src/components/ProductsSection.tsx
 import React from 'react';
+import { Link } from 'react-router-dom';
 import Card from './Card';
 
 interface Product {
@@ -9,6 +10,7 @@ interface Product {
   price: number;
   isActive: boolean;
   imageUrl?: string;
+  category?: string;
 }
 
 interface ProductsSectionProps {
@@ -23,11 +25,13 @@ const ProductsSection: React.FC<ProductsSectionProps> = ({ products }) => {
     window.open(whatsappUrl, '_blank');
   };
 
-  const activeProducts = products.filter(product => product.isActive);
+  const activeProducts = products
+    .filter((product) => product.isActive)
+    .slice(0, 3);
 
   return (
     <section id="products" className="section section-custom-bg-3"> {/* Aplicamos clases */}
-      <h2 className="section-title">Nuestros Productos</h2> {/* Aplicamos clase */}
+      <h2 className="section-title">Nuestros Productos Destacados</h2> {/* Aplicamos clase */}
       <div className="cards-grid"> {/* Aplicamos clase */}
         {activeProducts.map(product => (
           <Card
@@ -39,6 +43,12 @@ const ProductsSection: React.FC<ProductsSectionProps> = ({ products }) => {
             onButtonClick={() => handlePurchaseRequest(product.name, product.price)}
           />
         ))}
+      </div>
+      {/* NUEVO: Botón para ir a la tienda */}
+      <div style={{ textAlign: 'center', marginTop: '40px' }}>
+        <Link to="/store" className="elementor-button book-now">
+          Ver todos los productos
+        </Link>
       </div>
     </section>
   );

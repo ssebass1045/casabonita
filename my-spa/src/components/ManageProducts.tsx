@@ -5,6 +5,7 @@ import Modal from './Modal';
 import ProductForm from './ProductForm';
 import { toast } from 'react-toastify';
 import { AuthContext, UserRole } from '../auth/authContext'; // Importa AuthContext y UserRole
+import { ProductCategory } from './ProductStore';
 
 import RecordProductSaleForm from './RecordProductSaleForm';
 
@@ -18,6 +19,7 @@ interface Product {
   price: number; // Sigue siendo number en la interfaz
   isActive: boolean;
   imageUrl?: string;
+  category?: ProductCategory;
 }
 
 const ManageProducts = () => {
@@ -145,20 +147,27 @@ const ManageProducts = () => {
     <div className="admin-content-container">
       <h2>Gestionar Productos</h2>
 
-      <div style={{ marginBottom: '20px', display: 'flex', gap: '10px', justifyContent: 'flex-start' }}>
+      <div
+        style={{
+          marginBottom: "20px",
+          display: "flex",
+          gap: "10px",
+          justifyContent: "flex-start",
+        }}
+      >
         {hasRole(UserRole.ADMIN) && (
-          <button 
+          <button
             className="action-button"
-            style={{ backgroundColor: 'var(--color-success)' }}
+            style={{ backgroundColor: "var(--color-success)" }}
             onClick={handleOpenCreateModal}
           >
             Añadir Nuevo Producto
           </button>
         )}
-        {hasRole(UserRole.ADMIN)  && ( // Ambos roles pueden registrar ventas
-          <button 
+        {hasRole(UserRole.ADMIN) && ( // Ambos roles pueden registrar ventas
+          <button
             className="action-button"
-            style={{ backgroundColor: 'var(--color-info)' }} // Un color diferente para registrar venta
+            style={{ backgroundColor: "var(--color-info)" }} // Un color diferente para registrar venta
             onClick={handleOpenRecordSaleModal}
           >
             Registrar Venta
@@ -169,11 +178,12 @@ const ManageProducts = () => {
       {products.length === 0 ? (
         <p>No hay productos para mostrar.</p>
       ) : (
-        <table border={1} style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <table border={1} style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr>
               <th>ID</th>
               <th>Nombre</th>
+              <th>Categoría</th>
               <th>Descripción</th>
               <th>Precio</th>
               <th>Estado</th>
@@ -186,45 +196,49 @@ const ManageProducts = () => {
               <tr key={product.id}>
                 <td>{product.id}</td>
                 <td>{product.name}</td>
+                <td>{product.category}</td>
                 <td>{product.description?.substring(0, 50)}...</td>
-                {/* CAMBIO AQUÍ: Asegura que product.price sea un número antes de toFixed */}
                 <td>${parseFloat(product.price.toString()).toFixed(2)}</td>
-                <td>{product.isActive ? 'Activo' : 'Inactivo'}</td>
+                <td>{product.isActive ? "Activo" : "Inactivo"}</td>
                 <td>
                   {product.imageUrl ? (
                     <img src={product.imageUrl} alt={product.name} width="50" />
                   ) : (
-                    'No img'
+                    "No img"
                   )}
                 </td>
                 <td>
-                  <button 
-                    style={{ 
-                      marginRight: '5px',
-                      backgroundColor: '#ffc107',
-                      color: 'black',
-                      border: 'none',
-                      padding: '5px 10px',
-                      borderRadius: '4px',
-                      cursor: 'pointer'
+                  <button
+                    style={{
+                      marginRight: "5px",
+                      backgroundColor: "#ffc107",
+                      color: "black",
+                      border: "none",
+                      padding: "5px 10px",
+                      borderRadius: "4px",
+                      cursor: "pointer",
                     }}
                     onClick={() => handleOpenEditModal(product)}
                   >
                     Editar
                   </button>
-                  
-                  <button 
-                    onClick={() => handleDeleteProduct(product.id, product.name)}
+
+                  <button
+                    onClick={() =>
+                      handleDeleteProduct(product.id, product.name)
+                    }
                     disabled={isDeleting === product.id}
-                    style={{ 
-                      backgroundColor: isDeleting === product.id ? '#ccc' : '#ff4444',
-                      color: 'white',
-                      border: 'none',
-                      padding: '5px 10px',
-                      cursor: isDeleting === product.id ? 'not-allowed' : 'pointer'
+                    style={{
+                      backgroundColor:
+                        isDeleting === product.id ? "#ccc" : "#ff4444",
+                      color: "white",
+                      border: "none",
+                      padding: "5px 10px",
+                      cursor:
+                        isDeleting === product.id ? "not-allowed" : "pointer",
                     }}
                   >
-                    {isDeleting === product.id ? 'Eliminando...' : 'Eliminar'}
+                    {isDeleting === product.id ? "Eliminando..." : "Eliminar"}
                   </button>
                 </td>
               </tr>
@@ -236,7 +250,7 @@ const ManageProducts = () => {
       <Modal
         isOpen={isModalOpen}
         onClose={handleFormCancel}
-        title={editingProduct ? 'Editar Producto' : 'Añadir Nuevo Producto'}
+        title={editingProduct ? "Editar Producto" : "Añadir Nuevo Producto"}
       >
         <ProductForm
           product={editingProduct}

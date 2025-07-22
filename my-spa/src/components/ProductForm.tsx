@@ -1,6 +1,7 @@
 // File: my-spa/src/components/ProductForm.tsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { ProductCategory } from './ProductStore';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
  // Asegúrate que el puerto sea el de tu backend
@@ -12,6 +13,7 @@ interface Product {
   price: number;
   isActive: boolean;
   imageUrl?: string;
+  category?: ProductCategory;
 }
 
 interface ProductFormData {
@@ -19,6 +21,7 @@ interface ProductFormData {
   description: string;
   price: string; // Como string para el input
   isActive: boolean;
+  category: ProductCategory;
   image: File | null;
 }
 
@@ -34,6 +37,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSuccess, onCancel 
     description: '',
     price: '',
     isActive: true, // Por defecto activo
+    category: ProductCategory.OTROS,
     image: null
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,16 +49,18 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSuccess, onCancel 
   useEffect(() => {
     if (product) {
       setFormData({
-        name: product.name || '',
-        description: product.description || '',
-        price: product.price ? product.price.toString() : '',
+        name: product.name || "",
+        description: product.description || "",
+        price: product.price ? product.price.toString() : "",
         isActive: product.isActive,
-        image: null // La imagen existente no se pre-carga en el input file
+        category: product.category || ProductCategory.OTROS,
+        image: null, // La imagen existente no se pre-carga en el input file
       });
     }
   }, [product]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLTextAreaElement> | React.ChangeEvent<HTMLSelectElement>) => {
+
     const { name, value, type } = e.target;
     // Manejo especial para checkbox
     if (type === 'checkbox') {
@@ -110,6 +116,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSuccess, onCancel 
       }
       
       submitData.append('isActive', formData.isActive.toString()); // Convertir boolean a string
+      submitData.append("category", formData.category);
 
       // Añadir imagen si se seleccionó una nueva
       if (formData.image) {
@@ -231,6 +238,33 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, onSuccess, onCancel 
           }}
           placeholder="0.00"
         />
+      </div>
+
+      {/* NUEVO: Campo Categoría */}
+      <div style={{ marginBottom: '15px' }}>
+        <label htmlFor="category" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+          Categoría *
+        </label>
+        <select
+          id="category"
+          name="category"
+          value={formData.category}
+          onChange={handleInputChange}
+          required
+          style={{
+            width: '100%',
+            padding: '8px',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+            fontSize: '14px'
+          }}
+        >
+          <option value={ProductCategory.FACIAL}>Facial</option>
+          <option value={ProductCategory.CORPORAL}>Corporal</option>
+          <option value={ProductCategory.CABELLO}>Cabello</option>
+          <option value={ProductCategory.TRATAMIENTO_ESPECIAL}>Tratamiento Especial</option>
+          <option value={ProductCategory.OTROS}>Otros</option>
+        </select>
       </div>
 
       {/* Campo Activo/Inactivo */}

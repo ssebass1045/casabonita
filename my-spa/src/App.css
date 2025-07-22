@@ -228,9 +228,11 @@ button:disabled {
     color: var(--color-primary-figurbell);
 }
 
-.public-navbar-group {
+/* MODIFICADO: Cambiamos .public-navbar-group a .public-navbar-links-group */
+.public-navbar-links-group {
     display: flex;
-    gap: var(--spacing-lg); /* Espacio entre los enlaces aumentado */
+    align-items: center;
+    gap: var(--spacing-lg);
 }
 
 .public-navbar-link {
@@ -280,6 +282,31 @@ button:disabled {
 
 .public-navbar-link.login-button::after {
     display: none; /* Ocultar el subrayado para el botón de login */
+}
+
+/* NUEVO: Contenedor para alinear elementos en la barra de navegación */
+.public-navbar-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    flex-wrap: wrap; /* Permite que los elementos se ajusten en móvil */
+}
+
+/* NUEVO: Botón de hamburguesa para el menú público */
+.public-menu-toggle {
+    display: none; /* Oculto por defecto en escritorio */
+    background: none;
+    border: 1px solid var(--color-text-dark-figurbell);
+    color: var(--color-text-dark-figurbell);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
 }
 
 
@@ -857,17 +884,72 @@ button:disabled {
     }
 }
 
+.admin-menu-toggle {
+    display: none; /* Oculto por defecto en escritorio */
+    position: fixed;
+    top: 10px; /* Debajo del AdminToolbar */
+    left: 300px;
+    z-index: 1200; /* Por encima de otros elementos */
+    background-color: var(--color-primary-figurbell);
+    color: white;
+    border: none;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+}
+
+.sidebar-overlay {
+    display: none; /* Oculto por defecto */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1098; /* Justo debajo del sidebar */
+}
+
 @media (max-width: 768px) {
+
+     /* --- ESTILOS PARA NAVBAR PÚBLICO EN MÓVIL --- */
+    .public-menu-toggle {
+        display: block; /* Mostramos el botón de hamburguesa */
+    }
+
+    .public-navbar {
+        height: auto;
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+
     .public-navbar-list {
         flex-direction: column;
         align-items: flex-start;
-        padding: var(--spacing-md);
     }
 
     .public-navbar-group {
         flex-direction: column;
         gap: var(--spacing-sm);
         width: 100%;
+        margin-top: var(--spacing-md);
+    }
+
+    .public-navbar-links-group {
+        display: none; /* Ocultamos los enlaces por defecto */
+        flex-direction: column;
+        width: 100%;
+        background-color: rgba(255, 255, 255, 0.98); /* Fondo casi opaco para legibilidad */
+        border-radius: var(--border-radius-md);
+        margin-top: var(--spacing-md);
+        padding: var(--spacing-md);
+        box-shadow: var(--shadow-md);
+        gap: var(--spacing-sm);
+        align-items: flex-start; /* Alineamos los enlaces a la izquierda */
+        order: 3; /* Asegura que los enlaces aparezcan debajo del logo y el botón */
+    }
+
+    .public-navbar-links-group.is-open {
+        display: flex; /* Mostramos los enlaces cuando el menú está abierto */
     }
 
     .public-navbar-link {
@@ -875,8 +957,56 @@ button:disabled {
         padding: var(--spacing-sm) 0;
     }
 
+    .public-navbar-link:hover {
+        background-color: var(--color-bg-medium-figurbell);
+        text-decoration: none; /* Quitamos el subrayado en móvil */
+    }
+
+    .public-navbar-link::after {
+        display: none; /* Quitamos la animación de subrayado en móvil */
+    }
+
     .public-navbar-brand {
         margin-bottom: var(--spacing-md);
+    }
+
+
+
+
+
+    /* --- ESTILOS PARA ADMIN LAYOUT EN MÓVIL --- */
+    .admin-menu-toggle {
+        display: block; /* Mostramos el botón de hamburguesa */
+    }
+
+    .sidebar-overlay.is-open {
+        display: block; /* Mostramos el overlay */
+    }
+
+    .admin-layout-container {
+        display: block; /* Rompemos el flexbox para que el contenido ocupe todo el ancho */
+    }
+
+    .admin-sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100vh; /* Ocupa toda la altura */
+        width: 280px; /* Ancho del menú desplegado */
+        z-index: 1099; /* Asegura que esté por encima del contenido */
+        transform: translateX(-100%); /* Oculto fuera de la pantalla */
+        transition: transform 0.3s ease-in-out;
+        background-color: var(--color-bg-light-figurbell);
+        overflow-y: auto; /* Permite scroll si hay muchos items */
+    }
+
+    .admin-sidebar.is-open {
+        transform: translateX(0); /* Muestra el menú */
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .admin-main-content {
+        padding-top: 60px; /* Espacio para que el contenido no quede debajo del botón de menú */
     }
 
     .cards-grid {
@@ -898,5 +1028,174 @@ button:disabled {
     .contact-link svg {
         width: 24px;
         height: 24px;
+    }
+}
+
+
+
+/* Estilos para el botón "Ver todos los productos" */
+.elementor-button.book-now {
+    background-color: black; /* O el color que prefieras, por ejemplo: #333, #007bff, etc. */
+    color: white; /* Color del texto para que contraste con el fondo */
+    filter: drop-shadow(1px 1px 20px rgb(35, 249, 24));
+    border: 1px solid black; /* O el color del borde que desees */
+    padding: 12px 25px;
+    font-size: 16px;
+    border-radius: 5px;
+    text-decoration: none; /* Para asegurar que no tenga subrayado si es un Link */
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+.elementor-button.book-now:hover {
+    background-color: #333; /* Un tono más oscuro para el hover */
+    border-color: #333;
+    cursor: pointer;
+}
+
+/* File: my-spa/src/App.css */
+
+/* ... (tus estilos existentes) ... */
+
+/* --- Estilos para la Página de Login (Login.tsx) --- */
+
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* Ocupa toda la altura de la ventana */
+    background-color: var(--color-bg-medium-figurbell); /* Fondo suave */
+    padding: var(--spacing-md); /* Padding para móviles */
+}
+
+.login-card {
+    background-color: var(--color-white-figurbell);
+    padding: var(--spacing-xl);
+    border-radius: var(--border-radius-lg); /* Bordes más redondeados */
+    box-shadow: var(--shadow-lg); /* Sombra pronunciada */
+    max-width: 450px; /* Ancho máximo de la tarjeta */
+    width: 100%;
+    text-align: center;
+    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.15)); /* Sombra de caída */
+    transition: transform 0.3s ease-in-out;
+}
+
+.login-card:hover {
+    transform: translateY(-5px); /* Pequeño efecto al pasar el ratón */
+}
+
+.login-brand {
+    font-family: 'Playfair Display', serif; /* Fuente elegante para el logo */
+    font-size: var(--font-size-xxl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary-figurbell); /* Color dorado */
+    margin-bottom: var(--spacing-lg);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.login-title {
+    font-size: var(--font-size-xl);
+    color: var(--color-text-dark-figurbell);
+    margin-bottom: var(--spacing-xl);
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md); /* Espacio entre grupos de formulario */
+}
+
+.form-group {
+    text-align: left; /* Alinea labels e inputs a la izquierda */
+}
+
+.form-label {
+    display: block; /* Ocupa su propia línea */
+    margin-bottom: var(--spacing-xs);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-light-figurbell);
+}
+
+.form-input {
+    width: 100%;
+    padding: var(--spacing-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-sm);
+    font-size: var(--font-size-base);
+    color: var(--color-text-dark-figurbell);
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--color-primary-figurbell);
+    box-shadow: 0 0 0 2px rgba(var(--color-primary-figurbell), 0.2); /* Sombra de enfoque */
+}
+
+.login-button {
+    /* Reutilizamos los estilos de botón general, pero podemos sobrescribir */
+    background-color: var(--color-primary-figurbell);
+    color: var(--color-text-white);
+    padding: var(--spacing-md) var(--spacing-lg); /* Padding generoso */
+    border-radius: var(--border-radius-md); /* Bordes más suaves */
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-top: var(--spacing-lg); /* Espacio superior */
+    transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.login-button:hover {
+    background-color: #a08522; /* Tono más oscuro del dorado */
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.login-error-message {
+    color: var(--color-danger); /* Rojo para errores */
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-md);
+    text-align: center;
+    background-color: rgba(var(--color-danger), 0.1);
+    padding: var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+}
+
+.login-back-link-container {
+    margin-top: var(--spacing-xl);
+    text-align: center;
+}
+
+.login-back-link {
+    color: var(--color-primary-figurbell);
+    text-decoration: none;
+    font-weight: var(--font-weight-medium);
+    transition: color 0.2s ease-in-out;
+}
+
+.login-back-link:hover {
+    color: var(--color-text-dark-figurbell);
+    text-decoration: underline;
+}
+
+/* Media Query para pantallas más pequeñas */
+@media (max-width: 480px) {
+    .login-card {
+        padding: var(--spacing-lg);
+        margin: var(--spacing-md); /* Margen para que no se pegue a los bordes */
+    }
+
+    .login-brand {
+        font-size: var(--font-size-xl);
+    }
+
+    .login-title {
+        font-size: var(--font-size-lg);
+    }
+
+    .login-button {
+        font-size: var(--font-size-base);
+        padding: var(--spacing-sm) var(--spacing-md);
     }
 }
