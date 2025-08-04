@@ -154,27 +154,11 @@ const ManageAppointments = () => {
   }, [searchInput]);
 
   const fetchAllCalendarData = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-  
-      const appointmentParams = {
-        page: currentPage,
-        limit: itemsPerPage,
-        clientId: filterClientId || undefined,
-        employeeId: filterEmployeeId || undefined,
-        status: filterStatus || undefined,
-        paymentStatus: filterPaymentStatus || undefined,
-        startDate: filterStartDate || undefined,
-        endDate: filterEndDate || undefined,
-        search: debouncedSearchTerm || undefined,
-        sortBy: sortBy,
-        sortOrder: sortOrder,
-      };
-
-
-      // Parámetros para la tabla (con paginación)
-    const appointmentParamsForTable = {
+  setIsLoading(true);
+  setError(null);
+  try {
+    // USAR LOS PARÁMETROS ORIGINALES QUE FUNCIONABAN
+    const appointmentParams = {
       page: currentPage,
       limit: itemsPerPage,
       clientId: filterClientId || undefined,
@@ -188,46 +172,28 @@ const ManageAppointments = () => {
       sortOrder: sortOrder,
     };
 
-
-      // Parámetros para el calendario (sin paginación)
-    const appointmentParamsForCalendar = {
-      page: 1, // Siempre en la primera página
-      limit: 1000, // Un número muy grande para obtener todas las citas
-      clientId: filterClientId || undefined,
-      employeeId: filterEmployeeId || undefined,
-      status: filterStatus || undefined,
-      paymentStatus: filterPaymentStatus || undefined,
-      startDate: filterStartDate || undefined,
-      endDate: filterEndDate || undefined,
-      search: debouncedSearchTerm || undefined,
-      sortBy: sortBy,
-      sortOrder: sortOrder,
-    };
-
-    
-
-      const [employeesRes, appointmentsTableRes, appointmentsCalendarRes, availabilitiesRes, clientsRes] = await Promise.all([
+    const [employeesRes, appointmentsRes, availabilitiesRes, clientsRes] = await Promise.all([
       axios.get<Employee[]>(`${API_BASE_URL}/employees`),
-      axios.get<[Appointment[], number]>(`${API_BASE_URL}/appointments`, { params: appointmentParamsForTable }),
-      axios.get<[Appointment[], number]>(`${API_BASE_URL}/appointments`, { params: appointmentParamsForCalendar }), // Nueva llamada
+      axios.get<[Appointment[], number]>(`${API_BASE_URL}/appointments`, { params: appointmentParams }),
       axios.get<EmployeeAvailability[]>(`${API_BASE_URL}/employee-availabilities`),
       axios.get<Client[]>(`${API_BASE_URL}/clients`),
     ]);
 
-      setEmployees(employeesRes.data);
-    setAppointments(appointmentsTableRes.data[0]); // Citas paginadas para la tabla
-    setTotalAppointments(appointmentsTableRes.data[1]);
-    setCalendarAppointments(appointmentsCalendarRes.data[0]); // Todas las citas para el calendario
+    setEmployees(employeesRes.data);
+    setAppointments(appointmentsRes.data[0]);
+    setTotalAppointments(appointmentsRes.data[1]);
+    setCalendarAppointments(appointmentsRes.data[0]); // Usar los mismos datos temporalmente
     setEmployeeAvailabilities(availabilitiesRes.data);
     setClients(clientsRes.data);
-    } catch (err: any) {
-      console.error("Error fetching calendar data:", err); 
-      setError(err.message || "Error al cargar los datos del calendario.");
-      toast.error("Error al cargar los datos del calendario.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  } catch (err: any) {
+    console.error("Error fetching calendar data:", err);
+    setError(err.message || "Error al cargar los datos del calendario.");
+    toast.error("Error al cargar los datos del calendario.");
+  } finally {
+    setIsLoading(false);
+  }
+};
+
     
     
     useEffect(() => {
