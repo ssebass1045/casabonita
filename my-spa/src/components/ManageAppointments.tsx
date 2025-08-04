@@ -157,7 +157,7 @@ const ManageAppointments = () => {
     setIsLoading(true);
     setError(null);
     try {
-  /*
+  
       const appointmentParams = {
         page: currentPage,
         limit: itemsPerPage,
@@ -171,7 +171,7 @@ const ManageAppointments = () => {
         sortBy: sortBy,
         sortOrder: sortOrder,
       };
-*/
+
 
       // Parámetros para la tabla (con paginación)
     const appointmentParamsForTable = {
