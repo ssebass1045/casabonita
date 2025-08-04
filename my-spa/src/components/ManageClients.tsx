@@ -128,11 +128,13 @@ const ManageClients = () => {
     setSelectedClientForHistory(null);
   };
 
-  const filteredClients = clients.filter(client =>
-    client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.phone?.includes(searchTerm) ||
-    client.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // CÓDIGO ACTUALIZADO
+const filteredClients = clients.filter(client =>
+  client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  client.dni?.toLowerCase().includes(searchTerm.toLowerCase()) || // <-- Añadido
+  client.phone?.includes(searchTerm) ||
+  client.email?.toLowerCase().includes(searchTerm.toLowerCase())
+);
 
   if (isLoading) {
     return (
@@ -193,7 +195,7 @@ const ManageClients = () => {
             </tr>
           </thead>
           <tbody>
-            {clients.map((client) => (
+            {filteredClients.map((client) => (
               <tr key={client.id}>
                 <td>{client.id}</td>
                 <td>{client.name}</td>

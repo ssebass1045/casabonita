@@ -95,6 +95,7 @@ enum SortOrder {
 
 const ManageAppointments = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [calendarAppointments, setCalendarAppointments] = useState<Appointment[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [employeeAvailabilities, setEmployeeAvailabilities] = useState<EmployeeAvailability[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
@@ -156,6 +157,7 @@ const ManageAppointments = () => {
     setIsLoading(true);
     setError(null);
     try {
+  /*
       const appointmentParams = {
         page: currentPage,
         limit: itemsPerPage,
@@ -169,21 +171,56 @@ const ManageAppointments = () => {
         sortBy: sortBy,
         sortOrder: sortOrder,
       };
+*/
 
-      const [employeesRes, appointmentsRes, availabilitiesRes, clientsRes] = await Promise.all([
-        axios.get<Employee[]>(`${API_BASE_URL}/employees`),
-        axios.get<[Appointment[], number]>(`${API_BASE_URL}/appointments`, { params: appointmentParams }),
-        axios.get<EmployeeAvailability[]>(`${API_BASE_URL}/employee-availabilities`),
-        axios.get<Client[]>(`${API_BASE_URL}/clients`),
-      ]);
+      // Parámetros para la tabla (con paginación)
+    const appointmentParamsForTable = {
+      page: currentPage,
+      limit: itemsPerPage,
+      clientId: filterClientId || undefined,
+      employeeId: filterEmployeeId || undefined,
+      status: filterStatus || undefined,
+      paymentStatus: filterPaymentStatus || undefined,
+      startDate: filterStartDate || undefined,
+      endDate: filterEndDate || undefined,
+      search: debouncedSearchTerm || undefined,
+      sortBy: sortBy,
+      sortOrder: sortOrder,
+    };
+
+
+      // Parámetros para el calendario (sin paginación)
+    const appointmentParamsForCalendar = {
+      limit: 9999, // Un número muy grande para obtener todas las citas
+      clientId: filterClientId || undefined,
+      employeeId: filterEmployeeId || undefined,
+      status: filterStatus || undefined,
+      paymentStatus: filterPaymentStatus || undefined,
+      startDate: filterStartDate || undefined,
+      endDate: filterEndDate || undefined,
+      search: debouncedSearchTerm || undefined,
+      sortBy: sortBy,
+      sortOrder: sortOrder,
+    };
+
+    
+
+      const [employeesRes, appointmentsTableRes, appointmentsCalendarRes, availabilitiesRes, clientsRes] = await Promise.all([
+      axios.get<Employee[]>(`${API_BASE_URL}/employees`),
+      axios.get<[Appointment[], number]>(`${API_BASE_URL}/appointments`, { params: appointmentParamsForTable }),
+      axios.get<[Appointment[], number]>(`${API_BASE_URL}/appointments`, { params: appointmentParamsForCalendar }), // Nueva llamada
+      axios.get<EmployeeAvailability[]>(`${API_BASE_URL}/employee-availabilities`),
+      axios.get<Client[]>(`${API_BASE_URL}/clients`),
+    ]);
 
       setEmployees(employeesRes.data);
-      setAppointments(appointmentsRes.data[0]);
-      setTotalAppointments(appointmentsRes.data[1]);
-      setEmployeeAvailabilities(availabilitiesRes.data);
-      setClients(clientsRes.data);
+    setAppointments(appointmentsTableRes.data[0]); // Citas paginadas para la tabla
+    setTotalAppointments(appointmentsTableRes.data[1]);
+    setCalendarAppointments(appointmentsCalendarRes.data[0]); // Todas las citas para el calendario
+    setEmployeeAvailabilities(availabilitiesRes.data);
+    setClients(clientsRes.data);
     } catch (err: any) {
-      console.error("Error fetching calendar data:", err);
+      console.error("Error fetching calendar data:", err); 
       setError(err.message || "Error al cargar los datos del calendario.");
       toast.error("Error al cargar los datos del calendario.");
     } finally {
@@ -399,7 +436,7 @@ const ManageAppointments = () => {
 
       )}
       <AppointmentCalendar
-        appointments={appointments}
+        appointments={calendarAppointments}
         employees={employees}
         employeeAvailabilities={employeeAvailabilities}
         onEventClick={(app) => {
