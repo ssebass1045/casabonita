@@ -191,7 +191,8 @@ const ManageAppointments = () => {
 
       // Parámetros para el calendario (sin paginación)
     const appointmentParamsForCalendar = {
-      limit: 9999, // Un número muy grande para obtener todas las citas
+      page: 1, // Siempre en la primera página
+      limit: 1000, // Un número muy grande para obtener todas las citas
       clientId: filterClientId || undefined,
       employeeId: filterEmployeeId || undefined,
       status: filterStatus || undefined,
