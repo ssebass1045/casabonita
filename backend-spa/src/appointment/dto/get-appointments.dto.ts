@@ -32,7 +32,7 @@ export class GetAppointmentsDto {
   @Type(() => Number) // Transforma el string a number
   @IsInt()
   @Min(1)
-  @Max(100) // Límite máximo de elementos por página
+  @Max(1000) // Límite máximo de elementos por página
   limit?: number = 10; // Elementos por página, por defecto 10
 
   // --- Filtrado ---
