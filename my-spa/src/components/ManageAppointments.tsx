@@ -157,8 +157,8 @@ const ManageAppointments = () => {
   setIsLoading(true);
   setError(null);
   try {
-    // USAR LOS PARÁMETROS ORIGINALES QUE FUNCIONABAN
-    const appointmentParams = {
+    // Parámetros para la tabla (igual que antes)
+    const appointmentParamsForTable = {
       page: currentPage,
       limit: itemsPerPage,
       clientId: filterClientId || undefined,
@@ -172,17 +172,33 @@ const ManageAppointments = () => {
       sortOrder: sortOrder,
     };
 
-    const [employeesRes, appointmentsRes, availabilitiesRes, clientsRes] = await Promise.all([
+    // Parámetros para el calendario (MÁS CONSERVADORES)
+    const appointmentParamsForCalendar = {
+      page: 1,
+      limit: 100, // Empezar con un número más pequeño
+      clientId: filterClientId || undefined,
+      employeeId: filterEmployeeId || undefined,
+      status: filterStatus || undefined,
+      paymentStatus: filterPaymentStatus || undefined,
+      startDate: filterStartDate || undefined,
+      endDate: filterEndDate || undefined,
+      search: debouncedSearchTerm || undefined,
+      sortBy: sortBy,
+      sortOrder: sortOrder,
+    };
+
+    const [employeesRes, appointmentsTableRes, appointmentsCalendarRes, availabilitiesRes, clientsRes] = await Promise.all([
       axios.get<Employee[]>(`${API_BASE_URL}/employees`),
-      axios.get<[Appointment[], number]>(`${API_BASE_URL}/appointments`, { params: appointmentParams }),
+      axios.get<[Appointment[], number]>(`${API_BASE_URL}/appointments`, { params: appointmentParamsForTable }),
+      axios.get<[Appointment[], number]>(`${API_BASE_URL}/appointments`, { params: appointmentParamsForCalendar }),
       axios.get<EmployeeAvailability[]>(`${API_BASE_URL}/employee-availabilities`),
       axios.get<Client[]>(`${API_BASE_URL}/clients`),
     ]);
 
     setEmployees(employeesRes.data);
-    setAppointments(appointmentsRes.data[0]);
-    setTotalAppointments(appointmentsRes.data[1]);
-    setCalendarAppointments(appointmentsRes.data[0]); // Usar los mismos datos temporalmente
+    setAppointments(appointmentsTableRes.data[0]);
+    setTotalAppointments(appointmentsTableRes.data[1]);
+    setCalendarAppointments(appointmentsCalendarRes.data[0]);
     setEmployeeAvailabilities(availabilitiesRes.data);
     setClients(clientsRes.data);
   } catch (err: any) {
@@ -193,6 +209,7 @@ const ManageAppointments = () => {
     setIsLoading(false);
   }
 };
+
 
     
     
