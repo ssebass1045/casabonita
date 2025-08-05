@@ -175,7 +175,7 @@ const ManageAppointments = () => {
     // Parámetros para el calendario (MÁS CONSERVADORES)
     const appointmentParamsForCalendar = {
       page: 1,
-      limit: 150, // Empezar con un número más pequeño
+      limit: 100, // Empezar con un número más pequeño
       clientId: filterClientId || undefined,
       employeeId: filterEmployeeId || undefined,
       status: filterStatus || undefined,
