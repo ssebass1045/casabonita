@@ -1,5 +1,6 @@
 // File: backend-spa/src/metrics/metrics.service.ts
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, MoreThanOrEqual, LessThanOrEqual } from 'typeorm';
 import { Appointment } from '../appointment/entities/appointment.entity';
@@ -10,9 +11,13 @@ import { Product } from '../product/entities/product.entity';
 import { AppointmentStatus } from '../appointment/enums/appointment-status.enum';
 import { PaymentStatus } from '../appointment/enums/payment-status.enum';
 import { DailyIncomeHistory } from './entities/daily-income-history.entity';
+import { toDate } from 'date-fns-tz';
+import { format, subDays } from 'date-fns';
+
 
 @Injectable()
 export class MetricsService {
+  private readonly logger = new Logger(MetricsService.name);
   constructor(
     @InjectRepository(Appointment)
     private appointmentRepository: Repository<Appointment>,
@@ -25,6 +30,31 @@ export class MetricsService {
     @InjectRepository(DailyIncomeHistory) // <-- Inyecta el repositorio de DailyIncomeHistory
     private dailyIncomeHistoryRepository: Repository<DailyIncomeHistory>,
   ) {}
+
+  // --- NUEVA FUNCIÓN DE TAREA PROGRAMADA (VERSIÓN CORREGIDA) ---
+  @Cron('0 1 * * *', {
+    name: 'saveDailyIncomeHistory',
+    timeZone: 'America/Bogota', // Tu zona horaria
+  })
+  async handleCron() {
+    this.logger.log('Ejecutando tarea programada: Guardar historial de ingresos diarios.');
+
+    // La opción timeZone del @Cron asegura que este código se ejecute a la 1 AM local.
+    // A esa hora, `new Date()` ya corresponde al nuevo día, por lo que podemos
+    // restar un día de forma segura para obtener la fecha del día que acaba de terminar.
+    const today = new Date();
+    const yesterday = subDays(today, 1);
+    const dateToSave = format(yesterday, 'yyyy-MM-dd');
+
+    this.logger.log(`Calculando y guardando ingresos para la fecha: ${dateToSave}`);
+
+    try {
+      await this.calculateAndSaveDailyIncome(dateToSave);
+      this.logger.log(`Historial de ingresos para la fecha ${dateToSave} guardado exitosamente.`);
+    } catch (error) {
+      this.logger.error(`Error al guardar el historial de ingresos para la fecha ${dateToSave}`, error.stack);
+    }
+  }
 
   // --- Métricas de Ingresos ---
   async getMonthlyIncome(year: number, month: number): Promise<number> {
@@ -43,16 +73,18 @@ export class MetricsService {
   }
 
   async getDailyIncome(date: string): Promise<number> {
-    const startOfDay = new Date(`${date}T00:00:00.000Z`);
-    const endOfDay = new Date(`${date}T23:59:59.999Z`);
+    const timeZone = 'America/Bogota'; // O la zona horaria que corresponda
+    const start = toDate(`${date}T00:00:00`, { timeZone });
+    const end = toDate(`${date}T23:59:59.999`, { timeZone });
 
     const result = await this.appointmentRepository
       .createQueryBuilder('appointment')
       .select('SUM(appointment.price)', 'totalIncome')
       .where('appointment.status = :status', { status: AppointmentStatus.REALIZADA })
       .andWhere('appointment.paymentStatus = :paymentStatus', { paymentStatus: PaymentStatus.PAGADO })
-      .andWhere('appointment.startTime BETWEEN :startOfDay AND :endOfDay', { startOfDay, endOfDay })
+      .andWhere('appointment.startTime BETWEEN :start AND :end', { start, end }) // <-- Usa las nuevas variables
       .getRawOne();
+
 
     return parseFloat(result?.totalIncome || 0);
   }
@@ -263,13 +295,14 @@ export class MetricsService {
 
   // --- NUEVO MÉTODO: getDailyProductSalesIncome ---
   async getDailyProductSalesIncome(date: string): Promise<number> {
-    const startOfDay = new Date(`${date}T00:00:00.000Z`);
-    const endOfDay = new Date(`${date}T23:59:59.999Z`);
+    const timeZone = 'America/Bogota'; // Asegúrate de que sea la misma zona horaria
+    const start = toDate(`${date}T00:00:00`, { timeZone });
+    const end = toDate(`${date}T23:59:59.999`, { timeZone });
 
     const result = await this.productSaleRepository
       .createQueryBuilder('productSale')
       .select('SUM(productSale.totalPrice)', 'totalSalesIncome')
-      .where('productSale.saleDate BETWEEN :startOfDay AND :endOfDay', { startOfDay, endOfDay })
+      .where('productSale.saleDate BETWEEN :start AND :end', { start, end }) // <-- Usa las nuevas variables
       .getRawOne();
 
     return parseFloat(result?.totalSalesIncome || 0);
