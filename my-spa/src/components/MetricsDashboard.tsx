@@ -29,7 +29,6 @@ interface EmployeePerformance {
   totalIncome: number;
 }
 
-// --- NUEVA INTERFAZ ---
 interface MonthlyIncomeTrend {
   month: string;
   totalIncome: number;
@@ -38,11 +37,22 @@ interface MonthlyIncomeTrend {
 interface UpcomingBirthday {
   id: number;
   name: string;
-  dateOfBirth: string; // ej. "15 de julio"
+  dateOfBirth: string; 
   daysUntilBirthday: number;
 }
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF']; // Colores para gráficos
+// --- NUEVA INTERFAZ PARA EL HISTORIAL ---
+interface DailyIncomeHistory {
+  id: number;
+  date: string;
+  totalIncome: number;
+  appointmentIncome: number;
+  productSalesIncome: number;
+  createdAt: string;
+}
+
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF'];
 
 const MetricsDashboard = () => {
   // --- ESTADOS PARA LAS MÉTRICAS ---
@@ -54,13 +64,20 @@ const MetricsDashboard = () => {
   const [appointmentStatusCounts, setAppointmentStatusCounts] = useState<AppointmentStatusCount[]>([]);
   const [newClientsCount, setNewClientsCount] = useState<number | null>(null);
   const [employeePerformance, setEmployeePerformance] = useState<EmployeePerformance[]>([]);
-  const [monthlyIncomeTrend, setMonthlyIncomeTrend] = useState<MonthlyIncomeTrend[]>([]); // <-- NUEVO ESTADO
+  const [monthlyIncomeTrend, setMonthlyIncomeTrend] = useState<MonthlyIncomeTrend[]>([]);
+  const [dailyProductSalesIncome, setDailyProductSalesIncome] = useState<number | null>(null);
+  const [upcomingBirthdays, setUpcomingBirthdays] = useState<UpcomingBirthday[]>([]); 
+
+  // --- NUEVOS ESTADOS PARA EL HISTORIAL ---
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [historicalIncome, setHistoricalIncome] = useState<DailyIncomeHistory | null>(null);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState<string | null>(null);
+
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [dailyProductSalesIncome, setDailyProductSalesIncome] = useState<number | null>(null); // <-- NUEVO ESTADO
-  const [upcomingBirthdays, setUpcomingBirthdays] = useState<UpcomingBirthday[]>([]); 
-
+  
 
   // --- RANGO DE FECHAS PARA LAS MÉTRICAS ---
   const today = new Date();
@@ -68,7 +85,6 @@ const MetricsDashboard = () => {
   const currentMonth = today.getMonth() + 1;
   const currentDay = today.toISOString().split('T')[0];
 
-  // Para métricas de "últimos 30 días"
   const endDate = new Date();
   const startDate = new Date();
   startDate.setDate(endDate.getDate() - 30);
@@ -80,7 +96,6 @@ const MetricsDashboard = () => {
       setIsLoading(true);
       setError(null);
       try {
-        // Usamos Promise.all para cargar todas las métricas en paralelo
         const [
           monthlyIncomeRes,
           dailyIncomeRes,
@@ -88,9 +103,9 @@ const MetricsDashboard = () => {
           statusCountsRes,
           newClientsRes,
           employeePerformanceRes,
-          productSalesIncomeRes, // <-- NUEVA PETICIÓN
-          topProductsRes, // <-- NUEVA PETICIÓN
-          dailyProductSalesIncomeRes, // <-- NUEVA 
+          productSalesIncomeRes,
+          topProductsRes,
+          dailyProductSalesIncomeRes,
           monthlyTrendRes,
           upcomingBirthdaysRes,
         ] = await Promise.all([
@@ -102,12 +117,11 @@ const MetricsDashboard = () => {
           axios.get<any[]>(`${API_BASE_URL}/metrics/employees/performance`, { params: { startDate: startDateStr, endDate: endDateStr } }),
           axios.get<number>(`${API_BASE_URL}/metrics/products/sales-income`, { params: { startDate: startDateStr, endDate: endDateStr } }),
           axios.get<TopProductMetric[]>(`${API_BASE_URL}/metrics/products/top-selling`),
-          axios.get<number>(`${API_BASE_URL}/metrics/products/sales-income/daily`, { params: { date: currentDay } }), // <-- NUEVA PETICIÓN
+          axios.get<number>(`${API_BASE_URL}/metrics/products/sales-income/daily`, { params: { date: currentDay } }),
           axios.get<MonthlyIncomeTrend[]>(`${API_BASE_URL}/metrics/income/monthly-trend`),
           axios.get<UpcomingBirthday[]>(`${API_BASE_URL}/metrics/clients/upcoming-birthdays`),
         ]);
 
-        // Actualizar estados
         setMonthlyIncome(monthlyIncomeRes.data);
         setDailyIncome(dailyIncomeRes.data);
         setTopServices(topServicesRes.data);
@@ -115,7 +129,6 @@ const MetricsDashboard = () => {
         setMonthlyIncomeTrend(monthlyTrendRes.data);
         setUpcomingBirthdays(upcomingBirthdaysRes.data);
         
-        // Parsear los datos que vienen como string desde el backend
         setAppointmentStatusCounts(statusCountsRes.data.map(item => ({ ...item, count: parseInt(item.count, 10) })));
         setNewClientsCount(newClientsRes.data);
         setEmployeePerformance(employeePerformanceRes.data.map(item => ({
@@ -123,8 +136,8 @@ const MetricsDashboard = () => {
           appointmentsCount: parseInt(item.appointmentsCount, 10),
           totalIncome: parseFloat(item.totalIncome),
         })));
-        setProductSalesIncome(productSalesIncomeRes.data); // <-- NUEVO ESTADO
-        setTopProducts(topProductsRes.data); // <-- NUEVO ESTADO
+        setProductSalesIncome(productSalesIncomeRes.data);
+        setTopProducts(topProductsRes.data);
 
 
       } catch (err: any) {
@@ -140,7 +153,46 @@ const MetricsDashboard = () => {
     };
 
     fetchMetrics();
-  }, [currentYear, currentMonth, currentDay, startDateStr, endDateStr]); // Dependencias para recargar si la fecha cambia
+  }, [currentYear, currentMonth, currentDay, startDateStr, endDateStr]);
+
+  // --- NUEVA FUNCIÓN PARA BUSCAR EN EL HISTORIAL ---
+  const handleFetchHistoricalIncome = async (date: string) => {
+    if (!date) return;
+    setIsHistoryLoading(true);
+    setHistoryError(null);
+    setHistoricalIncome(null);
+    try {
+      const res = await axios.get<DailyIncomeHistory>(`${API_BASE_URL}/metrics/income/historical`, { params: { date } });
+      setHistoricalIncome(res.data);
+    } catch (err: any) {
+      console.error("Error fetching historical income:", err);
+      setHistoryError("Error al consultar el historial. Es posible que no haya datos para esta fecha.");
+    } finally {
+      setIsHistoryLoading(false);
+    }
+  };
+
+  // --- NUEVA FUNCIÓN PARA GUARDAR EL DÍA ACTUAL ---
+  const handleSaveDailyIncome = async () => {
+    if (!window.confirm(`¿Estás seguro de que quieres guardar los ingresos del día ${currentDay}? Si ya existe un registro para hoy, se sobrescribirá.`)) {
+      return;
+    }
+    try {
+      await axios.post(`${API_BASE_URL}/metrics/income/save-daily`, { date: currentDay });
+      alert(`Ingresos del día ${currentDay} guardados correctamente.`);
+      // Opcional: volver a cargar el historial para la fecha actual
+      handleFetchHistoricalIncome(currentDay);
+    } catch (err: any) {
+      console.error("Error saving daily income:", err);
+      alert("Error al guardar los ingresos del día.");
+    }
+  };
+
+  // Efecto para cargar el historial de la fecha seleccionada
+  useEffect(() => {
+    handleFetchHistoricalIncome(selectedDate);
+  }, [selectedDate]);
+
 
   if (isLoading) {
     return <div>Cargando métricas...</div>;
@@ -168,35 +220,65 @@ const MetricsDashboard = () => {
           <h3>🛍️ Ingreso por Productos (últimos 30 días)</h3>
           <p style={{ fontSize: '2em', fontWeight: 'bold', color: '#6f42c1' }}>${productSalesIncome?.toFixed(2) || '0.00'}</p>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '40px' }}>
-        {/* ... (widgets existentes) ... */}
         <div style={{ padding: '20px', border: '1px solid #eee', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
           <h3>☀️ Ingreso por Productos (Hoy)</h3>
           <p style={{ fontSize: '2em', fontWeight: 'bold', color: '#6f42c1' }}>${dailyProductSalesIncome?.toFixed(2) || '0.00'}</p>
         </div>
         <div style={{ padding: '20px', border: '1px solid #eee', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-          <h3>🎂 Próximos Cumpleaños</h3>
-          {upcomingBirthdays.length > 0 ? (
-            <ul style={{ listStyle: 'none', padding: 0 }}>
-              {upcomingBirthdays.map(client => (
-                <li key={client.id} style={{ marginBottom: '5px' }}>
-                  <strong>{client.name}</strong> - {client.dateOfBirth}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>No hay cumpleaños próximos.</p>
-          )}
-        </div>
-        <div style={{ padding: '20px', border: '1px solid #eee', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
           <h3>👥 Nuevos Clientes (últimos 30 días)</h3>
           <p style={{ fontSize: '2em', fontWeight: 'bold', color: '#ffc107' }}>{newClientsCount ?? '0'}</p>
         </div>
+        <div style={{ padding: '20px', border: '1px solid #eee', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+          <button onClick={handleSaveDailyIncome} style={{ padding: '10px 15px', cursor: 'pointer', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '5px' }}>
+            Guardar Ingresos de Hoy
+          </button>
+          <p style={{ fontSize: '0.8em', color: '#6c757d', marginTop: '10px' }}>
+            Guarda los ingresos de hoy en el historial. Úsalo al final del día.
+          </p>
+        </div>
       </div>
+
+      {/* --- NUEVA SECCIÓN DE CONSULTA HISTÓRICA --- */}
+      <div style={{ padding: '20px', border: '1px solid #ddd', borderRadius: '8px', marginBottom: '40px', backgroundColor: '#f9f9f9' }}>
+        <h3>📖 Consulta de Ingresos por Día</h3>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
+          <div>
+            <label htmlFor="historical-date">Selecciona una fecha:</label>
+            <input
+              type="date"
+              id="historical-date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              style={{ padding: '8px', marginLeft: '10px', border: '1px solid #ccc', borderRadius: '4px' }}
+            />
+          </div>
+          {isHistoryLoading && <p>Buscando...</p>}
+        </div>
+
+        {historyError && !isHistoryLoading && <p style={{ color: 'orange', marginTop: '15px' }}>{historyError}</p>}
+        
+        {historicalIncome && !isHistoryLoading && (
+          <div style={{ marginTop: '20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
+            <div style={{ padding: '15px', backgroundColor: 'white', border: '1px solid #eee', borderRadius: '8px' }}>
+              <h4>📈 Ingreso Total</h4>
+              <p style={{ fontSize: '1.8em', fontWeight: 'bold', color: '#dc3545' }}>${Number(historicalIncome.totalIncome).toFixed(2)}</p>
+            </div>
+            <div style={{ padding: '15px', backgroundColor: 'white', border: '1px solid #eee', borderRadius: '8px' }}>
+              <h4>🗓️ Ingreso por Citas</h4>
+              <p style={{ fontSize: '1.5em', color: '#007bff' }}>${Number(historicalIncome.appointmentIncome).toFixed(2)}</p>
+            </div>
+            <div style={{ padding: '15px', backgroundColor: 'white', border: '1px solid #eee', borderRadius: '8px' }}>
+              <h4>🛍️ Ingreso por Productos</h4>
+              <p style={{ fontSize: '1.5em', color: '#6f42c1' }}>${Number(historicalIncome.productSalesIncome).toFixed(2)}</p>
+            </div>
+          </div>
+        )}
       </div>
+
+
       {/* Gráficos */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '20px' }}>
-        {/* Gráfico de Servicios Más Solicitados */}
+        {/* ... (el resto de los gráficos no cambia) ... */}
         <div style={{ padding: '20px', border: '1px solid #eee', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
           <h3>Crecimiento de Ingresos Mensuales (Citas + Productos)</h3>
           {monthlyIncomeTrend.length > 0 ? (
@@ -231,8 +313,6 @@ const MetricsDashboard = () => {
             <p>No hay datos de servicios para mostrar.</p>
           )}
         </div>
-
-        {/* Gráfico de Productos Más Vendidos */}
         <div style={{ padding: '20px', border: '1px solid #eee', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
           <h3>Productos Más Vendidos</h3>
           {topProducts.length > 0 ? (
@@ -252,8 +332,6 @@ const MetricsDashboard = () => {
             <p>No hay datos de productos para mostrar.</p>
           )}
         </div>
-
-        {/* Gráfico de Distribución de Estados de Citas */}
         <div style={{ padding: '20px', border: '1px solid #eee', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
           <h3>Distribución de Estados de Citas (últimos 30 días)</h3>
           {appointmentStatusCounts.length > 0 ? (
@@ -282,8 +360,6 @@ const MetricsDashboard = () => {
             <p>No hay datos de estados de citas para mostrar.</p>
           )}
         </div>
-
-        {/* Gráfico de Rendimiento por Empleado */}
         <div style={{ padding: '20px', border: '1px solid #eee', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
           <h3>Rendimiento por Empleado (últimos 30 días)</h3>
           {employeePerformance.length > 0 ? (
@@ -302,7 +378,20 @@ const MetricsDashboard = () => {
           ) : (
             <p>No hay datos de rendimiento de empleados para mostrar.</p>
           )}
-          
+        </div>
+         <div style={{ padding: '20px', border: '1px solid #eee', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+          <h3>🎂 Próximos Cumpleaños</h3>
+          {upcomingBirthdays.length > 0 ? (
+            <ul style={{ listStyle: 'none', padding: 0 }}>
+              {upcomingBirthdays.map(client => (
+                <li key={client.id} style={{ marginBottom: '5px' }}>
+                  <strong>{client.name}</strong> - {client.dateOfBirth}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>No hay cumpleaños próximos.</p>
+          )}
         </div>
       </div>
     </div>
