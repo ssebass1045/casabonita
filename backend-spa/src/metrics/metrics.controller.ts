@@ -1,13 +1,20 @@
 // File: backend-spa/src/metrics/metrics.controller.ts
-import { Controller, Get, Query, UseGuards, ParseIntPipe, ValidationPipe, Param, Logger } from '@nestjs/common'; // <-- ¡AÑADE Logger AQUÍ!
+import { Controller, Get, Query, UseGuards, ParseIntPipe, ValidationPipe, Param, Logger, Post, Body } from '@nestjs/common'; // <-- AÑADE Post y Body
 import { AuthGuard } from '@nestjs/passport';
 import { MetricsService } from './metrics.service';
-import { IsNumber, Min, Max, IsString, IsNotEmpty } from 'class-validator';
+import { IsNumber, Min, Max, IsString, IsNotEmpty, IsDateString } from 'class-validator'; // <-- AÑADE IsDateString
 import { Transform } from 'class-transformer';
-import { Roles } from '../auth/decorators/roles.decorator'; // <-- Importa el decorador
-import { UserRole } from '../user/entities/user.entity'; // <-- Importa el enum
-import { RolesGuard } from '../auth/guards/roles.guard'; // <-- Importa el guardia
+import { Roles } from '../auth/decorators/roles.decorator';
+import { UserRole } from '../user/entities/user.entity';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { DailyIncomeHistory } from './entities/daily-income-history.entity'; // <-- AÑADE ESTA LÍNEA
 
+// DTO para el endpoint de guardar historial
+class SaveDailyIncomeDto {
+  @IsDateString()
+  @IsNotEmpty()
+  date: string;
+}
 
 class GetEmployeePayrollDto {
   @IsString()
@@ -26,14 +33,14 @@ class GetEmployeePayrollDto {
 }
 
 @UseGuards(AuthGuard('jwt'), RolesGuard)
-//@Roles(UserRole.ADMIN)
 @Controller('metrics')
 export class MetricsController {
   private readonly logger = new Logger(MetricsController.name);
 
   constructor(private readonly metricsService: MetricsService) {}
 
-  //@UseGuards(AuthGuard('jwt'), RolesGuard)
+  // --- ENDPOINTS DE INGRESOS ---
+
   @Get('income/monthly')
   @Roles(UserRole.ADMIN)
   async getMonthlyIncome(
@@ -43,21 +50,36 @@ export class MetricsController {
     return this.metricsService.getMonthlyIncome(year, month);
   }
 
-  //@UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('income/daily')
   @Roles(UserRole.ADMIN)
   async getDailyIncome(@Query('date') date: string): Promise<number> {
     return this.metricsService.getDailyIncome(date);
   }
 
-  //@UseGuards(AuthGuard('jwt'), RolesGuard)
+  // --- NUEVOS ENDPOINTS PARA EL HISTORIAL ---
+
+  @Get('income/historical')
+  @Roles(UserRole.ADMIN)
+  async getHistoricalDailyIncome(@Query('date') date: string): Promise<DailyIncomeHistory | null> {
+    this.logger.log(`[Historical Income] Request received for date: ${date}`);
+    return this.metricsService.getHistoricalDailyIncome(date);
+  }
+
+  @Post('income/save-daily')
+  @Roles(UserRole.ADMIN)
+  async saveDailyIncome(@Body(ValidationPipe) body: SaveDailyIncomeDto): Promise<DailyIncomeHistory> {
+    this.logger.log(`[Save Daily Income] Request received for date: ${body.date}`);
+    return this.metricsService.calculateAndSaveDailyIncome(body.date);
+  }
+
+  // --- OTROS ENDPOINTS DE MÉTRICAS ---
+
   @Get('services/top')
   @Roles(UserRole.ADMIN)
   async getTopServices(@Query('limit', new ParseIntPipe({ optional: true })) limit?: number): Promise<any[]> {
     return this.metricsService.getTopServices(limit);
   }
 
-  //@UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('appointments/status-counts')
   @Roles(UserRole.ADMIN)
   async getAppointmentStatusCounts(
@@ -67,7 +89,6 @@ export class MetricsController {
     return this.metricsService.getAppointmentStatusCounts(startDate, endDate);
   }
 
-  //@UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('clients/new-count')
   @Roles(UserRole.ADMIN)
   async getNewClientsCount(
@@ -77,7 +98,6 @@ export class MetricsController {
     return this.metricsService.getNewClientsCount(startDate, endDate);
   }
 
-  //@UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('employees/performance')
   @Roles(UserRole.ADMIN)
   async getEmployeePerformance(
@@ -87,7 +107,6 @@ export class MetricsController {
     return this.metricsService.getEmployeePerformance(startDate, endDate);
   }
 
-  //@UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('employees/:employeeId/payroll')
   @Roles(UserRole.ADMIN)
   async getEmployeePayroll(
@@ -95,11 +114,10 @@ export class MetricsController {
     @Query(ValidationPipe) query: GetEmployeePayrollDto,
   ): Promise<any> {
     this.logger.log(`[Payroll] Request received for employeeId: ${employeeId}, startDate: ${query.startDate}, endDate: ${query.endDate}, commissionRate: ${query.commissionRate}`);
-    // Pasa la tasa de comisión al servicio
     return this.metricsService.getEmployeePayroll(employeeId, query.startDate, query.endDate, query.commissionRate);
   }
   @Get('products/sales-income')
-  @Roles(UserRole.ADMIN) // Solo ADMIN puede ver estas métricas
+  @Roles(UserRole.ADMIN)
   async getProductSalesIncome(
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
@@ -107,7 +125,6 @@ export class MetricsController {
     return this.metricsService.getProductSalesIncome(startDate, endDate);
   }
 
-  // --- NUEVO ENDPOINT: getDailyProductSalesIncome ---
   @Get('products/sales-income/daily')
   @Roles(UserRole.ADMIN)
   async getDailyProductSalesIncome(@Query('date') date: string): Promise<number> {
@@ -123,7 +140,7 @@ export class MetricsController {
   }
 
   @Get('products/top-selling')
-  @Roles(UserRole.ADMIN) // Solo ADMIN puede ver estas métricas
+  @Roles(UserRole.ADMIN)
   async getTopSellingProducts(
     @Query('limit', new ParseIntPipe({ optional: true })) limit?: number
   ): Promise<any[]> {

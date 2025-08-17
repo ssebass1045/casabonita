@@ -9,6 +9,7 @@ import { ProductSale } from '../product-sale/entities/product-sale.entity'; // <
 import { Product } from '../product/entities/product.entity';
 import { AppointmentStatus } from '../appointment/enums/appointment-status.enum';
 import { PaymentStatus } from '../appointment/enums/payment-status.enum';
+import { DailyIncomeHistory } from './entities/daily-income-history.entity';
 
 @Injectable()
 export class MetricsService {
@@ -21,6 +22,8 @@ export class MetricsService {
     private employeeRepository: Repository<Employee>,
     @InjectRepository(ProductSale) // <-- Inyecta el repositorio de ProductSale
     private productSaleRepository: Repository<ProductSale>,
+    @InjectRepository(DailyIncomeHistory) // <-- Inyecta el repositorio de DailyIncomeHistory
+    private dailyIncomeHistoryRepository: Repository<DailyIncomeHistory>,
   ) {}
 
   // --- Métricas de Ingresos ---
@@ -52,6 +55,47 @@ export class MetricsService {
       .getRawOne();
 
     return parseFloat(result?.totalIncome || 0);
+  }
+
+  // --- NUEVOS MÉTODOS PARA EL HISTORIAL DE INGRESOS ---
+
+  /**
+   * Obtiene el historial de ingresos de un día específico desde la tabla de historial.
+   * @param date La fecha a consultar en formato 'YYYY-MM-DD'.
+   */
+  async getHistoricalDailyIncome(date: string): Promise<DailyIncomeHistory | null> {
+    return this.dailyIncomeHistoryRepository.findOne({ where: { date } });
+  }
+
+  /**
+   * Calcula los ingresos de citas y productos para una fecha dada y los guarda
+   * o actualiza en la tabla de historial.
+   * @param date La fecha a calcular y guardar en formato 'YYYY-MM-DD'.
+   */
+  async calculateAndSaveDailyIncome(date: string): Promise<DailyIncomeHistory> {
+    const appointmentIncome = await this.getDailyIncome(date);
+    const productSalesIncome = await this.getDailyProductSalesIncome(date);
+    const totalIncome = appointmentIncome + productSalesIncome;
+
+    // Busca si ya existe un registro para esa fecha
+    let historyEntry = await this.dailyIncomeHistoryRepository.findOne({ where: { date } });
+
+    if (historyEntry) {
+      // Si existe, lo actualiza
+      historyEntry.appointmentIncome = appointmentIncome;
+      historyEntry.productSalesIncome = productSalesIncome;
+      historyEntry.totalIncome = totalIncome;
+    } else {
+      // Si no existe, crea uno nuevo
+      historyEntry = this.dailyIncomeHistoryRepository.create({
+        date,
+        appointmentIncome,
+        productSalesIncome,
+        totalIncome,
+      });
+    }
+
+    return this.dailyIncomeHistoryRepository.save(historyEntry);
   }
 
 

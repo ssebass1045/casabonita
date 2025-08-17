@@ -8,10 +8,18 @@ import { Client } from '../client/entities/client.entity';
 import { Employee } from '../employee/entities/employee.entity';
 import { ProductSale } from '../product-sale/entities/product-sale.entity'; // <-- Importa ProductSale
 import { Product } from '../product/entities/product.entity'; // <-- Importa Product
+import { DailyIncomeHistory } from './entities/daily-income-history.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Appointment, Client, Employee, ProductSale, Product]), // <-- Añade ProductSale y Product aquí
+    TypeOrmModule.forFeature([
+      Appointment,
+      Client,
+      Employee,
+      ProductSale,
+      Product,
+      DailyIncomeHistory
+    ]), // <-- Añade ProductSale y Product aquí
   ],
   controllers: [MetricsController],
   providers: [MetricsService],
