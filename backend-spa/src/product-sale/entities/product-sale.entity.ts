@@ -1,35 +1,40 @@
 // File: backend-spa/src/product-sale/entities/product-sale.entity.ts
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn } from 'typeorm';
 import { Product } from '../../product/entities/product.entity';
+// --- AÑADE LA IMPORTACIÓN DEL ENUM ---
+import { PaymentMethod } from '../../appointment/enums/payment-method.enum';
 
 @Entity()
 export class ProductSale {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Product, { eager: true }) // Relación con el Producto vendido
+  @ManyToOne(() => Product, { eager: true })
   @JoinColumn({ name: 'productId' })
   product: Product;
 
   @Column()
   productId: number;
 
-  // ELIMINAMOS:
-  // @ManyToOne(() => Client, { eager: true })
-  // @JoinColumn({ name: 'clientId' })
-  // client: Client;
-  // @Column()
-  // clientId: number;
-
   @Column({ type: 'int' })
-  quantity: number; // Cantidad de unidades vendidas
+  quantity: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
-  pricePerUnit: number; // Precio por unidad al momento de la venta
+  pricePerUnit: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
-  totalPrice: number; // quantity * pricePerUnit
+  totalPrice: number;
 
-  @CreateDateColumn() // Columna que se llena automáticamente con la fecha de creación
+  // --- NUEVO CAMPO AÑADIDO ---
+  @Column({
+    type: 'enum',
+    enum: PaymentMethod,
+    nullable: true, // Hacemos que sea obligatorio saber cómo se pagó
+    default: PaymentMethod.EFECTIVO
+  })
+  paymentMethod: PaymentMethod;
+  // --- FIN DEL NUEVO CAMPO ---
+
+  @CreateDateColumn()
   saleDate: Date;
 }

@@ -31,6 +31,7 @@ import { ProductSaleModule } from './product-sale/product-sale.module';
     }),
     TypeOrmModule.forRoot({
       /*
+      //lineas para probar en local
       type: process.env.DATABASE_TYPE as any, // Lee del .env
       host: process.env.DATABASE_HOST, // Lee del .env
       port: parseInt(process.env.DATABASE_PORT ?? '5432', 10), // Lee del .env y convierte a número
@@ -38,6 +39,7 @@ import { ProductSaleModule } from './product-sale/product-sale.module';
       password: process.env.DATABASE_PASSWORD, // Lee del .env
       database: process.env.DATABASE_NAME, // Lee del .env
       */
+
       type: 'postgres', // Especifica el driver directamente
       url: process.env.DATABASE_URL, // <-- Usa la URL completa
       entities: [__dirname + '/**/*.entity{.ts,.js}'],

@@ -73,21 +73,25 @@ export class MetricsService {
   }
 
   async getDailyIncome(date: string): Promise<number> {
-    const timeZone = 'America/Bogota'; // O la zona horaria que corresponda
-    const start = toDate(`${date}T00:00:00`, { timeZone });
-    const end = toDate(`${date}T23:59:59.999`, { timeZone });
+  const timeZone = 'America/Bogota'; // O la zona horaria que corresponda
+  const start = toDate(`${date}T00:00:00`, { timeZone });
+  
+  // Ajuste de +5 horas para el cierre del día
+  const endDate = new Date(`${date}T23:59:59.999`);
+  endDate.setHours(endDate.getHours() + 5); // Compensar las 5 horas
+  const end = toDate(endDate.toISOString(), { timeZone });
 
-    const result = await this.appointmentRepository
-      .createQueryBuilder('appointment')
-      .select('SUM(appointment.price)', 'totalIncome')
-      .where('appointment.status = :status', { status: AppointmentStatus.REALIZADA })
-      .andWhere('appointment.paymentStatus = :paymentStatus', { paymentStatus: PaymentStatus.PAGADO })
-      .andWhere('appointment.startTime BETWEEN :start AND :end', { start, end }) // <-- Usa las nuevas variables
-      .getRawOne();
+  const result = await this.appointmentRepository
+    .createQueryBuilder('appointment')
+    .select('SUM(appointment.price)', 'totalIncome')
+    .where('appointment.status = :status', { status: AppointmentStatus.REALIZADA })
+    .andWhere('appointment.paymentStatus = :paymentStatus', { paymentStatus: PaymentStatus.PAGADO })
+    .andWhere('appointment.startTime BETWEEN :start AND :end', { start, end })
+    .getRawOne();
 
+  return parseFloat(result?.totalIncome || 0);
+}
 
-    return parseFloat(result?.totalIncome || 0);
-  }
 
   // --- NUEVOS MÉTODOS PARA EL HISTORIAL DE INGRESOS ---
 
@@ -295,18 +299,138 @@ export class MetricsService {
 
   // --- NUEVO MÉTODO: getDailyProductSalesIncome ---
   async getDailyProductSalesIncome(date: string): Promise<number> {
-    const timeZone = 'America/Bogota'; // Asegúrate de que sea la misma zona horaria
+  const timeZone = 'America/Bogota'; // Asegúrate de que sea la misma zona horaria
+  const start = toDate(`${date}T00:00:00`, { timeZone });
+  
+  // Ajuste de +5 horas para el cierre del día (igual que en getDailyIncome)
+  const endDate = new Date(`${date}T23:59:59.999`);
+  endDate.setHours(endDate.getHours() + 5); // Compensar las 5 horas
+  const end = toDate(endDate.toISOString(), { timeZone });
+
+  const result = await this.productSaleRepository
+    .createQueryBuilder('productSale')
+    .select('SUM(productSale.totalPrice)', 'totalSalesIncome')
+    .where('productSale.saleDate BETWEEN :start AND :end', { start, end })
+    .getRawOne();
+
+  return parseFloat(result?.totalSalesIncome || 0);
+}
+
+  // --- NUEVOS MÉTODOS PARA DESGLOSE POR MÉTODO DE PAGO ---
+  
+  async getDailyIncomeByPaymentMethod(date: string): Promise<any> {
+    const timeZone = 'America/Bogota';
     const start = toDate(`${date}T00:00:00`, { timeZone });
-    const end = toDate(`${date}T23:59:59.999`, { timeZone });
+    
+    // Ajuste de +5 horas para el cierre del día
+    const endDate = new Date(`${date}T23:59:59.999`);
+    endDate.setHours(endDate.getHours() + 5);
+    const end = toDate(endDate.toISOString(), { timeZone });
 
-    const result = await this.productSaleRepository
+    // Ingresos de citas por método de pago
+    const appointmentsByMethod = await this.appointmentRepository
+      .createQueryBuilder('appointment')
+      .select('appointment.paymentMethod', 'paymentMethod')
+      .addSelect('SUM(appointment.price)', 'total')
+      .where('appointment.status = :status', { status: AppointmentStatus.REALIZADA })
+      .andWhere('appointment.paymentStatus = :paymentStatus', { paymentStatus: PaymentStatus.PAGADO })
+      .andWhere('appointment.startTime BETWEEN :start AND :end', { start, end })
+      .groupBy('appointment.paymentMethod')
+      .getRawMany();
+
+    // Ingresos de productos por método de pago
+    const productSalesByMethod = await this.productSaleRepository
       .createQueryBuilder('productSale')
-      .select('SUM(productSale.totalPrice)', 'totalSalesIncome')
-      .where('productSale.saleDate BETWEEN :start AND :end', { start, end }) // <-- Usa las nuevas variables
-      .getRawOne();
+      .select('productSale.paymentMethod', 'paymentMethod')
+      .addSelect('SUM(productSale.totalPrice)', 'total')
+      .where('productSale.saleDate BETWEEN :start AND :end', { start, end })
+      .groupBy('productSale.paymentMethod')
+      .getRawMany();
 
-    return parseFloat(result?.totalSalesIncome || 0);
+    // Combinar los resultados
+    const combinedResults: { [key: string]: number } = {};
+    
+    // Inicializar con 0 para todos los métodos de pago
+    combinedResults['Efectivo'] = 0;
+    combinedResults['Transferencia'] = 0;
+    combinedResults['Tarjeta'] = 0;
+    combinedResults['Otro'] = 0;
+
+    // Sumar ingresos de citas
+    appointmentsByMethod.forEach(item => {
+      combinedResults[item.paymentMethod] = (combinedResults[item.paymentMethod] || 0) + parseFloat(item.total || 0);
+    });
+
+    // Sumar ingresos de productos
+    productSalesByMethod.forEach(item => {
+      combinedResults[item.paymentMethod] = (combinedResults[item.paymentMethod] || 0) + parseFloat(item.total || 0);
+    });
+
+    // Calcular totales
+    const totalAppointments = appointmentsByMethod.reduce((sum, item) => sum + parseFloat(item.total || 0), 0);
+    const totalProducts = productSalesByMethod.reduce((sum, item) => sum + parseFloat(item.total || 0), 0);
+    const grandTotal = totalAppointments + totalProducts;
+
+    return {
+      byPaymentMethod: combinedResults,
+      totals: {
+        appointments: totalAppointments,
+        products: totalProducts,
+        total: grandTotal
+      }
+    };
   }
+
+  async getDailyProductSalesList(date: string): Promise<any[]> {
+    const timeZone = 'America/Bogota';
+    const start = toDate(`${date}T00:00:00`, { timeZone });
+    
+    // Ajuste de +5 horas para el cierre del día
+    const endDate = new Date(`${date}T23:59:59.999`);
+    endDate.setHours(endDate.getHours() + 5);
+    const end = toDate(endDate.toISOString(), { timeZone });
+
+    const sales = await this.productSaleRepository
+      .createQueryBuilder('productSale')
+      .leftJoinAndSelect('productSale.product', 'product')
+      .where('productSale.saleDate BETWEEN :start AND :end', { start, end })
+      .orderBy('productSale.saleDate', 'DESC')
+      .getMany();
+
+    return sales.map(sale => ({
+      id: sale.id,
+      productName: sale.product.name,
+      quantity: sale.quantity,
+      pricePerUnit: parseFloat(sale.pricePerUnit.toString()),
+      totalPrice: parseFloat(sale.totalPrice.toString()),
+      paymentMethod: sale.paymentMethod,
+      saleDate: sale.saleDate
+    }));
+  }
+
+  async getMonthlyProductSalesList(year: number, month: number): Promise<any[]> {
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0, 23, 59, 59, 999);
+
+    const sales = await this.productSaleRepository
+      .createQueryBuilder('productSale')
+      .leftJoinAndSelect('productSale.product', 'product')
+      .where('productSale.saleDate BETWEEN :startDate AND :endDate', { startDate, endDate })
+      .orderBy('productSale.saleDate', 'DESC')
+      .getMany();
+
+    return sales.map(sale => ({
+      id: sale.id,
+      productName: sale.product.name,
+      quantity: sale.quantity,
+      pricePerUnit: parseFloat(sale.pricePerUnit.toString()),
+      totalPrice: parseFloat(sale.totalPrice.toString()),
+      paymentMethod: sale.paymentMethod,
+      saleDate: sale.saleDate
+    }));
+  }
+
+
 
   async getTopSellingProducts(limit: number = 5): Promise<any[]> {
     const result = await this.productSaleRepository

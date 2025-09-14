@@ -152,4 +152,31 @@ export class MetricsController {
   async getMonthlyIncomeTrend(): Promise<any[]> {
     return this.metricsService.getMonthlyIncomeTrend();
   }
+
+    // --- NUEVOS ENDPOINTS PARA DESGLOSE POR MÉTODO DE PAGO Y LISTADO DE VENTAS ---
+  
+  @Get('income/daily-by-payment-method')
+  @Roles(UserRole.ADMIN)
+  async getDailyIncomeByPaymentMethod(@Query('date') date: string): Promise<any> {
+    this.logger.log(`[Daily Income by Payment Method] Request received for date: ${date}`);
+    return this.metricsService.getDailyIncomeByPaymentMethod(date);
+  }
+
+  @Get('products/daily-sales-list')
+  @Roles(UserRole.ADMIN)
+  async getDailyProductSalesList(@Query('date') date: string): Promise<any[]> {
+    this.logger.log(`[Daily Product Sales List] Request received for date: ${date}`);
+    return this.metricsService.getDailyProductSalesList(date);
+  }
+
+  @Get('products/monthly-sales-list')
+  @Roles(UserRole.ADMIN)
+  async getMonthlyProductSalesList(
+    @Query('year', ParseIntPipe) year: number,
+    @Query('month', ParseIntPipe) month: number,
+  ): Promise<any[]> {
+    this.logger.log(`[Monthly Product Sales List] Request received for year: ${year}, month: ${month}`);
+    return this.metricsService.getMonthlyProductSalesList(year, month);
+  }
+
 }
