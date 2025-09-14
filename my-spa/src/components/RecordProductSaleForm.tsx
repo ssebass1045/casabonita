@@ -5,6 +5,13 @@ import { toast } from 'react-toastify';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
+// NUEVO: Enum de métodos de pago
+enum PaymentMethod {
+  EFECTIVO = 'Efectivo',
+  TARJETA = 'Tarjeta',
+  TRANSFERENCIA = 'Transferencia',
+  OTRO = 'Otro',
+}
 
 interface Product {
   id: number;
@@ -17,6 +24,7 @@ interface RecordProductSaleFormData {
   productId: string; // Usamos string para el select
   quantity: string;   // Usamos string para el input
   pricePerUnit: string; // Usamos string para el input
+  paymentMethod: PaymentMethod; // NUEVO CAMPO
 }
 
 interface RecordProductSaleFormProps {
@@ -29,6 +37,7 @@ const RecordProductSaleForm: React.FC<RecordProductSaleFormProps> = ({ onSuccess
     productId: '',
     quantity: '1', // Cantidad por defecto
     pricePerUnit: '',
+    paymentMethod: PaymentMethod.EFECTIVO, // NUEVO: valor por defecto
   });
   const [products, setProducts] = useState<Product[]>([]); // Lista de productos para el selector
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -112,6 +121,7 @@ const RecordProductSaleForm: React.FC<RecordProductSaleFormProps> = ({ onSuccess
         productId: parseInt(formData.productId, 10),
         quantity: parsedQuantity,
         pricePerUnit: parsedPricePerUnit,
+        paymentMethod: formData.paymentMethod, // NUEVO CAMPO
       };
 
       await axios.post(`${API_BASE_URL}/product-sales`, submitData);
@@ -234,6 +244,24 @@ const RecordProductSaleForm: React.FC<RecordProductSaleFormProps> = ({ onSuccess
           step="0.01"
           required
         />
+      </div>
+
+      {/* NUEVO: Campo Método de Pago */}
+      <div className="form-group">
+        <label htmlFor="paymentMethod" className="form-label">Método de Pago *</label>
+        <select
+          id="paymentMethod"
+          name="paymentMethod"
+          value={formData.paymentMethod}
+          onChange={handleInputChange}
+          className="form-input"
+          required
+        >
+          <option value={PaymentMethod.EFECTIVO}>Efectivo</option>
+          <option value={PaymentMethod.TRANSFERENCIA}>Transferencia</option>
+          <option value={PaymentMethod.TARJETA}>Tarjeta</option>
+          <option value={PaymentMethod.OTRO}>Otro</option>
+        </select>
       </div>
 
       {/* Botones */}

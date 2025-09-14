@@ -51,6 +51,32 @@ interface DailyIncomeHistory {
   createdAt: string;
 }
 
+// --- NUEVAS INTERFACES PARA MÉTODOS DE PAGO Y LISTADO DE PRODUCTOS ---
+interface DailyIncomeByPaymentMethod {
+  byPaymentMethod: {
+    Efectivo: number;
+    Transferencia: number;
+    Tarjeta: number;
+    Otro: number;
+  };
+  totals: {
+    appointments: number;
+    products: number;
+    total: number;
+  };
+}
+
+interface ProductSaleDetail {
+  id: number;
+  productName: string;
+  quantity: number;
+  pricePerUnit: number;
+  totalPrice: number;
+  paymentMethod: string;
+  saleDate: string;
+}
+
+
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF'];
 
@@ -75,6 +101,16 @@ const MetricsDashboard = () => {
   const [historyError, setHistoryError] = useState<string | null>(null);
 
 
+    // --- NUEVOS ESTADOS PARA DESGLOSE POR MÉTODO DE PAGO Y LISTADO ---
+  const [dailyIncomeByPaymentMethod, setDailyIncomeByPaymentMethod] = useState<DailyIncomeByPaymentMethod | null>(null);
+  const [dailyProductSales, setDailyProductSales] = useState<ProductSaleDetail[]>([]);
+  const [monthlyProductSales, setMonthlyProductSales] = useState<ProductSaleDetail[]>([]);
+  const [showDailyProductsList, setShowDailyProductsList] = useState(false);
+  const [showMonthlyProductsList, setShowMonthlyProductsList] = useState(false);
+
+
+
+
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -91,7 +127,7 @@ const MetricsDashboard = () => {
   const startDateStr = startDate.toISOString().split('T')[0];
   const endDateStr = endDate.toISOString().split('T')[0];
 
-  useEffect(() => {
+   useEffect(() => {
     const fetchMetrics = async () => {
       setIsLoading(true);
       setError(null);
@@ -108,6 +144,9 @@ const MetricsDashboard = () => {
           dailyProductSalesIncomeRes,
           monthlyTrendRes,
           upcomingBirthdaysRes,
+          dailyIncomeByPaymentMethodRes, // NUEVO
+          dailyProductSalesListRes, // NUEVO
+          monthlyProductSalesListRes, // NUEVO
         ] = await Promise.all([
           axios.get<number>(`${API_BASE_URL}/metrics/income/monthly`, { params: { year: currentYear, month: currentMonth } }),
           axios.get<number>(`${API_BASE_URL}/metrics/income/daily`, { params: { date: currentDay } }),
@@ -120,6 +159,9 @@ const MetricsDashboard = () => {
           axios.get<number>(`${API_BASE_URL}/metrics/products/sales-income/daily`, { params: { date: currentDay } }),
           axios.get<MonthlyIncomeTrend[]>(`${API_BASE_URL}/metrics/income/monthly-trend`),
           axios.get<UpcomingBirthday[]>(`${API_BASE_URL}/metrics/clients/upcoming-birthdays`),
+          axios.get<DailyIncomeByPaymentMethod>(`${API_BASE_URL}/metrics/income/daily-by-payment-method`, { params: { date: currentDay } }), // NUEVO
+          axios.get<ProductSaleDetail[]>(`${API_BASE_URL}/metrics/products/daily-sales-list`, { params: { date: currentDay } }), // NUEVO
+          axios.get<ProductSaleDetail[]>(`${API_BASE_URL}/metrics/products/monthly-sales-list`, { params: { year: currentYear, month: currentMonth } }), // NUEVO
         ]);
 
         setMonthlyIncome(monthlyIncomeRes.data);
@@ -128,6 +170,9 @@ const MetricsDashboard = () => {
         setDailyProductSalesIncome(dailyProductSalesIncomeRes.data); 
         setMonthlyIncomeTrend(monthlyTrendRes.data);
         setUpcomingBirthdays(upcomingBirthdaysRes.data);
+        setDailyIncomeByPaymentMethod(dailyIncomeByPaymentMethodRes.data); // NUEVO
+        setDailyProductSales(dailyProductSalesListRes.data); // NUEVO
+        setMonthlyProductSales(monthlyProductSalesListRes.data); // NUEVO
         
         setAppointmentStatusCounts(statusCountsRes.data.map(item => ({ ...item, count: parseInt(item.count, 10) })));
         setNewClientsCount(newClientsRes.data);
@@ -138,7 +183,6 @@ const MetricsDashboard = () => {
         })));
         setProductSalesIncome(productSalesIncomeRes.data);
         setTopProducts(topProductsRes.data);
-
 
       } catch (err: any) {
         console.error("Error fetching metrics:", err);
@@ -154,6 +198,7 @@ const MetricsDashboard = () => {
 
     fetchMetrics();
   }, [currentYear, currentMonth, currentDay, startDateStr, endDateStr]);
+
 
   // --- NUEVA FUNCIÓN PARA BUSCAR EN EL HISTORIAL ---
   const handleFetchHistoricalIncome = async (date: string) => {
@@ -206,28 +251,78 @@ const MetricsDashboard = () => {
     <div>
       <h2>Panel de Métricas</h2>
 
-      {/* Widgets Rápidos */}
+            {/* Widgets Rápidos */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '40px' }}>
         <div style={{ padding: '20px', border: '1px solid #eee', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
           <h3>💰 Ingreso del Mes (Citas)({currentMonth}/{currentYear})</h3>
           <p style={{ fontSize: '2em', fontWeight: 'bold', color: '#28a745' }}>${monthlyIncome?.toFixed(2) || '0.00'}</p>
         </div>
+        
+        {/* WIDGET ACTUALIZADO: Ingreso del Día con desglose */}
         <div style={{ padding: '20px', border: '1px solid #eee', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-          <h3>☀️ Ingreso del Día (Citas)({currentDay})</h3>
+          <h3>☀️ Ingreso del Día (Hoy)({currentDay})</h3>
+          <p style={{ fontSize: '0.85em', color: '#6c757d', marginBottom: '5px' }}>Solo Citas:</p>
           <p style={{ fontSize: '2em', fontWeight: 'bold', color: '#007bff' }}>${dailyIncome?.toFixed(2) || '0.00'}</p>
+          {dailyIncomeByPaymentMethod && (
+            <div style={{ marginTop: '10px', fontSize: '0.9em', borderTop: '1px solid #eee', paddingTop: '10px' }}>
+              <p style={{ fontSize: '0.85em', color: '#6c757d', marginBottom: '5px' }}>Citas + Productos:</p>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>💵 Efectivo:</span>
+                <strong>${(dailyIncomeByPaymentMethod.byPaymentMethod.Efectivo || 0).toFixed(2)}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>💳 Transferencia:</span>
+                <strong>${(dailyIncomeByPaymentMethod.byPaymentMethod.Transferencia || 0).toFixed(2)}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>💳 Tarjeta:</span>
+                <strong>${(dailyIncomeByPaymentMethod.byPaymentMethod.Tarjeta || 0).toFixed(2)}</strong>
+              </div>
+              {dailyIncomeByPaymentMethod.byPaymentMethod.Otro > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>📝 Otro:</span>
+                  <strong>${dailyIncomeByPaymentMethod.byPaymentMethod.Otro.toFixed(2)}</strong>
+                </div>
+              )}
+            </div>
+          )}
         </div>
+        
         <div style={{ padding: '20px', border: '1px solid #eee', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
           <h3>🛍️ Ingreso por Productos (últimos 30 días)</h3>
           <p style={{ fontSize: '2em', fontWeight: 'bold', color: '#6f42c1' }}>${productSalesIncome?.toFixed(2) || '0.00'}</p>
         </div>
+        
+        {/* WIDGET ACTUALIZADO: Ingreso por Productos Hoy con desglose y botón para ver lista */}
         <div style={{ padding: '20px', border: '1px solid #eee', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
           <h3>☀️ Ingreso por Productos (Hoy)</h3>
           <p style={{ fontSize: '2em', fontWeight: 'bold', color: '#6f42c1' }}>${dailyProductSalesIncome?.toFixed(2) || '0.00'}</p>
+          {dailyIncomeByPaymentMethod && (
+            <div style={{ marginTop: '10px', fontSize: '0.9em', borderTop: '1px solid #eee', paddingTop: '10px' }}>
+              <p style={{ fontSize: '0.85em', color: '#6c757d', marginBottom: '5px' }}>Solo productos:</p>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>💵 Efectivo:</span>
+                <strong>${dailyProductSales.filter(s => s.paymentMethod === 'Efectivo').reduce((sum, s) => sum + s.totalPrice, 0).toFixed(2)}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>💳 Transferencia:</span>
+                <strong>${dailyProductSales.filter(s => s.paymentMethod === 'Transferencia').reduce((sum, s) => sum + s.totalPrice, 0).toFixed(2)}</strong>
+              </div>
+            </div>
+          )}
+          <button 
+            onClick={() => setShowDailyProductsList(!showDailyProductsList)}
+            style={{ marginTop: '10px', padding: '5px 10px', fontSize: '0.85em', cursor: 'pointer', backgroundColor: '#6f42c1', color: 'white', border: 'none', borderRadius: '4px' }}
+          >
+            {showDailyProductsList ? 'Ocultar' : 'Ver'} Lista de Productos
+          </button>
         </div>
+        
         <div style={{ padding: '20px', border: '1px solid #eee', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
           <h3>👥 Nuevos Clientes (últimos 30 días)</h3>
           <p style={{ fontSize: '2em', fontWeight: 'bold', color: '#ffc107' }}>{newClientsCount ?? '0'}</p>
         </div>
+        
         <div style={{ padding: '20px', border: '1px solid #eee', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
           <button onClick={handleSaveDailyIncome} style={{ padding: '10px 15px', cursor: 'pointer', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '5px' }}>
             Guardar Ingresos de Hoy
@@ -237,6 +332,7 @@ const MetricsDashboard = () => {
           </p>
         </div>
       </div>
+
 
       {/* --- NUEVA SECCIÓN DE CONSULTA HISTÓRICA --- */}
       <div style={{ padding: '20px', border: '1px solid #ddd', borderRadius: '8px', marginBottom: '40px', backgroundColor: '#f9f9f9' }}>
@@ -274,6 +370,114 @@ const MetricsDashboard = () => {
           </div>
         )}
       </div>
+
+
+
+            {/* --- NUEVA SECCIÓN: LISTA DE PRODUCTOS VENDIDOS HOY --- */}
+      {showDailyProductsList && dailyProductSales.length > 0 && (
+        <div style={{ padding: '20px', border: '1px solid #ddd', borderRadius: '8px', marginBottom: '40px', backgroundColor: '#f9f9f9' }}>
+          <h3>📦 Productos Vendidos Hoy ({currentDay})</h3>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '15px' }}>
+              <thead>
+                <tr style={{ backgroundColor: '#e9ecef' }}>
+                  <th style={{ padding: '10px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>Producto</th>
+                  <th style={{ padding: '10px', textAlign: 'center', borderBottom: '2px solid #dee2e6' }}>Cantidad</th>
+                  <th style={{ padding: '10px', textAlign: 'right', borderBottom: '2px solid #dee2e6' }}>Precio Unit.</th>
+                  <th style={{ padding: '10px', textAlign: 'right', borderBottom: '2px solid #dee2e6' }}>Total</th>
+                  <th style={{ padding: '10px', textAlign: 'center', borderBottom: '2px solid #dee2e6' }}>Método Pago</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dailyProductSales.map((sale) => (
+                  <tr key={sale.id} style={{ borderBottom: '1px solid #dee2e6' }}>
+                    <td style={{ padding: '8px' }}>{sale.productName}</td>
+                    <td style={{ padding: '8px', textAlign: 'center' }}>{sale.quantity}</td>
+                    <td style={{ padding: '8px', textAlign: 'right' }}>${sale.pricePerUnit.toFixed(2)}</td>
+                    <td style={{ padding: '8px', textAlign: 'right', fontWeight: 'bold' }}>${sale.totalPrice.toFixed(2)}</td>
+                    <td style={{ padding: '8px', textAlign: 'center' }}>
+                      <span style={{ 
+                        padding: '2px 8px', 
+                        borderRadius: '4px', 
+                        backgroundColor: sale.paymentMethod === 'Efectivo' ? '#d4edda' : sale.paymentMethod === 'Transferencia' ? '#cce5ff' : '#f8d7da',
+                        fontSize: '0.85em'
+                      }}>
+                        {sale.paymentMethod}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr style={{ fontWeight: 'bold', backgroundColor: '#e9ecef' }}>
+                  <td colSpan={3} style={{ padding: '10px', textAlign: 'right' }}>TOTAL:</td>
+                  <td style={{ padding: '10px', textAlign: 'right' }}>
+                    ${dailyProductSales.reduce((sum, sale) => sum + sale.totalPrice, 0).toFixed(2)}
+                  </td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* --- NUEVA SECCIÓN: RESUMEN MENSUAL DE PRODUCTOS --- */}
+      <div style={{ padding: '20px', border: '1px solid #ddd', borderRadius: '8px', marginBottom: '40px', backgroundColor: '#f9f9f9' }}>
+        <h3>📊 Resumen Mensual de Productos ({currentMonth}/{currentYear})</h3>
+        <button 
+          onClick={() => setShowMonthlyProductsList(!showMonthlyProductsList)}
+          style={{ marginTop: '10px', padding: '8px 15px', cursor: 'pointer', backgroundColor: '#17a2b8', color: 'white', border: 'none', borderRadius: '4px' }}
+        >
+          {showMonthlyProductsList ? 'Ocultar' : 'Ver'} Lista Completa del Mes
+        </button>
+        
+        {showMonthlyProductsList && monthlyProductSales.length > 0 && (
+          <div style={{ overflowX: 'auto', marginTop: '20px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ backgroundColor: '#e9ecef' }}>
+                  <th style={{ padding: '10px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>Fecha</th>
+                  <th style={{ padding: '10px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>Producto</th>
+                  <th style={{ padding: '10px', textAlign: 'center', borderBottom: '2px solid #dee2e6' }}>Cantidad</th>
+                  <th style={{ padding: '10px', textAlign: 'right', borderBottom: '2px solid #dee2e6' }}>Total</th>
+                  <th style={{ padding: '10px', textAlign: 'center', borderBottom: '2px solid #dee2e6' }}>Método</th>
+                </tr>
+              </thead>
+              <tbody>
+                {monthlyProductSales.map((sale) => (
+                  <tr key={sale.id} style={{ borderBottom: '1px solid #dee2e6' }}>
+                    <td style={{ padding: '8px' }}>{new Date(sale.saleDate).toLocaleDateString('es-CO')}</td>
+                    <td style={{ padding: '8px' }}>{sale.productName}</td>
+                    <td style={{ padding: '8px', textAlign: 'center' }}>{sale.quantity}</td>
+                    <td style={{ padding: '8px', textAlign: 'right' }}>${sale.totalPrice.toFixed(2)}</td>
+                    <td style={{ padding: '8px', textAlign: 'center' }}>
+                      <span style={{ 
+                        padding: '2px 8px', 
+                        borderRadius: '4px', 
+                        backgroundColor: sale.paymentMethod === 'Efectivo' ? '#d4edda' : sale.paymentMethod === 'Transferencia' ? '#cce5ff' : '#f8d7da',
+                        fontSize: '0.85em'
+                      }}>
+                        {sale.paymentMethod}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr style={{ fontWeight: 'bold', backgroundColor: '#e9ecef' }}>
+                  <td colSpan={3} style={{ padding: '10px', textAlign: 'right' }}>TOTAL MENSUAL:</td>
+                  <td style={{ padding: '10px', textAlign: 'right' }}>
+                    ${monthlyProductSales.reduce((sum, sale) => sum + sale.totalPrice, 0).toFixed(2)}
+                  </td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        )}
+      </div>
+
 
 
       {/* Gráficos */}
