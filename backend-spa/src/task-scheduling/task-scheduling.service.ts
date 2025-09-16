@@ -19,14 +19,16 @@ export class TaskSchedulingService {
     private whatsappService: WhatsappService,
   ) {}
 
-  @Cron(CronExpression.EVERY_5_MINUTES) // Se ejecuta cada 5 minutos
+  @Cron(CronExpression.EVERY_HOUR) // Se ejecuta cada 5 minutos
   async handleAppointmentReminders() {
     this.logger.log('Ejecutando tarea de recordatorios de citas...');
 
     // Definir la ventana de tiempo: citas que comienzan entre 55 y 65 minutos desde ahora
     const now = new Date();
-    const lowerBound = new Date(now.getTime() + 55 * 60 * 1000);
-    const upperBound = new Date(now.getTime() + 65 * 60 * 1000);
+    // Definir la ventana de tiempo: citas que comienzan entre 23h55 y 24h05 desde ahora
+    const lowerBound = new Date(now.getTime() + (23 * 60 + 55) * 60 * 1000);
+    const upperBound = new Date(now.getTime() + (24 * 60 + 5) * 60 * 1000);
+
 
     // Buscar citas que cumplan los criterios
     const appointmentsToSendReminder = await this.appointmentRepository.find({

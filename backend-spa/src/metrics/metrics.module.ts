@@ -9,6 +9,7 @@ import { Employee } from '../employee/entities/employee.entity';
 import { ProductSale } from '../product-sale/entities/product-sale.entity'; // <-- Importa ProductSale
 import { Product } from '../product/entities/product.entity'; // <-- Importa Product
 import { DailyIncomeHistory } from './entities/daily-income-history.entity';
+import { ServicesPackModule } from 'src/services-pack/services-pack.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { DailyIncomeHistory } from './entities/daily-income-history.entity';
       Product,
       DailyIncomeHistory
     ]), // <-- Añade ProductSale y Product aquí
+    ServicesPackModule
   ],
   controllers: [MetricsController],
   providers: [MetricsService],

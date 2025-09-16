@@ -23,4 +23,7 @@ export const AppDataSource = new DataSource({
       : false,
   synchronize: false, // Importante: mantener en false para migraciones
   logging: true,
+  extra: {
+    timezone: '-05:00',
+  },
 });

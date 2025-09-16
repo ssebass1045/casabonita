@@ -11,8 +11,12 @@ import { Product } from '../product/entities/product.entity';
 import { AppointmentStatus } from '../appointment/enums/appointment-status.enum';
 import { PaymentStatus } from '../appointment/enums/payment-status.enum';
 import { DailyIncomeHistory } from './entities/daily-income-history.entity';
+import { ServicesPackSession } from '../services-pack/entities/services-pack-session.entity';
 import { toDate } from 'date-fns-tz';
 import { format, subDays } from 'date-fns';
+import { ClientServicesPack } from 'src/services-pack/entities/client-services-pack.entity';
+import { ServicesPackSessionService } from 'src/services-pack/services-pack-session.service';
+import { ServicesPackPayment } from '../services-pack/entities/services-pack-payment.entity';
 
 
 @Injectable()
@@ -29,6 +33,13 @@ export class MetricsService {
     private productSaleRepository: Repository<ProductSale>,
     @InjectRepository(DailyIncomeHistory) // <-- Inyecta el repositorio de DailyIncomeHistory
     private dailyIncomeHistoryRepository: Repository<DailyIncomeHistory>,
+    @InjectRepository(ServicesPackSession) //
+    private servicesPackSessionRepository: Repository<ServicesPackSession>,
+    @InjectRepository(ClientServicesPack)
+    private clientServicesPackRepository: Repository<ClientServicesPack>,
+    private readonly sessionService: ServicesPackSessionService,
+    @InjectRepository(ServicesPackPayment)
+    private readonly packPaymentRepository: Repository<ServicesPackPayment>,
   ) {}
 
   // --- NUEVA FUNCIÓN DE TAREA PROGRAMADA (VERSIÓN CORREGIDA) ---
@@ -73,13 +84,8 @@ export class MetricsService {
   }
 
   async getDailyIncome(date: string): Promise<number> {
-  const timeZone = 'America/Bogota'; // O la zona horaria que corresponda
-  const start = toDate(`${date}T00:00:00`, { timeZone });
-  
-  // Ajuste de +5 horas para el cierre del día
-  const endDate = new Date(`${date}T23:59:59.999`);
-  endDate.setHours(endDate.getHours() + 5); // Compensar las 5 horas
-  const end = toDate(endDate.toISOString(), { timeZone });
+ const start = new Date(`${date}T00:00:00-05:00`);
+    const end = new Date(`${date}T23:59:59.999-05:00`);
 
   const result = await this.appointmentRepository
     .createQueryBuilder('appointment')
@@ -198,9 +204,8 @@ export class MetricsService {
 
   // Conteo de citas por estado
   async getAppointmentStatusCounts(startDate: string, endDate: string): Promise<any[]> {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    end.setDate(end.getDate() + 1); // Incluir todo el día final
+    const start = new Date(`${startDate}T00:00:00-05:00`);
+    const end = new Date(`${endDate}T23:59:59.999-05:00`);
 
     return this.appointmentRepository
       .createQueryBuilder('appointment')
@@ -213,26 +218,20 @@ export class MetricsService {
 
   // Conteo de nuevos clientes
   async getNewClientsCount(startDate: string, endDate: string): Promise<number> {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    end.setDate(end.getDate() + 1);
+  const start = new Date(`${startDate}T00:00:00-05:00`);
+  const end = new Date(`${endDate}T23:59:59.999-05:00`);
 
-    // Asumimos que la fecha de creación de un cliente se puede inferir de su primera cita
-    // Una forma más robusta sería tener un campo `createdAt` en la entidad Client
-    const firstAppointments = await this.appointmentRepository
-      .createQueryBuilder('appointment')
-      .select('MIN(appointment.startTime)', 'firstAppointmentTime')
-      .addSelect('appointment.clientId', 'clientId')
-      .groupBy('appointment.clientId')
-      .getRawMany();
+  // Esta consulta necesita ajustarse para usar las fechas en la zona correcta
+  const firstAppointments = await this.appointmentRepository
+    .createQueryBuilder('appointment')
+    .select('MIN(appointment.startTime)', 'firstAppointmentTime')
+    .addSelect('appointment.clientId', 'clientId')
+    .where('appointment.startTime BETWEEN :start AND :end', { start, end }) // ← AÑADIR este filtro
+    .groupBy('appointment.clientId')
+    .getRawMany();
 
-    const newClientsInPeriod = firstAppointments.filter(app => {
-      const firstTime = new Date(app.firstAppointmentTime);
-      return firstTime >= start && firstTime < end;
-    });
-
-    return newClientsInPeriod.length;
-  }
+  return firstAppointments.length; // ← Simplificado
+}
 
   // --- NUEVA MÉTRICA: Próximos Cumpleaños ---
   async getUpcomingBirthdays(days: number = 30): Promise<any[]> {
@@ -265,9 +264,8 @@ export class MetricsService {
 
   // Rendimiento por empleado
   async getEmployeePerformance(startDate: string, endDate: string): Promise<any[]> {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    end.setDate(end.getDate() + 1);
+    const start = new Date(`${startDate}T00:00:00-05:00`);
+    const end = new Date(`${endDate}T23:59:59.999-05:00`);
 
     return this.appointmentRepository
       .createQueryBuilder('appointment')
@@ -284,9 +282,9 @@ export class MetricsService {
   }
 
   async getProductSalesIncome(startDate: string, endDate: string): Promise<number> {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    end.setDate(end.getDate() + 1);
+    const start = new Date(`${startDate}T00:00:00-05:00`);
+    const end = new Date(`${endDate}T23:59:59.999-05:00`);
+
 
     const result = await this.productSaleRepository
       .createQueryBuilder('productSale')
@@ -299,13 +297,9 @@ export class MetricsService {
 
   // --- NUEVO MÉTODO: getDailyProductSalesIncome ---
   async getDailyProductSalesIncome(date: string): Promise<number> {
-  const timeZone = 'America/Bogota'; // Asegúrate de que sea la misma zona horaria
-  const start = toDate(`${date}T00:00:00`, { timeZone });
-  
-  // Ajuste de +5 horas para el cierre del día (igual que en getDailyIncome)
-  const endDate = new Date(`${date}T23:59:59.999`);
-  endDate.setHours(endDate.getHours() + 5); // Compensar las 5 horas
-  const end = toDate(endDate.toISOString(), { timeZone });
+  const start = new Date(`${date}T00:00:00-05:00`);
+    const end = new Date(`${date}T23:59:59.999-05:00`);
+
 
   const result = await this.productSaleRepository
     .createQueryBuilder('productSale')
@@ -319,76 +313,106 @@ export class MetricsService {
   // --- NUEVOS MÉTODOS PARA DESGLOSE POR MÉTODO DE PAGO ---
   
   async getDailyIncomeByPaymentMethod(date: string): Promise<any> {
-    const timeZone = 'America/Bogota';
-    const start = toDate(`${date}T00:00:00`, { timeZone });
-    
-    // Ajuste de +5 horas para el cierre del día
-    const endDate = new Date(`${date}T23:59:59.999`);
-    endDate.setHours(endDate.getHours() + 5);
-    const end = toDate(endDate.toISOString(), { timeZone });
+  const start = new Date(`${date}T00:00:00-05:00`);
+  const end = new Date(`${date}T23:59:59.999-05:00`);
 
-    // Ingresos de citas por método de pago
-    const appointmentsByMethod = await this.appointmentRepository
-      .createQueryBuilder('appointment')
-      .select('appointment.paymentMethod', 'paymentMethod')
-      .addSelect('SUM(appointment.price)', 'total')
-      .where('appointment.status = :status', { status: AppointmentStatus.REALIZADA })
-      .andWhere('appointment.paymentStatus = :paymentStatus', { paymentStatus: PaymentStatus.PAGADO })
-      .andWhere('appointment.startTime BETWEEN :start AND :end', { start, end })
-      .groupBy('appointment.paymentMethod')
-      .getRawMany();
 
-    // Ingresos de productos por método de pago
-    const productSalesByMethod = await this.productSaleRepository
-      .createQueryBuilder('productSale')
-      .select('productSale.paymentMethod', 'paymentMethod')
-      .addSelect('SUM(productSale.totalPrice)', 'total')
-      .where('productSale.saleDate BETWEEN :start AND :end', { start, end })
-      .groupBy('productSale.paymentMethod')
-      .getRawMany();
+  // Ingresos de citas por método de pago
+  const appointmentsByMethod = await this.appointmentRepository
+    .createQueryBuilder('appointment')
+    .select('appointment.paymentMethod', 'paymentMethod')
+    .addSelect('SUM(appointment.price)', 'total')
+    .where('appointment.status = :status', { status: AppointmentStatus.REALIZADA })
+    .andWhere('appointment.paymentStatus = :paymentStatus', { paymentStatus: PaymentStatus.PAGADO })
+    .andWhere('appointment.startTime BETWEEN :start AND :end', { start, end })
+    .groupBy('appointment.paymentMethod')
+    .getRawMany();
 
-    // Combinar los resultados
-    const combinedResults: { [key: string]: number } = {};
-    
-    // Inicializar con 0 para todos los métodos de pago
-    combinedResults['Efectivo'] = 0;
-    combinedResults['Transferencia'] = 0;
-    combinedResults['Tarjeta'] = 0;
-    combinedResults['Otro'] = 0;
+  // Ingresos de productos por método de pago
+  const productSalesByMethod = await this.productSaleRepository
+    .createQueryBuilder('productSale')
+    .select('productSale.paymentMethod', 'paymentMethod')
+    .addSelect('SUM(productSale.totalPrice)', 'total')
+    .where('productSale.saleDate BETWEEN :start AND :end', { start, end })
+    .groupBy('productSale.paymentMethod')
+    .getRawMany();
 
-    // Sumar ingresos de citas
-    appointmentsByMethod.forEach(item => {
-      combinedResults[item.paymentMethod] = (combinedResults[item.paymentMethod] || 0) + parseFloat(item.total || 0);
-    });
+  // Ingresos de compras iniciales de paquetes
+  const servicesPacksByMethod = await this.clientServicesPackRepository
+    .createQueryBuilder('pack')
+    .select('pack.paymentMethod', 'paymentMethod')
+    .addSelect('SUM(pack.amountPaid)', 'total')
+    .where('pack.purchaseDate BETWEEN :start AND :end', { start, end })
+    .groupBy('pack.paymentMethod')
+    .getRawMany();
 
-    // Sumar ingresos de productos
-    productSalesByMethod.forEach(item => {
-      combinedResults[item.paymentMethod] = (combinedResults[item.paymentMethod] || 0) + parseFloat(item.total || 0);
-    });
+  // Ingresos de pagos adicionales a paquetes
+  const packAdditionalPayments = await this.packPaymentRepository
+    .createQueryBuilder('payment')
+    .select('payment.paymentMethod', 'paymentMethod')
+    .addSelect('SUM(payment.amount)', 'total')
+    .where('payment.paymentDate BETWEEN :start AND :end', { start, end })
+    .groupBy('payment.paymentMethod')
+    .getRawMany();
 
-    // Calcular totales
-    const totalAppointments = appointmentsByMethod.reduce((sum, item) => sum + parseFloat(item.total || 0), 0);
-    const totalProducts = productSalesByMethod.reduce((sum, item) => sum + parseFloat(item.total || 0), 0);
-    const grandTotal = totalAppointments + totalProducts;
+  // Combinar ambos resultados de paquetes
+  const combinedPackResults: { [key: string]: number } = {};
 
-    return {
-      byPaymentMethod: combinedResults,
-      totals: {
-        appointments: totalAppointments,
-        products: totalProducts,
-        total: grandTotal
-      }
-    };
-  }
+  // Sumar compras iniciales
+  servicesPacksByMethod.forEach(item => {
+    combinedPackResults[item.paymentMethod] = (combinedPackResults[item.paymentMethod] || 0) + parseFloat(item.total || 0);
+  });
+
+  // Sumar pagos adicionales
+  packAdditionalPayments.forEach(item => {
+    combinedPackResults[item.paymentMethod] = (combinedPackResults[item.paymentMethod] || 0) + parseFloat(item.total || 0);
+  });
+
+  // Combinar todos los resultados
+  const combinedResults: { [key: string]: number } = {};
+  
+  // Inicializar con 0 para todos los métodos de pago
+  combinedResults['Efectivo'] = 0;
+  combinedResults['Transferencia'] = 0;
+  combinedResults['Tarjeta'] = 0;
+  combinedResults['Otro'] = 0;
+
+  // Sumar ingresos de citas
+  appointmentsByMethod.forEach(item => {
+    combinedResults[item.paymentMethod] = (combinedResults[item.paymentMethod] || 0) + parseFloat(item.total || 0);
+  });
+
+  // Sumar ingresos de productos
+  productSalesByMethod.forEach(item => {
+    combinedResults[item.paymentMethod] = (combinedResults[item.paymentMethod] || 0) + parseFloat(item.total || 0);
+  });
+
+  // Sumar ingresos de paquetes (compras iniciales + pagos adicionales)
+  Object.keys(combinedPackResults).forEach(paymentMethod => {
+    combinedResults[paymentMethod] = (combinedResults[paymentMethod] || 0) + combinedPackResults[paymentMethod];
+  });
+
+  // Calcular totales
+  const totalAppointments = appointmentsByMethod.reduce((sum, item) => sum + parseFloat(item.total || 0), 0);
+  const totalProducts = productSalesByMethod.reduce((sum, item) => sum + parseFloat(item.total || 0), 0);
+  const totalPacks = Object.values(combinedPackResults).reduce((sum, amount) => sum + amount, 0);
+  const grandTotal = totalAppointments + totalProducts + totalPacks;
+
+  return {
+    byPaymentMethod: combinedResults,
+    totals: {
+      appointments: totalAppointments,
+      products: totalProducts,
+      packs: totalPacks,
+      total: grandTotal
+    }
+  };
+}
 
   async getDailyProductSalesList(date: string): Promise<any[]> {
-    const timeZone = 'America/Bogota';
-    const start = toDate(`${date}T00:00:00`, { timeZone });
-    
-    // Ajuste de +5 horas para el cierre del día
-    const endDate = new Date(`${date}T23:59:59.999`);
-    endDate.setHours(endDate.getHours() + 5);
-    const end = toDate(endDate.toISOString(), { timeZone });
+    const start = new Date(`${date}T00:00:00-05:00`);
+    const end = new Date(`${date}T23:59:59.999-05:00`);
+
 
     const sales = await this.productSaleRepository
       .createQueryBuilder('productSale')
@@ -409,26 +433,30 @@ export class MetricsService {
   }
 
   async getMonthlyProductSalesList(year: number, month: number): Promise<any[]> {
-    const startDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 0, 23, 59, 59, 999);
+  const startDate = new Date(year, month - 1, 1);
+  const endDate = new Date(year, month, 0, 23, 59, 59, 999);
+  
+  // Ajustar para usar zona horaria
+  startDate.setHours(startDate.getHours() - 5); // Ajustar a UTC-5
+  endDate.setHours(endDate.getHours() - 5); // Ajustar a UTC-5
 
-    const sales = await this.productSaleRepository
-      .createQueryBuilder('productSale')
-      .leftJoinAndSelect('productSale.product', 'product')
-      .where('productSale.saleDate BETWEEN :startDate AND :endDate', { startDate, endDate })
-      .orderBy('productSale.saleDate', 'DESC')
-      .getMany();
+  const sales = await this.productSaleRepository
+    .createQueryBuilder('productSale')
+    .leftJoinAndSelect('productSale.product', 'product')
+    .where('productSale.saleDate BETWEEN :startDate AND :endDate', { startDate, endDate })
+    .orderBy('productSale.saleDate', 'DESC')
+    .getMany();
 
-    return sales.map(sale => ({
-      id: sale.id,
-      productName: sale.product.name,
-      quantity: sale.quantity,
-      pricePerUnit: parseFloat(sale.pricePerUnit.toString()),
-      totalPrice: parseFloat(sale.totalPrice.toString()),
-      paymentMethod: sale.paymentMethod,
-      saleDate: sale.saleDate
-    }));
-  }
+  return sales.map(sale => ({
+    id: sale.id,
+    productName: sale.product.name,
+    quantity: sale.quantity,
+    pricePerUnit: parseFloat(sale.pricePerUnit.toString()),
+    totalPrice: parseFloat(sale.totalPrice.toString()),
+    paymentMethod: sale.paymentMethod,
+    saleDate: sale.saleDate
+  }));
+}
 
 
 
@@ -453,45 +481,62 @@ export class MetricsService {
 
 
   async getEmployeePayroll(
-    employeeId: number,
-    startDate: string,
-    endDate: string,
-    commissionPercentage: number, // <-- Recibe el porcentaje (ej. 60)
-  ): Promise<any> {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    end.setDate(end.getDate() + 1);
+  employeeId: number,
+  startDate: string,
+  endDate: string,
+  commissionPercentage: number,
+): Promise<any> {
+  // Ajustar zonas horarias como en otros métodos
+  const start = new Date(`${startDate}T00:00:00-05:00`);
+    const end = new Date(`${endDate}T23:59:59.999-05:00`);
 
-    const employee = await this.employeeRepository.findOne({ where: { id: employeeId } });
-    if (!employee) {
-      throw new NotFoundException(`Empleado con ID ${employeeId} no encontrado.`);
-    }
-
-    const result = await this.appointmentRepository
-      .createQueryBuilder('appointment')
-      .select('SUM(appointment.price)', 'totalIncome')
-      .addSelect('COUNT(appointment.id)', 'appointmentsCount')
-      .where('appointment.employeeId = :employeeId', { employeeId })
-      .andWhere('appointment.status = :status', { status: AppointmentStatus.REALIZADA })
-      .andWhere('appointment.paymentStatus = :paymentStatus', { paymentStatus: PaymentStatus.PAGADO })
-      .andWhere('appointment.startTime BETWEEN :start AND :end', { start, end })
-      .getRawOne();
-
-    const totalIncome = parseFloat(result?.totalIncome || 0);
-    const appointmentsCount = parseInt(result?.appointmentsCount || 0, 10);
-    const commissionRateAsDecimal = commissionPercentage / 100; // Convierte el porcentaje a decimal
-    const payment = totalIncome * commissionRateAsDecimal;
-
-    return {
-      employeeId: employee.id,
-      employeeName: employee.name,
-      startDate,
-      endDate,
-      totalIncome,
-      appointmentsCount,
-      commissionRate: commissionPercentage, // Devuelve el porcentaje original
-      payment,
-    };
+  const employee = await this.employeeRepository.findOne({ where: { id: employeeId } });
+  if (!employee) {
+    throw new NotFoundException(`Empleado con ID ${employeeId} no encontrado.`);
   }
+
+  // Cálculo de citas normales (existente)
+  const result = await this.appointmentRepository
+    .createQueryBuilder('appointment')
+    .select('SUM(appointment.price)', 'totalIncome')
+    .addSelect('COUNT(appointment.id)', 'appointmentsCount')
+    .where('appointment.employeeId = :employeeId', { employeeId })
+    .andWhere('appointment.status = :status', { status: AppointmentStatus.REALIZADA })
+    .andWhere('appointment.paymentStatus = :paymentStatus', { paymentStatus: PaymentStatus.PAGADO })
+    .andWhere('appointment.startTime BETWEEN :start AND :end', { start, end })
+    .getRawOne();
+
+  // NUEVO: Cálculo de sesiones de paquetes
+  const packSessions = await this.servicesPackSessionRepository
+    .createQueryBuilder('session')
+    .select('SUM(session.employeePayment)', 'totalPackPayment')
+    .addSelect('COUNT(session.id)', 'packSessionsCount')
+    .where('session.employeeId = :employeeId', { employeeId })
+    .andWhere('session.sessionDate BETWEEN :start AND :end', { start, end })
+    .getRawOne();
+
+  const totalIncome = parseFloat(result?.totalIncome || 0);
+  const appointmentsCount = parseInt(result?.appointmentsCount || 0, 10);
+  const totalPackPayment = parseFloat(packSessions?.totalPackPayment || 0);
+  const packSessionsCount = parseInt(packSessions?.packSessionsCount || 0, 10);
+
+  const commissionRateAsDecimal = commissionPercentage / 100;
+  const appointmentPayment = totalIncome * commissionRateAsDecimal;
+  const totalPayment = appointmentPayment + totalPackPayment;
+
+  return {
+    employeeId: employee.id,
+    employeeName: employee.name,
+    startDate,
+    endDate,
+    totalIncome,
+    appointmentsCount,
+    commissionRate: commissionPercentage,
+    appointmentPayment,
+    packSessionsCount,
+    totalPackPayment,
+    totalPayment,
+  };
+}
 
 }
