@@ -265,7 +265,7 @@ const MetricsDashboard = () => {
           <p style={{ fontSize: '2em', fontWeight: 'bold', color: '#007bff' }}>${dailyIncome?.toFixed(2) || '0.00'}</p>
           {dailyIncomeByPaymentMethod && (
             <div style={{ marginTop: '10px', fontSize: '0.9em', borderTop: '1px solid #eee', paddingTop: '10px' }}>
-              <p style={{ fontSize: '0.85em', color: '#6c757d', marginBottom: '5px' }}>Citas + Productos:</p>
+              <p style={{ fontSize: '0.85em', color: '#6c757d', marginBottom: '5px' }}>Citas + Sesiones De Paquetes + Productos:</p>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span>💵 Efectivo:</span>
                 <strong>${(dailyIncomeByPaymentMethod.byPaymentMethod.Efectivo || 0).toFixed(2)}</strong>

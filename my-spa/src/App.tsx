@@ -6,6 +6,9 @@ import './App.css';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+// Importar los nuevos componentes
+import BackendWakeupLoader from './components/BackendWakeupLoader';
+import { useBackendStatus } from './hooks/useBackendStatus';
 
 // Layouts
 import PublicLayout from './layouts/PublicLayout';
@@ -27,6 +30,9 @@ import ManageTreatments from './components/ManageTreatments';
 import ManageBlogs from './components/ManageBlogs';
 import ManageEmployees from './components/ManageEmployees';
 import ManageProducts from './components/ManageProducts';
+import ManageServicesPacks from './components/ManageServicesPacks';
+import ManageClientServicesPacks from './components/ManageClientServicesPacks';
+import ServicesPackSessionForm from './components/ServicesPackSessionForm';
 import ManageClients from './components/ManageClients';
 import ManageAppointments from './components/ManageAppointments';
 import ManageEmployeeAvailabilities from './components/ManageEmployeeAvailabilities';
@@ -41,8 +47,17 @@ import { AuthProvider } from './auth/authContext';
 import ManageUsers from './components/ManageUsers';
 
 function App() {
+  const { isBackendReady, isWakingUp } = useBackendStatus();
+
   return (
     <AuthProvider>
+
+      {/* Mostrar loader mientras el backend se está despertando */}
+      <BackendWakeupLoader 
+        isBackendLoading={isWakingUp || isBackendReady === false}
+        estimatedTime={45}
+      />
+      
       <Router>
         <ToastContainer
           position="top-right"
@@ -80,6 +95,20 @@ function App() {
               <Route path="blogs" element={<ManageBlogs />} />
               <Route path="employees" element={<ManageEmployees />} />
               <Route path="products" element={<ManageProducts />} />
+              <Route path="services-packs" element={<ManageServicesPacks />} />
+              <Route path="client-packs" element={<ManageClientServicesPacks />} />
+              <Route path="/admin/register-pack-session" 
+                  element={<ServicesPackSessionForm 
+                    onSuccess={() => {
+                      // Lógica después de éxito
+                      alert('Sesión registrada exitosamente!');
+                    }}
+                    onCancel={() => {
+                      // Volver atrás
+                      window.history.back();
+                    }}
+                  />} 
+                />
               <Route path="clients" element={<ManageClients />} />
               <Route path="appointments" element={<ManageAppointments />} />
               <Route

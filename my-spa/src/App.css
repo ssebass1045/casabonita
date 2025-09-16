@@ -1337,4 +1337,233 @@ button:disabled {
         font-size: var(--font-size-base);
         padding: var(--spacing-sm) var(--spacing-md);
     }
+
+    /* ============================================= */
+/* ESTILOS PARA LOADING SPINNER Y BACKEND WAKEUP */
+/* ============================================= */
+
+/* --- Estilos para Loading Spinner --- */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl);
+  gap: var(--spacing-md);
 }
+
+.loading-fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.9);
+  z-index: 9999;
+}
+
+.loading-spinner {
+  display: inline-block;
+}
+
+.spinner {
+  border: 3px solid var(--color-bg-medium);
+  border-top: 3px solid var(--color-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-spinner-small .spinner {
+  width: 20px;
+  height: 20px;
+}
+
+.loading-spinner-medium .spinner {
+  width: 40px;
+  height: 40px;
+}
+
+.loading-spinner-large .spinner {
+  width: 60px;
+  height: 60px;
+}
+
+.loading-message {
+  color: var(--color-text-light);
+  font-size: var(--font-size-md);
+  text-align: center;
+  margin: 0;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* --- Estilos para Backend Wakeup Loader --- */
+.backend-wakeup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, var(--color-bg-light) 0%, var(--color-bg-medium) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(5px);
+}
+
+.backend-wakeup-content {
+  background: var(--color-white);
+  padding: var(--spacing-xxl);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+  max-width: 500px;
+  width: 90%;
+}
+
+.spa-theme-animation {
+  position: relative;
+  height: 100px;
+  margin-bottom: var(--spacing-xl);
+}
+
+.floating-bubbles {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.bubble {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: var(--color-primary);
+  border-radius: 50%;
+  opacity: 0.6;
+  animation: floatBubble 3s infinite ease-in-out;
+}
+
+@keyframes floatBubble {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-30px) scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+.spa-icon {
+  font-size: 3rem;
+  animation: pulse 2s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.wakeup-message h3 {
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.wakeup-message p {
+  color: var(--color-text-light);
+  margin-bottom: var(--spacing-xl);
+}
+
+.progress-container {
+  margin: var(--spacing-xl) 0;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--color-bg-medium);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: var(--spacing-sm);
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-primary) 0%, #a08522 100%);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+  animation: progressPulse 2s infinite;
+}
+
+@keyframes progressPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+.progress-text {
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+}
+
+.wakeup-tip {
+  margin-top: var(--spacing-lg);
+  padding: var(--spacing-sm);
+  background: var(--color-bg-light);
+  border-radius: var(--border-radius-sm);
+  border-left: 3px solid var(--color-primary);
+}
+
+/* Loading states for buttons */
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.button-loading {
+  position: relative;
+  color: transparent;
+}
+
+.button-loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Responsive para el backend wakeup loader */
+@media (max-width: 768px) {
+  .backend-wakeup-content {
+    padding: var(--spacing-xl);
+    margin: var(--spacing-md);
+  }
+  
+  .spa-theme-animation {
+    height: 80px;
+  }
+  
+  .spa-icon {
+    font-size: 2.5rem;
+  }
+  
+  .wakeup-message h3 {
+    font-size: var(--font-size-lg);
+  }
+  
+  .wakeup-message p {
+    font-size: var(--font-size-sm);
+  }
+}
+}
+

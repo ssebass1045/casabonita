@@ -6,7 +6,8 @@ import { AuthContext, UserRole } from '../auth/authContext';
 import { 
   FiHome, FiBarChart2, FiDollarSign, FiMessageSquare, 
   FiUsers, FiPackage, FiScissors, FiFileText, FiCalendar,
-  FiUser, FiClipboard, FiUserCheck, FiSettings, FiMenu, FiX
+  FiUser, FiClipboard, FiUserCheck, FiSettings, FiMenu, FiX,
+  FiBox
 } from 'react-icons/fi';
 
 // Crear componentes con tipo any para evitar los errores de TypeScript
@@ -15,6 +16,7 @@ const FiMenuIcon: React.FC<any> = FiMenu;
 const FiHomeIcon: React.FC<any> = FiHome;
 const FiBarChart2Icon: React.FC<any> = FiBarChart2;
 const FiDollarSignIcon: React.FC<any> = FiDollarSign;
+const FiBoxIcon: React.FC<any> = FiBox
 const FiMessageSquareIcon: React.FC<any> = FiMessageSquare;
 const FiUsersIcon: React.FC<any> = FiUsers;
 const FiPackageIcon: React.FC<any> = FiPackage;
@@ -128,6 +130,36 @@ const AdminLayout: React.FC = () => {
                   >
                     <FiScissorsIcon className="sidebar-icon" />
                     <span>Gestionar Tratamientos</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link 
+                    to="/admin/services-packs" 
+                    className={`admin-sidebar-link ${isActiveLink('/admin/services-packs') ? 'active' : ''}`} 
+                    onClick={toggleSidebar}
+                  >
+                    <FiBox className="sidebar-icon" /> {/* <-- Nuevo icono */}
+                    <span>Gestionar Paquetes</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link 
+                    to="/admin/client-packs" 
+                    className={`admin-sidebar-link ${isActiveLink('/admin/client-packs') ? 'active' : ''}`} 
+                    onClick={toggleSidebar}
+                  >
+                    <FiUsers className="sidebar-icon" />
+                    <span>Paquetes de Clientes</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link 
+                    to="/admin/register-pack-session" 
+                    className={`admin-sidebar-link ${isActiveLink('/admin/register-pack-session') ? 'active' : ''}`} 
+                    onClick={toggleSidebar}
+                  >
+                    <FiClipboard className="sidebar-icon" />
+                    <span>Registrar Sesión</span>
                   </Link>
                 </li>
                 <li>

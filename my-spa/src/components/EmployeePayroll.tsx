@@ -1,10 +1,8 @@
-// File: my-spa/src/components/EmployeePayroll.tsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
-
 
 interface Employee {
   id: number;
@@ -19,7 +17,10 @@ interface PayrollResult {
   totalIncome: number;
   appointmentsCount: number;
   commissionRate: number;
-  payment: number;
+  appointmentPayment: number; // <-- Nuevo campo
+  packSessionsCount: number; // <-- Nuevo campo
+  totalPackPayment: number; // <-- Nuevo campo
+  totalPayment: number; // <-- Nuevo campo (total final)
 }
 
 const EmployeePayroll = () => {
@@ -27,7 +28,7 @@ const EmployeePayroll = () => {
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
-  const [commissionRate, setCommissionRate] = useState<string>('60'); // <-- NUEVO ESTADO para el porcentaje
+  const [commissionRate, setCommissionRate] = useState<string>('60');
   const [payrollResult, setPayrollResult] = useState<PayrollResult | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,7 +49,7 @@ const EmployeePayroll = () => {
   const handleCalculatePayroll = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    toast.error(null);
+    setError(null);
     setPayrollResult(null);
 
     if (!selectedEmployeeId || !startDate || !endDate || !commissionRate) {
@@ -62,7 +63,7 @@ const EmployeePayroll = () => {
         params: { 
           startDate, 
           endDate,
-          commissionRate: commissionRate // <-- Envía la tasa de comisión
+          commissionRate: commissionRate
         }
       });
       setPayrollResult(response.data);
@@ -70,11 +71,11 @@ const EmployeePayroll = () => {
     } catch (err: any) {
       console.error("Error calculating payroll:", err);
       if (err.response?.status === 401) {
-        toast.error("No tienes autorización para calcular la liquidación.");
+        setError("No tienes autorización para calcular la liquidación.");
       } else if (err.response?.status === 404) {
-        toast.error("Empleado no encontrado o no hay datos para el rango de fechas.");
+        setError("Empleado no encontrado o no hay datos para el rango de fechas.");
       } else {
-        toast.error(err.response?.data?.message || "Error al calcular la liquidación.");
+        setError(err.response?.data?.message || "Error al calcular la liquidación.");
       }
     } finally {
       setIsLoading(false);
@@ -183,12 +184,33 @@ const EmployeePayroll = () => {
         <div style={{ padding: '20px', border: '1px solid #28a745', borderRadius: '8px', backgroundColor: '#e6ffe6', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
           <h3>Resultados para {payrollResult.employeeName}</h3>
           <p><strong>Período:</strong> {payrollResult.startDate} al {payrollResult.endDate}</p>
-          <p><strong>Citas Realizadas y Pagadas:</strong> {payrollResult.appointmentsCount}</p>
-          <p><strong>Ingresos Totales Generados:</strong> ${payrollResult.totalIncome.toFixed(2)}</p>
-          <p><strong>Tasa de Comisión Aplicada:</strong> {payrollResult.commissionRate}%</p>
-          <p style={{ fontSize: '1.5em', fontWeight: 'bold', color: '#28a745' }}>
-            Total a Pagar: ${payrollResult.payment.toFixed(2)}
-          </p>
+          
+          {/* Servicios Regulares */}
+          <div style={{ marginBottom: '15px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '6px' }}>
+            <h4 style={{ margin: '0 0 10px 0', color: '#495057' }}>Servicios Regulares</h4>
+            <p><strong>Citas Realizadas y Pagadas:</strong> {payrollResult.appointmentsCount}</p>
+            <p><strong>Ingresos Totales Generados:</strong> ${payrollResult.totalIncome.toFixed(2)}</p>
+            <p><strong>Tasa de Comisión Aplicada:</strong> {payrollResult.commissionRate}%</p>
+            <p><strong>Pago por Servicios:</strong> ${payrollResult.appointmentPayment.toFixed(2)}</p>
+          </div>
+
+          {/* Servicios de Paquetes */}
+          <div style={{ marginBottom: '15px', padding: '15px', backgroundColor: '#e8f5e8', borderRadius: '6px' }}>
+            <h4 style={{ margin: '0 0 10px 0', color: '#155724' }}>Servicios de Paquetes</h4>
+            <p><strong>Sesiones de Paquetes Realizadas:</strong> {payrollResult.packSessionsCount}</p>
+            <p><strong>Pago por Sesiones de Paquetes:</strong> ${payrollResult.totalPackPayment.toFixed(2)}</p>
+          </div>
+
+          {/* Total Final */}
+          <div style={{ padding: '15px', backgroundColor: '#d4edda', borderRadius: '6px', border: '1px solid #c3e6cb' }}>
+            <h4 style={{ margin: '0 0 10px 0', color: '#155724' }}>Total a Pagar</h4>
+            <p style={{ fontSize: '1.5em', fontWeight: 'bold', color: '#155724', margin: 0 }}>
+              ${payrollResult.totalPayment.toFixed(2)}
+            </p>
+            <p style={{ fontSize: '0.9em', color: '#6c757d', margin: '5px 0 0 0' }}>
+              (Servicios: ${payrollResult.appointmentPayment.toFixed(2)} + Paquetes: ${payrollResult.totalPackPayment.toFixed(2)})
+            </p>
+          </div>
         </div>
       )}
     </div>
