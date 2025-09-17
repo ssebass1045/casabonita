@@ -1,6 +1,6 @@
 // File: backend-spa/src/task-scheduling/task-scheduling.service.ts
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
 import { Appointment } from '../appointment/entities/appointment.entity';
@@ -19,25 +19,26 @@ export class TaskSchedulingService {
     private whatsappService: WhatsappService,
   ) {}
 
-  @Cron(CronExpression.EVERY_HOUR) // Se ejecuta cada 5 minutos
+  // Se ejecuta todos los días a las 12:00 PM y 6:00 PM hora Colombia (America/Bogota)
+  @Cron('0 12,18 * * *', {
+    timeZone: 'America/Bogota',
+  })
   async handleAppointmentReminders() {
     this.logger.log('Ejecutando tarea de recordatorios de citas...');
 
-    // Definir la ventana de tiempo: citas que comienzan entre 55 y 65 minutos desde ahora
     const now = new Date();
-    // Definir la ventana de tiempo: citas que comienzan entre 23h55 y 24h05 desde ahora
+
+    // Definir la ventana de tiempo: citas entre 23h55 y 24h05 desde ahora
     const lowerBound = new Date(now.getTime() + (23 * 60 + 55) * 60 * 1000);
     const upperBound = new Date(now.getTime() + (24 * 60 + 5) * 60 * 1000);
 
-
-    // Buscar citas que cumplan los criterios
     const appointmentsToSendReminder = await this.appointmentRepository.find({
       where: {
         startTime: Between(lowerBound, upperBound),
         status: AppointmentStatus.CONFIRMADA,
         reminderSent: false,
       },
-      relations: ['client', 'treatment'], // Cargar relaciones necesarias
+      relations: ['client', 'treatment'],
     });
 
     if (appointmentsToSendReminder.length === 0) {
@@ -57,18 +58,17 @@ export class TaskSchedulingService {
             appointment.startTime,
           );
 
-          // Marcar la cita como recordatorio enviado
           appointment.reminderSent = true;
           await this.appointmentRepository.save(appointment);
           this.logger.log(`Recordatorio enviado para la cita ID: ${appointment.id}`);
-
         } catch (error) {
           this.logger.error(`Error al enviar recordatorio para la cita ID: ${appointment.id}`, error);
         }
       } else {
         this.logger.warn(`La cita ID: ${appointment.id} no tiene un número de teléfono de cliente para enviar recordatorio.`);
       }
-      if (appointmentsToSendReminder.length > 1) { // Solo añade la pausa si hay más de un mensaje que enviar
+
+      if (appointmentsToSendReminder.length > 1) {
         this.logger.log('Pausando por 5 segundos para respetar el límite de tasa...');
         await delay(5000);
       }
