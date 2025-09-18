@@ -48,6 +48,9 @@ import { ServicesPackModule } from './services-pack/services-pack.module';
 
       synchronize: false,
       logging: true,
+      extra: {
+      timezone: '-05:00', // <-- AÑADE ESTA LÍNEA
+    },
     }),
     ScheduleModule.forRoot(),
     TreatmentModule,
