@@ -116,16 +116,18 @@ const MetricsDashboard = () => {
   
 
   // --- RANGO DE FECHAS PARA LAS MÉTRICAS ---
-  const today = new Date();
-  const currentYear = today.getFullYear();
-  const currentMonth = today.getMonth() + 1;
-  const currentDay = today.toISOString().split('T')[0];
+const today = new Date();
+// Ajustar a hora de Colombia (UTC-5)
+const todayColombia = new Date(today.getTime() - (5 * 60 * 60 * 1000));
+const currentYear = todayColombia.getFullYear();
+const currentMonth = todayColombia.getMonth() + 1;
+const currentDay = todayColombia.toISOString().split('T')[0];
 
-  const endDate = new Date();
-  const startDate = new Date();
-  startDate.setDate(endDate.getDate() - 30);
-  const startDateStr = startDate.toISOString().split('T')[0];
-  const endDateStr = endDate.toISOString().split('T')[0];
+  const endDate = new Date(today.getTime() - (5 * 60 * 60 * 1000)); // Ajustar a Colombia
+const startDate = new Date(endDate.getTime());
+startDate.setDate(endDate.getDate() - 30);
+const startDateStr = startDate.toISOString().split('T')[0];
+const endDateStr = endDate.toISOString().split('T')[0];
 
    useEffect(() => {
     const fetchMetrics = async () => {
