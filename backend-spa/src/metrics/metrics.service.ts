@@ -17,11 +17,12 @@ import { format, subDays } from 'date-fns';
 import { ClientServicesPack } from 'src/services-pack/entities/client-services-pack.entity';
 import { ServicesPackSessionService } from 'src/services-pack/services-pack-session.service';
 import { ServicesPackPayment } from '../services-pack/entities/services-pack-payment.entity';
-
+import { startOfDay, endOfDay } from 'date-fns';
 
 @Injectable()
 export class MetricsService {
   private readonly logger = new Logger(MetricsService.name);
+  private readonly timeZone = 'America/Bogota';
   constructor(
     @InjectRepository(Appointment)
     private appointmentRepository: Repository<Appointment>,
@@ -84,15 +85,19 @@ export class MetricsService {
   }
 
   async getDailyIncome(date: string): Promise<number> {
- const start = new Date(`${date}T00:00:00-05:00`);
-    const end = new Date(`${date}T23:59:59.999-05:00`);
+  const start = new Date(`${date}T00:00:00-05:00`);
+  const end = new Date(`${date}T23:59:59.999-05:00`);
+
+     // Convertir a UTC para la consulta de la base de datos
+  const startUTC = new Date(start.getTime() + start.getTimezoneOffset() * 60000);
+  const endUTC = new Date(end.getTime() + end.getTimezoneOffset() * 60000);
 
   const result = await this.appointmentRepository
     .createQueryBuilder('appointment')
     .select('SUM(appointment.price)', 'totalIncome')
     .where('appointment.status = :status', { status: AppointmentStatus.REALIZADA })
     .andWhere('appointment.paymentStatus = :paymentStatus', { paymentStatus: PaymentStatus.PAGADO })
-    .andWhere('appointment.startTime BETWEEN :start AND :end', { start, end })
+    .andWhere('appointment.startTime BETWEEN :start AND :end', { start: startUTC, end: endUTC })
     .getRawOne();
 
   return parseFloat(result?.totalIncome || 0);
@@ -207,11 +212,14 @@ export class MetricsService {
     const start = new Date(`${startDate}T00:00:00-05:00`);
     const end = new Date(`${endDate}T23:59:59.999-05:00`);
 
+    const startUTC = new Date(start.getTime() + start.getTimezoneOffset() * 60000);
+    const endUTC = new Date(end.getTime() + end.getTimezoneOffset() * 60000);
+
     return this.appointmentRepository
       .createQueryBuilder('appointment')
       .select('appointment.status', 'status')
       .addSelect('COUNT(appointment.id)', 'count')
-      .where('appointment.startTime BETWEEN :start AND :end', { start, end })
+      .where('appointment.startTime BETWEEN :start AND :end', { start: startUTC, end: endUTC })
       .groupBy('appointment.status')
       .getRawMany();
   }
@@ -221,12 +229,15 @@ export class MetricsService {
   const start = new Date(`${startDate}T00:00:00-05:00`);
   const end = new Date(`${endDate}T23:59:59.999-05:00`);
 
+  const startUTC = new Date(start.getTime() + start.getTimezoneOffset() * 60000);
+const endUTC = new Date(end.getTime() + end.getTimezoneOffset() * 60000);
+
   // Esta consulta necesita ajustarse para usar las fechas en la zona correcta
   const firstAppointments = await this.appointmentRepository
     .createQueryBuilder('appointment')
     .select('MIN(appointment.startTime)', 'firstAppointmentTime')
     .addSelect('appointment.clientId', 'clientId')
-    .where('appointment.startTime BETWEEN :start AND :end', { start, end }) // ← AÑADIR este filtro
+    .where('appointment.startTime BETWEEN :start AND :end', { start: startUTC, end: endUTC }) // ← AÑADIR este filtro
     .groupBy('appointment.clientId')
     .getRawMany();
 
@@ -267,6 +278,9 @@ export class MetricsService {
     const start = new Date(`${startDate}T00:00:00-05:00`);
     const end = new Date(`${endDate}T23:59:59.999-05:00`);
 
+    const startUTC = new Date(start.getTime() + start.getTimezoneOffset() * 60000);
+const endUTC = new Date(end.getTime() + end.getTimezoneOffset() * 60000);
+
     return this.appointmentRepository
       .createQueryBuilder('appointment')
       .leftJoinAndSelect('appointment.employee', 'employee')
@@ -275,7 +289,7 @@ export class MetricsService {
       .addSelect('SUM(appointment.price)', 'totalIncome')
       .where('appointment.status = :status', { status: AppointmentStatus.REALIZADA })
       .andWhere('appointment.paymentStatus = :paymentStatus', { paymentStatus: PaymentStatus.PAGADO })
-      .andWhere('appointment.startTime BETWEEN :start AND :end', { start, end })
+      .andWhere('appointment.startTime BETWEEN :start AND :end', { start: startUTC, end: endUTC })
       .groupBy('employee.id, employee.name')
       .orderBy('SUM(appointment.price)', 'DESC')
       .getRawMany();
@@ -285,11 +299,14 @@ export class MetricsService {
     const start = new Date(`${startDate}T00:00:00-05:00`);
     const end = new Date(`${endDate}T23:59:59.999-05:00`);
 
+    const startUTC = new Date(start.getTime() + start.getTimezoneOffset() * 60000);
+const endUTC = new Date(end.getTime() + end.getTimezoneOffset() * 60000);
+
 
     const result = await this.productSaleRepository
       .createQueryBuilder('productSale')
       .select('SUM(productSale.totalPrice)', 'totalSalesIncome')
-      .where('productSale.saleDate BETWEEN :start AND :end', { start, end })
+      .where('productSale.saleDate BETWEEN :start AND :end', { start: startUTC, end: endUTC })
       .getRawOne();
 
     return parseFloat(result?.totalSalesIncome || 0);
@@ -298,13 +315,15 @@ export class MetricsService {
   // --- NUEVO MÉTODO: getDailyProductSalesIncome ---
   async getDailyProductSalesIncome(date: string): Promise<number> {
   const start = new Date(`${date}T00:00:00-05:00`);
-    const end = new Date(`${date}T23:59:59.999-05:00`);
+  const end = new Date(`${date}T23:59:59.999-05:00`);
 
+  const startUTC = new Date(start.getTime() + start.getTimezoneOffset() * 60000);
+  const endUTC = new Date(end.getTime() + end.getTimezoneOffset() * 60000);
 
   const result = await this.productSaleRepository
     .createQueryBuilder('productSale')
     .select('SUM(productSale.totalPrice)', 'totalSalesIncome')
-    .where('productSale.saleDate BETWEEN :start AND :end', { start, end })
+    .where('productSale.saleDate BETWEEN :start AND :end', { start: startUTC, end: endUTC })
     .getRawOne();
 
   return parseFloat(result?.totalSalesIncome || 0);
@@ -316,6 +335,8 @@ export class MetricsService {
   const start = new Date(`${date}T00:00:00-05:00`);
   const end = new Date(`${date}T23:59:59.999-05:00`);
 
+  const startUTC = new Date(start.getTime() + start.getTimezoneOffset() * 60000);
+  const endUTC = new Date(end.getTime() + end.getTimezoneOffset() * 60000);
 
   // Ingresos de citas por método de pago
   const appointmentsByMethod = await this.appointmentRepository
@@ -324,7 +345,7 @@ export class MetricsService {
     .addSelect('SUM(appointment.price)', 'total')
     .where('appointment.status = :status', { status: AppointmentStatus.REALIZADA })
     .andWhere('appointment.paymentStatus = :paymentStatus', { paymentStatus: PaymentStatus.PAGADO })
-    .andWhere('appointment.startTime BETWEEN :start AND :end', { start, end })
+    .andWhere('appointment.startTime BETWEEN :start AND :end', { start: startUTC, end: endUTC })
     .groupBy('appointment.paymentMethod')
     .getRawMany();
 
@@ -333,7 +354,7 @@ export class MetricsService {
     .createQueryBuilder('productSale')
     .select('productSale.paymentMethod', 'paymentMethod')
     .addSelect('SUM(productSale.totalPrice)', 'total')
-    .where('productSale.saleDate BETWEEN :start AND :end', { start, end })
+    .where('productSale.saleDate BETWEEN :start AND :end', { start: startUTC, end: endUTC })
     .groupBy('productSale.paymentMethod')
     .getRawMany();
 
@@ -342,7 +363,7 @@ export class MetricsService {
     .createQueryBuilder('pack')
     .select('pack.paymentMethod', 'paymentMethod')
     .addSelect('SUM(pack.amountPaid)', 'total')
-    .where('pack.purchaseDate BETWEEN :start AND :end', { start, end })
+    .where('pack.purchaseDate BETWEEN :start AND :end', { start: startUTC, end: endUTC })
     .groupBy('pack.paymentMethod')
     .getRawMany();
 
@@ -351,7 +372,7 @@ export class MetricsService {
     .createQueryBuilder('payment')
     .select('payment.paymentMethod', 'paymentMethod')
     .addSelect('SUM(payment.amount)', 'total')
-    .where('payment.paymentDate BETWEEN :start AND :end', { start, end })
+    .where('payment.paymentDate BETWEEN :start AND :end', { start: startUTC, end:endUTC })
     .groupBy('payment.paymentMethod')
     .getRawMany();
 
@@ -413,11 +434,13 @@ export class MetricsService {
     const start = new Date(`${date}T00:00:00-05:00`);
     const end = new Date(`${date}T23:59:59.999-05:00`);
 
+    const startUTC = new Date(start.getTime() + start.getTimezoneOffset() * 60000);
+    const endUTC = new Date(end.getTime() + end.getTimezoneOffset() * 60000);
 
     const sales = await this.productSaleRepository
       .createQueryBuilder('productSale')
       .leftJoinAndSelect('productSale.product', 'product')
-      .where('productSale.saleDate BETWEEN :start AND :end', { start, end })
+      .where('productSale.saleDate BETWEEN :start AND :end', { start: startUTC, end:endUTC })
       .orderBy('productSale.saleDate', 'DESC')
       .getMany();
 
@@ -488,7 +511,10 @@ export class MetricsService {
 ): Promise<any> {
   // Ajustar zonas horarias como en otros métodos
   const start = new Date(`${startDate}T00:00:00-05:00`);
-    const end = new Date(`${endDate}T23:59:59.999-05:00`);
+  const end = new Date(`${endDate}T23:59:59.999-05:00`);
+
+  const startUTC = new Date(start.getTime() + start.getTimezoneOffset() * 60000);
+  const endUTC = new Date(end.getTime() + end.getTimezoneOffset() * 60000);
 
   const employee = await this.employeeRepository.findOne({ where: { id: employeeId } });
   if (!employee) {
@@ -503,7 +529,7 @@ export class MetricsService {
     .where('appointment.employeeId = :employeeId', { employeeId })
     .andWhere('appointment.status = :status', { status: AppointmentStatus.REALIZADA })
     .andWhere('appointment.paymentStatus = :paymentStatus', { paymentStatus: PaymentStatus.PAGADO })
-    .andWhere('appointment.startTime BETWEEN :start AND :end', { start, end })
+    .andWhere('appointment.startTime BETWEEN :start AND :end', { start: startUTC, end:endUTC })
     .getRawOne();
 
   // NUEVO: Cálculo de sesiones de paquetes
@@ -512,7 +538,7 @@ export class MetricsService {
     .select('SUM(session.employeePayment)', 'totalPackPayment')
     .addSelect('COUNT(session.id)', 'packSessionsCount')
     .where('session.employeeId = :employeeId', { employeeId })
-    .andWhere('session.sessionDate BETWEEN :start AND :end', { start, end })
+    .andWhere('session.sessionDate BETWEEN :start AND :end', { start:startUTC, end:endUTC })
     .getRawOne();
 
   const totalIncome = parseFloat(result?.totalIncome || 0);
