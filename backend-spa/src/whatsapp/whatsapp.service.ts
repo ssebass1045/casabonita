@@ -203,7 +203,7 @@ export class WhatsappService {
    // --- NUEVO MÉTODO: sendAppointmentReminder ---
   async sendAppointmentReminder(clientPhone: string, clientName: string, serviceName: string, startTime: Date): Promise<void> {
     const formattedTime = formatInTimeZone(startTime, this.appTimezone, 'h:mm a', { locale: es });
-    const message = `¡Hola ${clientName}! Te recordamos tu cita en Casa Bonita para el servicio de ${serviceName} hoy a las ${formattedTime}. ¡Te esperamos!`;
+    const message = `¡Hola ${clientName}! Te recordamos tu cita en Casa Bonita para el servicio de ${serviceName} Mañana a las ${formattedTime}. ¡Te esperamos!`;
     await this.sendMessage(clientPhone, message);
   }
 }
