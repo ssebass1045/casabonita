@@ -155,7 +155,7 @@ const Home = () => {
                 <div className="hero-images-display">
                     {/* Imagen principal de la modelo. Puedes usar la URL directa o tu importación local. */}
                     <img
-                        src="https://www.figurbellspa.com.co/wp-content/uploads/Frame-70.webp" // URL de Figurbell como ejemplo.
+                        src="https://ibb.co/ZzLMYv5C" // URL de Figurbell como ejemplo.
                         // O si importaste localmente: src={heroMainImage}
                         alt="Tratamiento de Spa"
                         className="hero-main-image"
