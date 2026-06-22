@@ -1,10 +1,16 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { QueryFailedError, Repository } from 'typeorm';
 import { CreateTreatmentDto } from './dto/create-treatment.dto';
 import { UpdateTreatmentDto } from './dto/update-treatment.dto';
 import { Treatment, TreatmentCategory } from './entities/treatment.entity';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
+
+export interface TreatmentRemovalResult {
+  action: 'deleted' | 'deactivated';
+  message: string;
+  treatmentId: number;
+}
 
 @Injectable()
 export class TreatmentService {
@@ -43,8 +49,13 @@ export class TreatmentService {
     category?: TreatmentCategory;
     search?: string;
     featured?: boolean;
+    includeInactive?: boolean;
   }): Promise<Treatment[]> {
     const qb = this.treatmentRepository.createQueryBuilder('treatment');
+
+    if (!filters?.includeInactive) {
+      qb.andWhere('treatment.isActive = true');
+    }
 
     if (filters?.category) {
       qb.andWhere('treatment.category = :category', {
@@ -69,12 +80,18 @@ export class TreatmentService {
   }
 
   // Obtener un tratamiento por ID
-  async findOne(id: number): Promise<Treatment> {
-    const treatment = await this.treatmentRepository.findOne({ where: { id } });
+  async findOne(id: number, includeInactive = true): Promise<Treatment> {
+    const treatment = await this.treatmentRepository.findOne({
+      where: includeInactive ? { id } : { id, isActive: true },
+    });
     if (!treatment) {
       throw new NotFoundException(`Tratamiento con ID ${id} no encontrado`);
     }
     return treatment;
+  }
+
+  async findActiveOne(id: number): Promise<Treatment> {
+    return this.findOne(id, false);
   }
 
   // Actualizar un tratamiento por ID
@@ -119,14 +136,43 @@ export class TreatmentService {
   }
 
   // Eliminar un tratamiento por ID
-  async remove(id: number): Promise<void> {
-    const result = await this.treatmentRepository.delete(id);
-    if (result.affected === 0) {
-      // Si affected es 0, significa que no se encontró ninguna fila con ese ID
-      throw new NotFoundException(
-        `Tratamiento con ID ${id} no encontrado para eliminar`,
-      );
+  async setActiveStatus(id: number, isActive: boolean): Promise<Treatment> {
+    const treatment = await this.findOne(id, true);
+    treatment.isActive = isActive;
+    return this.treatmentRepository.save(treatment);
+  }
+
+  async remove(id: number): Promise<TreatmentRemovalResult> {
+    await this.findOne(id, true);
+
+    try {
+      const result = await this.treatmentRepository.delete(id);
+      if (result.affected === 0) {
+        throw new NotFoundException(
+          `Tratamiento con ID ${id} no encontrado para eliminar`,
+        );
+      }
+
+      return {
+        action: 'deleted',
+        message: 'Tratamiento eliminado permanentemente.',
+        treatmentId: id,
+      };
+    } catch (error) {
+      if (
+        error instanceof QueryFailedError &&
+        (error as any).driverError?.code === '23503'
+      ) {
+        await this.setActiveStatus(id, false);
+        return {
+          action: 'deactivated',
+          message:
+            'El tratamiento tiene historial asociado. Se ocultó y desactivó en lugar de eliminarse.',
+          treatmentId: id,
+        };
+      }
+
+      throw error;
     }
-    // No se devuelve nada en una eliminación exitosa (o puedes devolver un mensaje)
   }
 }

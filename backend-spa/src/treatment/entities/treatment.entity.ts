@@ -38,4 +38,7 @@ export class Treatment {
 
   @Column({ type: 'boolean', default: false })
   isFeatured: boolean;
+
+  @Column({ type: 'boolean', default: true })
+  isActive: boolean;
 }

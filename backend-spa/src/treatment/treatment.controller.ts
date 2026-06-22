@@ -59,6 +59,16 @@ export class TreatmentController {
   }
 
   @UseGuards(AuthGuard('jwt'), RolesGuard) // Protegido
+  @Patch(':id/status')
+  @Roles(UserRole.ADMIN)
+  setActiveStatus(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('isActive') isActive: boolean,
+  ) {
+    return this.treatmentService.setActiveStatus(id, isActive);
+  }
+
+  @UseGuards(AuthGuard('jwt'), RolesGuard) // Protegido
   @Delete(':id')
   @Roles(UserRole.ADMIN) // Solo ADMIN puede eliminar tratamientos
   remove(@Param('id', ParseIntPipe) id: number) {
@@ -72,6 +82,7 @@ export class TreatmentController {
     @Query('category') category?: string,
     @Query('search') search?: string,
     @Query('featured') featured?: string,
+    @Query('includeInactive') includeInactive?: string,
   ) {
     const normalizedCategory = Object.values(TreatmentCategory).includes(
       category as TreatmentCategory,
@@ -88,6 +99,7 @@ export class TreatmentController {
       category: normalizedCategory,
       search,
       featured: normalizedFeatured,
+      includeInactive: includeInactive === 'true',
     });
   }
 
