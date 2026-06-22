@@ -1,11 +1,17 @@
 // File: backend-spa/src/employee/employee.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { QueryFailedError, Repository } from 'typeorm';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
 import { Employee } from './entities/employee.entity';
 import { CloudinaryService } from '../cloudinary/cloudinary.service'; // Importa CloudinaryService
+
+export interface EmployeeRemovalResult {
+  action: 'deleted' | 'deactivated';
+  message: string;
+  employeeId: number;
+}
 
 @Injectable()
 export class EmployeeService {
@@ -39,17 +45,29 @@ export class EmployeeService {
   }
 
   // Obtener todos los empleados
-  async findAll(): Promise<Employee[]> {
-    return this.employeeRepository.find();
+  async findAll(includeInactive = false): Promise<Employee[]> {
+    return this.employeeRepository.find({
+      where: includeInactive ? {} : { isActive: true },
+      order: {
+        isActive: 'DESC',
+        name: 'ASC',
+      },
+    });
   }
 
   // Obtener un empleado por ID
-  async findOne(id: number): Promise<Employee> {
-    const employee = await this.employeeRepository.findOne({ where: { id } });
+  async findOne(id: number, includeInactive = true): Promise<Employee> {
+    const employee = await this.employeeRepository.findOne({
+      where: includeInactive ? { id } : { id, isActive: true },
+    });
     if (!employee) {
       throw new NotFoundException(`Empleado con ID ${id} no encontrado`);
     }
     return employee;
+  }
+
+  async findActiveOne(id: number): Promise<Employee> {
+    return this.findOne(id, false);
   }
 
   // Actualizar un empleado por ID
@@ -94,14 +112,44 @@ export class EmployeeService {
   }
 
   // Eliminar un empleado por ID
-  async remove(id: number): Promise<void> {
-    const result = await this.employeeRepository.delete(id);
-    if (result.affected === 0) {
-      // Si affected es 0, significa que no se encontró ninguna fila con ese ID
-      throw new NotFoundException(
-        `Empleado con ID ${id} no encontrado para eliminar`,
-      );
+  async setActiveStatus(id: number, isActive: boolean): Promise<Employee> {
+    const employee = await this.findOne(id, true);
+    employee.isActive = isActive;
+    return this.employeeRepository.save(employee);
+  }
+
+  // Eliminar un empleado por ID
+  async remove(id: number): Promise<EmployeeRemovalResult> {
+    await this.findOne(id, true);
+
+    try {
+      const result = await this.employeeRepository.delete(id);
+      if (result.affected === 0) {
+        throw new NotFoundException(
+          `Empleado con ID ${id} no encontrado para eliminar`,
+        );
+      }
+
+      return {
+        action: 'deleted',
+        message: 'Empleado eliminado permanentemente.',
+        employeeId: id,
+      };
+    } catch (error) {
+      if (
+        error instanceof QueryFailedError &&
+        (error as any).driverError?.code === '23503'
+      ) {
+        await this.setActiveStatus(id, false);
+        return {
+          action: 'deactivated',
+          message:
+            'El empleado tiene historial asociado. Se ocultó y desactivó en lugar de eliminarse.',
+          employeeId: id,
+        };
+      }
+
+      throw error;
     }
-    // No se devuelve nada en una eliminación exitosa (o puedes devolver un mensaje)
   }
 }

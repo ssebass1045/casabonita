@@ -12,6 +12,7 @@ import {
   ValidationPipe,
   UseInterceptors,
   UploadedFile,
+  Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express'; // Importa FileInterceptor
 import { EmployeeService } from './employee.service';
@@ -56,6 +57,16 @@ export class EmployeeController {
   }
 
   @UseGuards(AuthGuard('jwt'), RolesGuard) // Protege esta ruta con el guardia JWT
+  @Patch(':id/status')
+  @Roles(UserRole.ADMIN)
+  setActiveStatus(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('isActive') isActive: boolean,
+  ) {
+    return this.employeeService.setActiveStatus(id, isActive);
+  }
+
+  @UseGuards(AuthGuard('jwt'), RolesGuard) // Protege esta ruta con el guardia JWT
   @Delete(':id') // Maneja peticiones DELETE a /employees/:id
   @Roles(UserRole.ADMIN) // <-- Aplica el decorador
   remove(@Param('id', ParseIntPipe) id: number) {
@@ -67,9 +78,9 @@ export class EmployeeController {
   // --- Rutas Públicas (no requieren autenticación) ---
 
   @Get() // Maneja peticiones GET a /employees
-  findAll() {
+  findAll(@Query('includeInactive') includeInactive?: string) {
     // Llama al servicio para obtener todos los empleados
-    return this.employeeService.findAll();
+    return this.employeeService.findAll(includeInactive === 'true');
   }
 
   @Get(':id') // Maneja peticiones GET a /employees/:id

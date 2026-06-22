@@ -21,7 +21,7 @@ export class EmployeeAvailabilityService {
   ) {}
 
   private async checkEmployeeExists(employeeId: number) {
-    await this.employeeService.findOne(employeeId);
+    await this.employeeService.findActiveOne(employeeId);
   }
 
   async create(

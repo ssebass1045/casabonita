@@ -49,7 +49,7 @@ export class AppointmentService {
       await this.clientService.findOne(dto.clientId);
     }
     if (dto.employeeId) {
-      await this.employeeService.findOne(dto.employeeId);
+      await this.employeeService.findActiveOne(dto.employeeId);
     }
     if (dto.treatmentId) {
       await this.treatmentService.findOne(dto.treatmentId);

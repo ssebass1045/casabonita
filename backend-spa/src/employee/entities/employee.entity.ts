@@ -25,4 +25,7 @@ export class Employee {
 
   @Column({ nullable: true })
   imageUrl: string;
+
+  @Column({ type: 'boolean', default: true })
+  isActive: boolean;
 }
