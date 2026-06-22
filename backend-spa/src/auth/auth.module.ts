@@ -1,4 +1,3 @@
-
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
@@ -11,9 +10,10 @@ import { UserModule } from '../user/user.module'; // <-- Aún no existe, lo impo
 
 @Module({
   imports: [
-    UserModule, 
+    UserModule,
     PassportModule, // Importa PassportModule para manejar estrategias
-    JwtModule.registerAsync({ // Configura JwtModule de forma asíncrona para usar ConfigService
+    JwtModule.registerAsync({
+      // Configura JwtModule de forma asíncrona para usar ConfigService
       imports: [ConfigModule], // Importa ConfigModule para acceder a las variables de entorno
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET') ?? 'default_secret_key', // Lee JWT_SECRET del .env

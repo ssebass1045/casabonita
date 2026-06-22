@@ -1,13 +1,13 @@
-import { 
-  Controller, 
-  Post, 
-  Body, 
-  Get, 
-  Param, 
-  Query, 
-  Put, 
-  Delete, 
-  NotFoundException 
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Param,
+  Query,
+  Put,
+  Delete,
+  NotFoundException,
 } from '@nestjs/common';
 import { ServicesPackService } from './services-pack.service';
 import { ServicesPackSession } from './entities/services-pack-session.entity';
@@ -15,9 +15,8 @@ import { ServicesPack } from './entities/services-pack.entity';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { CreateServicesPackDto } from './dto/create-services-pack.dto';
 import { ClientServicesPack } from './entities/client-services-pack.entity'; // <-- Nueva importación
-import { CreateClientServicesPackDto } from './dto/create-client-services-pack.dto'; 
+import { CreateClientServicesPackDto } from './dto/create-client-services-pack.dto';
 import { BadRequestException } from '@nestjs/common';
-
 
 @Controller('services-pack')
 export class ServicesPackController {
@@ -31,7 +30,6 @@ export class ServicesPackController {
     return this.servicesPackService.updateClientServicesPack(id, updateDto);
   }
 
-
   // CRUD para ServicesPack
   @Get()
   async getAllServicesPacks(): Promise<ServicesPack[]> {
@@ -39,21 +37,23 @@ export class ServicesPackController {
   }
 
   @Get(':id')
-async getServicesPackById(@Param('id') id: number): Promise<ServicesPack> {
-  // Agrega esta validación
-  if (isNaN(id)) {
-    throw new BadRequestException('ID inválido');
+  async getServicesPackById(@Param('id') id: number): Promise<ServicesPack> {
+    // Agrega esta validación
+    if (isNaN(id)) {
+      throw new BadRequestException('ID inválido');
+    }
+
+    const pack = await this.servicesPackService.getServicesPackById(id);
+    if (!pack) {
+      throw new NotFoundException(`Paquete con ID ${id} no encontrado`);
+    }
+    return pack;
   }
-  
-  const pack = await this.servicesPackService.getServicesPackById(id);
-  if (!pack) {
-    throw new NotFoundException(`Paquete con ID ${id} no encontrado`);
-  }
-  return pack;
-}
 
   @Post()
-  async createServicesPack(@Body() createDto: CreateServicesPackDto): Promise<ServicesPack> {
+  async createServicesPack(
+    @Body() createDto: CreateServicesPackDto,
+  ): Promise<ServicesPack> {
     return this.servicesPackService.createServicesPack(createDto);
   }
 
@@ -70,7 +70,6 @@ async getServicesPackById(@Param('id') id: number): Promise<ServicesPack> {
     return this.servicesPackService.deleteServicesPack(id);
   }
 
-
   // Endpoints para paquetes de clientes
   @Get('client/all')
   async getAllClientServicesPacks(): Promise<ClientServicesPack[]> {
@@ -78,10 +77,14 @@ async getServicesPackById(@Param('id') id: number): Promise<ServicesPack> {
   }
 
   @Get('client/:id')
-  async getClientServicesPackById(@Param('id') id: number): Promise<ClientServicesPack> {
+  async getClientServicesPackById(
+    @Param('id') id: number,
+  ): Promise<ClientServicesPack> {
     const pack = await this.servicesPackService.getClientServicesPackById(id);
     if (!pack) {
-      throw new NotFoundException(`Paquete del cliente con ID ${id} no encontrado`);
+      throw new NotFoundException(
+        `Paquete del cliente con ID ${id} no encontrado`,
+      );
     }
     return pack;
   }

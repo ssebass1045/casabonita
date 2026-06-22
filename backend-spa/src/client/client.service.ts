@@ -1,5 +1,9 @@
 // File: backend-spa/src/client/client.service.ts
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'; // <-- Añade BadRequestException
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common'; // <-- Añade BadRequestException
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
 import { CreateClientDto } from './dto/create-client.dto';
@@ -33,13 +37,19 @@ export class ClientService {
     const queryBuilder = this.clientRepository.createQueryBuilder('client');
 
     if (filters?.ageMin !== undefined) {
-      queryBuilder.andWhere('client.age >= :ageMin', { ageMin: filters.ageMin });
+      queryBuilder.andWhere('client.age >= :ageMin', {
+        ageMin: filters.ageMin,
+      });
     }
     if (filters?.ageMax !== undefined) {
-      queryBuilder.andWhere('client.age <= :ageMax', { ageMax: filters.ageMax });
+      queryBuilder.andWhere('client.age <= :ageMax', {
+        ageMax: filters.ageMax,
+      });
     }
     if (filters?.gender) {
-      queryBuilder.andWhere('client.gender = :gender', { gender: filters.gender });
+      queryBuilder.andWhere('client.gender = :gender', {
+        gender: filters.gender,
+      });
     }
 
     return queryBuilder.getMany();
@@ -59,22 +69,30 @@ export class ClientService {
       ...updateClientDto,
     });
     if (!client) {
-      throw new NotFoundException(`Cliente con ID ${id} no encontrado para actualizar`);
+      throw new NotFoundException(
+        `Cliente con ID ${id} no encontrado para actualizar`,
+      );
     }
     return this.clientRepository.save(client);
   }
 
   async remove(id: number): Promise<void> {
     // --- NUEVA VALIDACIÓN ---
-    const appointmentsCount = await this.appointmentRepository.count({ where: { clientId: id } });
+    const appointmentsCount = await this.appointmentRepository.count({
+      where: { clientId: id },
+    });
     if (appointmentsCount > 0) {
-      throw new BadRequestException(`No se puede eliminar el cliente porque tiene ${appointmentsCount} citas asociadas.`);
+      throw new BadRequestException(
+        `No se puede eliminar el cliente porque tiene ${appointmentsCount} citas asociadas.`,
+      );
     }
     // --- FIN NUEVA VALIDACIÓN ---
 
     const result = await this.clientRepository.delete(id);
     if (result.affected === 0) {
-      throw new NotFoundException(`Cliente con ID ${id} no encontrado para eliminar`);
+      throw new NotFoundException(
+        `Cliente con ID ${id} no encontrado para eliminar`,
+      );
     }
   }
 }

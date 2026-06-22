@@ -1,5 +1,15 @@
-
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+
+export enum TreatmentCategory {
+  FACIAL = 'facial',
+  CORPORAL = 'corporal',
+  DEPILACION = 'depilacion',
+  CEJAS_PESTANAS = 'cejas_pestanas',
+  MASAJES_RELAJACION = 'masajes_relajacion',
+  CUIDADO_PIEL = 'cuidado_piel',
+  BELLEZA = 'belleza',
+  OTROS = 'otros',
+}
 
 @Entity()
 export class Treatment {
@@ -18,5 +28,14 @@ export class Treatment {
   @Column({ nullable: true })
   imageUrl: string;
 
-  
+  @Column({
+    type: 'enum',
+    enum: TreatmentCategory,
+    enumName: 'treatment_category_enum',
+    default: TreatmentCategory.OTROS,
+  })
+  category: TreatmentCategory;
+
+  @Column({ type: 'boolean', default: false })
+  isFeatured: boolean;
 }

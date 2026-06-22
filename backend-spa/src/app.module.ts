@@ -1,8 +1,7 @@
-
 import { Module } from '@nestjs/common';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule } from '@nestjs/config'; // 
+import { ConfigModule } from '@nestjs/config'; //
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TreatmentModule } from './treatment/treatment.module';
@@ -44,13 +43,16 @@ import { ServicesPackModule } from './services-pack/services-pack.module';
       type: 'postgres', // Especifica el driver directamente
       url: process.env.DATABASE_URL, // <-- Usa la URL completa
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+      ssl:
+        process.env.NODE_ENV === 'production'
+          ? { rejectUnauthorized: false }
+          : false,
 
       synchronize: false,
       logging: true,
       extra: {
-      timezone: '-05:00', // <-- AÑADE ESTA LÍNEA
-    },
+        timezone: '-05:00', // <-- AÑADE ESTA LÍNEA
+      },
     }),
     ScheduleModule.forRoot(),
     TreatmentModule,

@@ -11,19 +11,29 @@ export class ServicesPackSessionService {
     private readonly sessionRepository: Repository<ServicesPackSession>,
   ) {}
 
-  async createSession(createSessionDto: CreateSessionDto): Promise<ServicesPackSession> {
+  async createSession(
+    createSessionDto: CreateSessionDto,
+  ): Promise<ServicesPackSession> {
     const session = this.sessionRepository.create(createSessionDto);
     return await this.sessionRepository.save(session);
   }
 
-  async getSessionsByEmployee(employeeId: number): Promise<ServicesPackSession[]> {
+  async getSessionsByEmployee(
+    employeeId: number,
+  ): Promise<ServicesPackSession[]> {
     return await this.sessionRepository.find({
       where: { employeeId },
-      relations: ['clientServicesPack', 'clientServicesPack.client', 'employee'],
+      relations: [
+        'clientServicesPack',
+        'clientServicesPack.client',
+        'employee',
+      ],
     });
   }
 
-  async getSessionsByClientPack(clientServicesPackId: number): Promise<ServicesPackSession[]> {
+  async getSessionsByClientPack(
+    clientServicesPackId: number,
+  ): Promise<ServicesPackSession[]> {
     return await this.sessionRepository.find({
       where: { clientServicesPackId },
       relations: ['employee'],

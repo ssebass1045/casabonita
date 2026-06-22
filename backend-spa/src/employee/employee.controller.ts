@@ -1,7 +1,17 @@
 // File: backend-spa/src/employee/employee.controller.ts
 import {
-  Controller, Get, Post, Body, Patch, Param, Delete, UseGuards,
-  ParseIntPipe, ValidationPipe, UseInterceptors, UploadedFile
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  ParseIntPipe,
+  ValidationPipe,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express'; // Importa FileInterceptor
 import { EmployeeService } from './employee.service';
@@ -12,7 +22,6 @@ import { Express } from 'express'; // Necesario para el tipo Express.Multer.File
 import { Roles } from '../auth/decorators/roles.decorator'; // <-- Importa el decorador
 import { UserRole } from '../user/entities/user.entity'; // <-- Importa el enum
 import { RolesGuard } from '../auth/guards/roles.guard'; // <-- Importa el guardia
-
 
 //@UseGuards(AuthGuard('jwt'), RolesGuard) // Protege todas las rutas de este controlador con el guardia JWT
 @Controller('employees') // Define el prefijo de ruta para este controlador (/employees)
@@ -27,7 +36,7 @@ export class EmployeeController {
   @UseInterceptors(FileInterceptor('image')) // Intercepta un archivo del campo 'image'
   create(
     @Body(ValidationPipe) createEmployeeDto: CreateEmployeeDto, // Valida el cuerpo de la petición con el DTO
-    @UploadedFile() file?: Express.Multer.File // Inyecta el archivo subido (opcional)
+    @UploadedFile() file?: Express.Multer.File, // Inyecta el archivo subido (opcional)
   ) {
     // Llama al servicio para crear el empleado, pasando el DTO y el archivo
     return this.employeeService.create(createEmployeeDto, file);
@@ -40,7 +49,7 @@ export class EmployeeController {
   update(
     @Param('id', ParseIntPipe) id: number, // Extrae y parsea el ID de los parámetros de la ruta
     @Body(ValidationPipe) updateEmployeeDto: UpdateEmployeeDto, // Valida el cuerpo de la petición con el DTO
-    @UploadedFile() file?: Express.Multer.File // Inyecta el archivo subido (opcional)
+    @UploadedFile() file?: Express.Multer.File, // Inyecta el archivo subido (opcional)
   ) {
     // Llama al servicio para actualizar el empleado, pasando el ID, DTO y archivo
     return this.employeeService.update(id, updateEmployeeDto, file);
@@ -49,7 +58,8 @@ export class EmployeeController {
   @UseGuards(AuthGuard('jwt'), RolesGuard) // Protege esta ruta con el guardia JWT
   @Delete(':id') // Maneja peticiones DELETE a /employees/:id
   @Roles(UserRole.ADMIN) // <-- Aplica el decorador
-  remove(@Param('id', ParseIntPipe) id: number) { // Extrae y parsea el ID
+  remove(@Param('id', ParseIntPipe) id: number) {
+    // Extrae y parsea el ID
     // Llama al servicio para eliminar el empleado
     return this.employeeService.remove(id);
   }
@@ -63,7 +73,8 @@ export class EmployeeController {
   }
 
   @Get(':id') // Maneja peticiones GET a /employees/:id
-  findOne(@Param('id', ParseIntPipe) id: number) { // Extrae y parsea el ID
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    // Extrae y parsea el ID
     // Llama al servicio para obtener un empleado por ID
     return this.employeeService.findOne(id);
   }

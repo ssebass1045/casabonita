@@ -1,5 +1,12 @@
 // File: backend-spa/src/product-sale/entities/product-sale.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+} from 'typeorm';
 import { Product } from '../../product/entities/product.entity';
 // --- AÑADE LA IMPORTACIÓN DEL ENUM ---
 import { PaymentMethod } from '../../appointment/enums/payment-method.enum';
@@ -30,7 +37,7 @@ export class ProductSale {
     type: 'enum',
     enum: PaymentMethod,
     nullable: true, // Hacemos que sea obligatorio saber cómo se pagó
-    default: PaymentMethod.EFECTIVO
+    default: PaymentMethod.EFECTIVO,
   })
   paymentMethod: PaymentMethod;
   // --- FIN DEL NUEVO CAMPO ---

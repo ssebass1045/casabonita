@@ -9,7 +9,10 @@ export class UpdateAppointmentDto extends PartialType(CreateAppointmentDto) {
   // Sobrescribimos la validación para el caso de actualización
   @IsEnum(PaymentStatus)
   @IsNotEmpty() // <-- Este es el decorador que causaba el error
-  @ValidateIf(o => o.status === AppointmentStatus.REALIZADA)
-  @IsEnum(PaymentStatus, { message: 'paymentStatus must be "Pagado" if appointment status is "Realizada"' })
+  @ValidateIf((o) => o.status === AppointmentStatus.REALIZADA)
+  @IsEnum(PaymentStatus, {
+    message:
+      'paymentStatus must be "Pagado" if appointment status is "Realizada"',
+  })
   paymentStatus?: PaymentStatus; // Hacemos opcional para PartialType
 }

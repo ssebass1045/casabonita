@@ -1,5 +1,14 @@
 // File: backend-spa/src/appointment/dto/create-appointment.dto.ts
-import { IsNotEmpty, IsNumber, IsDateString, IsEnum, IsOptional, Min, ValidateIf, IsString } from 'class-validator'; // <-- Asegúrate de que IsString esté aquí
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsDateString,
+  IsEnum,
+  IsOptional,
+  Min,
+  ValidateIf,
+  IsString,
+} from 'class-validator'; // <-- Asegúrate de que IsString esté aquí
 import { Transform } from 'class-transformer';
 import { AppointmentStatus } from '../enums/appointment-status.enum';
 import { PaymentMethod } from '../enums/payment-method.enum';
@@ -49,8 +58,11 @@ export class CreateAppointmentDto {
   @IsEnum(PaymentStatus)
   @IsNotEmpty()
   // Regla de negocio: Si el estado de la cita es 'Realizada', el estado de pago debe ser 'Pagado'
-  @ValidateIf(o => o.status === AppointmentStatus.REALIZADA)
-  @IsEnum(PaymentStatus, { message: 'paymentStatus must be "Pagado" if appointment status is "Realizada"' })
+  @ValidateIf((o) => o.status === AppointmentStatus.REALIZADA)
+  @IsEnum(PaymentStatus, {
+    message:
+      'paymentStatus must be "Pagado" if appointment status is "Realizada"',
+  })
   paymentStatus: PaymentStatus;
 
   @IsOptional()

@@ -1,5 +1,11 @@
 // File: backend-spa/src/user/user.service.ts
-import { Injectable, NotFoundException, BadRequestException, OnModuleInit, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  OnModuleInit,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User, UserRole } from './entities/user.entity';
@@ -23,13 +29,17 @@ export class UserService implements OnModuleInit {
 
   private async seedAdminUser() {
     const adminUsername = process.env.ADMIN_USERNAME ?? 'admin';
-    const adminExists = await this.userRepository.findOne({ where: { username: adminUsername } });
+    const adminExists = await this.userRepository.findOne({
+      where: { username: adminUsername },
+    });
 
     if (!adminExists) {
       console.log(`Creando usuario administrador inicial: ${adminUsername}`);
       const adminPassword = process.env.ADMIN_PASSWORD ?? 'password123';
       if (!adminPassword) {
-          throw new Error('ADMIN_PASSWORD no está definida en las variables de entorno.');
+        throw new Error(
+          'ADMIN_PASSWORD no está definida en las variables de entorno.',
+        );
       }
       const hashedPassword = await bcrypt.hash(adminPassword, this.saltRounds);
       const adminUser = this.userRepository.create({
@@ -44,13 +54,16 @@ export class UserService implements OnModuleInit {
 
   // --- MÉTODO create CORREGIDO ---
   async create(createUserDto: CreateUserDto): Promise<Omit<User, 'password'>> {
-    const hashedPassword = await bcrypt.hash(createUserDto.password, this.saltRounds);
+    const hashedPassword = await bcrypt.hash(
+      createUserDto.password,
+      this.saltRounds,
+    );
     const newUser = this.userRepository.create({
       ...createUserDto,
       password: hashedPassword,
     });
     const savedUser = await this.userRepository.save(newUser);
-    
+
     // Desestructurar para omitir la contraseña
     const { password, ...result } = savedUser;
     return result;
@@ -73,7 +86,10 @@ export class UserService implements OnModuleInit {
   }
 
   // --- MÉTODO update CORREGIDO ---
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<Omit<User, 'password'>> {
+  async update(
+    id: number,
+    updateUserDto: UpdateUserDto,
+  ): Promise<Omit<User, 'password'>> {
     const user = await this.userRepository.preload({
       id: id,
       ...updateUserDto,
@@ -82,7 +98,10 @@ export class UserService implements OnModuleInit {
       throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
     }
     if (updateUserDto.password) {
-      user.password = await bcrypt.hash(updateUserDto.password, this.saltRounds);
+      user.password = await bcrypt.hash(
+        updateUserDto.password,
+        this.saltRounds,
+      );
     }
     const updatedUser = await this.userRepository.save(user);
     const { password, ...result } = updatedUser;
@@ -92,7 +111,9 @@ export class UserService implements OnModuleInit {
   // --- MÉTODO remove (ya estaba bien) ---
   async remove(id: number): Promise<void> {
     if (id === 1) {
-      throw new ForbiddenException('No se puede eliminar al administrador principal.');
+      throw new ForbiddenException(
+        'No se puede eliminar al administrador principal.',
+      );
     }
     const result = await this.userRepository.delete(id);
     if (result.affected === 0) {
@@ -105,12 +126,18 @@ export class UserService implements OnModuleInit {
     return this.userRepository.findOne({ where: { username } });
   }
 
-  async updatePassword(id: number, updatePasswordDto: UpdatePasswordDto): Promise<void> {
+  async updatePassword(
+    id: number,
+    updatePasswordDto: UpdatePasswordDto,
+  ): Promise<void> {
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user) {
       throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
     }
-    const hashedPassword = await bcrypt.hash(updatePasswordDto.newPassword, this.saltRounds);
+    const hashedPassword = await bcrypt.hash(
+      updatePasswordDto.newPassword,
+      this.saltRounds,
+    );
     user.password = hashedPassword;
     await this.userRepository.save(user);
   }

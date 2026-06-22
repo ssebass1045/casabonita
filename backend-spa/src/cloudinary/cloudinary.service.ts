@@ -11,7 +11,10 @@ export class CloudinaryService {
       const uploadStream = cloudinary.uploader.upload_stream(
         (error, result) => {
           if (error) return reject(error);
-          if (!result) return reject(new Error('Cloudinary upload failed without error or result.'));
+          if (!result)
+            return reject(
+              new Error('Cloudinary upload failed without error or result.'),
+            );
           resolve(result);
         },
       );
@@ -20,7 +23,10 @@ export class CloudinaryService {
   }
 
   // --- NUEVO MÉTODO: uploadPdfBuffer ---
-  uploadPdfBuffer(buffer: Buffer, filename: string): Promise<CloudinaryResponse> {
+  uploadPdfBuffer(
+    buffer: Buffer,
+    filename: string,
+  ): Promise<CloudinaryResponse> {
     return new Promise<UploadApiResponse>((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
@@ -30,7 +36,12 @@ export class CloudinaryService {
         },
         (error, result) => {
           if (error) return reject(error);
-          if (!result) return reject(new Error('Cloudinary PDF upload failed without error or result.'));
+          if (!result)
+            return reject(
+              new Error(
+                'Cloudinary PDF upload failed without error or result.',
+              ),
+            );
           resolve(result);
         },
       );

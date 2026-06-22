@@ -1,8 +1,26 @@
 // File: backend-spa/src/metrics/metrics.controller.ts
-import { Controller, Get, Query, UseGuards, ParseIntPipe, ValidationPipe, Param, Logger, Post, Body } from '@nestjs/common'; // <-- AÑADE Post y Body
+import {
+  Controller,
+  Get,
+  Query,
+  UseGuards,
+  ParseIntPipe,
+  ValidationPipe,
+  Param,
+  Logger,
+  Post,
+  Body,
+} from '@nestjs/common'; // <-- AÑADE Post y Body
 import { AuthGuard } from '@nestjs/passport';
 import { MetricsService } from './metrics.service';
-import { IsNumber, Min, Max, IsString, IsNotEmpty, IsDateString } from 'class-validator'; // <-- AÑADE IsDateString
+import {
+  IsNumber,
+  Min,
+  Max,
+  IsString,
+  IsNotEmpty,
+  IsDateString,
+} from 'class-validator'; // <-- AÑADE IsDateString
 import { Transform } from 'class-transformer';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../user/entities/user.entity';
@@ -60,15 +78,21 @@ export class MetricsController {
 
   @Get('income/historical')
   @Roles(UserRole.ADMIN)
-  async getHistoricalDailyIncome(@Query('date') date: string): Promise<DailyIncomeHistory | null> {
+  async getHistoricalDailyIncome(
+    @Query('date') date: string,
+  ): Promise<DailyIncomeHistory | null> {
     this.logger.log(`[Historical Income] Request received for date: ${date}`);
     return this.metricsService.getHistoricalDailyIncome(date);
   }
 
   @Post('income/save-daily')
   @Roles(UserRole.ADMIN)
-  async saveDailyIncome(@Body(ValidationPipe) body: SaveDailyIncomeDto): Promise<DailyIncomeHistory> {
-    this.logger.log(`[Save Daily Income] Request received for date: ${body.date}`);
+  async saveDailyIncome(
+    @Body(ValidationPipe) body: SaveDailyIncomeDto,
+  ): Promise<DailyIncomeHistory> {
+    this.logger.log(
+      `[Save Daily Income] Request received for date: ${body.date}`,
+    );
     return this.metricsService.calculateAndSaveDailyIncome(body.date);
   }
 
@@ -76,7 +100,9 @@ export class MetricsController {
 
   @Get('services/top')
   @Roles(UserRole.ADMIN)
-  async getTopServices(@Query('limit', new ParseIntPipe({ optional: true })) limit?: number): Promise<any[]> {
+  async getTopServices(
+    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
+  ): Promise<any[]> {
     return this.metricsService.getTopServices(limit);
   }
 
@@ -113,8 +139,15 @@ export class MetricsController {
     @Param('employeeId', ParseIntPipe) employeeId: number,
     @Query(ValidationPipe) query: GetEmployeePayrollDto,
   ): Promise<any> {
-    this.logger.log(`[Payroll] Request received for employeeId: ${employeeId}, startDate: ${query.startDate}, endDate: ${query.endDate}, commissionRate: ${query.commissionRate}`);
-    return this.metricsService.getEmployeePayroll(employeeId, query.startDate, query.endDate, query.commissionRate);
+    this.logger.log(
+      `[Payroll] Request received for employeeId: ${employeeId}, startDate: ${query.startDate}, endDate: ${query.endDate}, commissionRate: ${query.commissionRate}`,
+    );
+    return this.metricsService.getEmployeePayroll(
+      employeeId,
+      query.startDate,
+      query.endDate,
+      query.commissionRate,
+    );
   }
   @Get('products/sales-income')
   @Roles(UserRole.ADMIN)
@@ -127,14 +160,16 @@ export class MetricsController {
 
   @Get('products/sales-income/daily')
   @Roles(UserRole.ADMIN)
-  async getDailyProductSalesIncome(@Query('date') date: string): Promise<number> {
+  async getDailyProductSalesIncome(
+    @Query('date') date: string,
+  ): Promise<number> {
     return this.metricsService.getDailyProductSalesIncome(date);
   }
 
   @Get('clients/upcoming-birthdays')
   @Roles(UserRole.ADMIN)
   async getUpcomingBirthdays(
-    @Query('days', new ParseIntPipe({ optional: true })) days?: number
+    @Query('days', new ParseIntPipe({ optional: true })) days?: number,
   ): Promise<any[]> {
     return this.metricsService.getUpcomingBirthdays(days);
   }
@@ -142,7 +177,7 @@ export class MetricsController {
   @Get('products/top-selling')
   @Roles(UserRole.ADMIN)
   async getTopSellingProducts(
-    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number
+    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
   ): Promise<any[]> {
     return this.metricsService.getTopSellingProducts(limit);
   }
@@ -153,19 +188,25 @@ export class MetricsController {
     return this.metricsService.getMonthlyIncomeTrend();
   }
 
-    // --- NUEVOS ENDPOINTS PARA DESGLOSE POR MÉTODO DE PAGO Y LISTADO DE VENTAS ---
-  
+  // --- NUEVOS ENDPOINTS PARA DESGLOSE POR MÉTODO DE PAGO Y LISTADO DE VENTAS ---
+
   @Get('income/daily-by-payment-method')
   @Roles(UserRole.ADMIN)
-  async getDailyIncomeByPaymentMethod(@Query('date') date: string): Promise<any> {
-    this.logger.log(`[Daily Income by Payment Method] Request received for date: ${date}`);
+  async getDailyIncomeByPaymentMethod(
+    @Query('date') date: string,
+  ): Promise<any> {
+    this.logger.log(
+      `[Daily Income by Payment Method] Request received for date: ${date}`,
+    );
     return this.metricsService.getDailyIncomeByPaymentMethod(date);
   }
 
   @Get('products/daily-sales-list')
   @Roles(UserRole.ADMIN)
   async getDailyProductSalesList(@Query('date') date: string): Promise<any[]> {
-    this.logger.log(`[Daily Product Sales List] Request received for date: ${date}`);
+    this.logger.log(
+      `[Daily Product Sales List] Request received for date: ${date}`,
+    );
     return this.metricsService.getDailyProductSalesList(date);
   }
 
@@ -175,8 +216,9 @@ export class MetricsController {
     @Query('year', ParseIntPipe) year: number,
     @Query('month', ParseIntPipe) month: number,
   ): Promise<any[]> {
-    this.logger.log(`[Monthly Product Sales List] Request received for year: ${year}, month: ${month}`);
+    this.logger.log(
+      `[Monthly Product Sales List] Request received for year: ${year}, month: ${month}`,
+    );
     return this.metricsService.getMonthlyProductSalesList(year, month);
   }
-
 }

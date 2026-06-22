@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Client } from '../../client/entities/client.entity';
 import { ServicesPack } from './services-pack.entity';
 import { PaymentMethod } from '../../appointment/enums/payment-method.enum'; // <-- Nueva importación

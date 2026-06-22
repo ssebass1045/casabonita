@@ -9,9 +9,15 @@ export class CreateEmployeeDto {
   name: string;
 
   @IsOptional()
-  @IsEnum(EmployeeSpecialty, { message: 'specialty must be a valid enum value' }) // <-- Validación para el enum
-  @Transform(({ value }) => { // <-- Añade transformación para manejar string de frontend
-    if (typeof value === 'string' && Object.values(EmployeeSpecialty).includes(value as EmployeeSpecialty)) {
+  @IsEnum(EmployeeSpecialty, {
+    message: 'specialty must be a valid enum value',
+  }) // <-- Validación para el enum
+  @Transform(({ value }) => {
+    // <-- Añade transformación para manejar string de frontend
+    if (
+      typeof value === 'string' &&
+      Object.values(EmployeeSpecialty).includes(value as EmployeeSpecialty)
+    ) {
       return value;
     }
     return undefined; // Si no es un valor válido del enum, lo dejamos como undefined para que IsEnum lo capture

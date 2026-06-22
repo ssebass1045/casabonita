@@ -19,9 +19,9 @@ import { ServicesPackModule } from 'src/services-pack/services-pack.module';
       Employee,
       ProductSale,
       Product,
-      DailyIncomeHistory
+      DailyIncomeHistory,
     ]), // <-- Añade ProductSale y Product aquí
-    ServicesPackModule
+    ServicesPackModule,
   ],
   controllers: [MetricsController],
   providers: [MetricsService],

@@ -1,4 +1,11 @@
-import { IsNumber, IsOptional, IsDateString, IsBoolean, IsString, IsEnum } from 'class-validator';
+import {
+  IsNumber,
+  IsOptional,
+  IsDateString,
+  IsBoolean,
+  IsString,
+  IsEnum,
+} from 'class-validator';
 import { PaymentMethod } from '../../appointment/enums/payment-method.enum'; // <-- Nueva importación
 
 export class CreateClientServicesPackDto {

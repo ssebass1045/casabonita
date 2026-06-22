@@ -1,7 +1,17 @@
-
 import {
-  Controller, Get, Post, Body, Patch, Param, Delete, UseGuards,
-  ParseIntPipe, ValidationPipe, UseInterceptors, UploadedFile
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  ParseIntPipe,
+  ValidationPipe,
+  UseInterceptors,
+  UploadedFile,
+  Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express'; // Importa FileInterceptor
 import { TreatmentService } from './treatment.service';
@@ -14,6 +24,7 @@ import { Express } from 'express'; // Necesario para el tipo Express.Multer.File
 import { Roles } from '../auth/decorators/roles.decorator'; // <-- Importa el decorador
 import { UserRole } from '../user/entities/user.entity'; // <-- Importa el enum
 import { RolesGuard } from '../auth/guards/roles.guard'; // <-- Importa el guardia
+import { TreatmentCategory } from './entities/treatment.entity';
 
 //@UseGuards(AuthGuard('jwt'), RolesGuard) // Protege todas las rutas de este controlador
 @Controller('treatments')
@@ -28,7 +39,7 @@ export class TreatmentController {
   @UseInterceptors(FileInterceptor('image')) // Intercepta archivo del campo 'image'
   create(
     @Body(ValidationPipe) createTreatmentDto: CreateTreatmentDto,
-    @UploadedFile() file?: Express.Multer.File // Inyecta el archivo (opcional)
+    @UploadedFile() file?: Express.Multer.File, // Inyecta el archivo (opcional)
   ) {
     // Pasa el DTO y el archivo (si existe) al servicio
     return this.treatmentService.create(createTreatmentDto, file);
@@ -41,7 +52,7 @@ export class TreatmentController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body(ValidationPipe) updateTreatmentDto: UpdateTreatmentDto,
-    @UploadedFile() file?: Express.Multer.File // Inyecta el archivo (opcional)
+    @UploadedFile() file?: Express.Multer.File, // Inyecta el archivo (opcional)
   ) {
     // Pasa el ID, el DTO y el archivo (si existe) al servicio
     return this.treatmentService.update(id, updateTreatmentDto, file);
@@ -57,8 +68,27 @@ export class TreatmentController {
   // --- Rutas Públicas ---
 
   @Get() // Público
-  findAll() {
-    return this.treatmentService.findAll();
+  findAll(
+    @Query('category') category?: string,
+    @Query('search') search?: string,
+    @Query('featured') featured?: string,
+  ) {
+    const normalizedCategory = Object.values(TreatmentCategory).includes(
+      category as TreatmentCategory,
+    )
+      ? (category as TreatmentCategory)
+      : undefined;
+
+    const normalizedFeatured =
+      typeof featured === 'string'
+        ? featured.trim().toLowerCase() === 'true' || featured.trim() === '1'
+        : undefined;
+
+    return this.treatmentService.findAll({
+      category: normalizedCategory,
+      search,
+      featured: normalizedFeatured,
+    });
   }
 
   @Get(':id') // Público

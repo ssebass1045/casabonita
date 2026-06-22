@@ -15,13 +15,17 @@ export class ProductSaleService {
   ) {}
 
   // --- ¡CORRECCIÓN AQUÍ! ---
-  async create(createProductSaleDto: CreateProductSaleDto): Promise<ProductSale> { // <-- Cambiado CreateProductDto a CreateProductSaleDto
+  async create(
+    createProductSaleDto: CreateProductSaleDto,
+  ): Promise<ProductSale> {
+    // <-- Cambiado CreateProductDto a CreateProductSaleDto
     // Verificar que el producto exista
     await this.productService.findOne(createProductSaleDto.productId);
 
     const newSale = this.productSaleRepository.create({
       ...createProductSaleDto,
-      totalPrice: createProductSaleDto.quantity * createProductSaleDto.pricePerUnit,
+      totalPrice:
+        createProductSaleDto.quantity * createProductSaleDto.pricePerUnit,
     });
 
     return this.productSaleRepository.save(newSale);

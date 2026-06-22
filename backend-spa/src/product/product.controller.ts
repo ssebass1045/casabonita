@@ -1,7 +1,18 @@
 // File: backend-spa/src/product/product.controller.ts
 import {
-  Controller, Get, Post, Body, Patch, Param, Delete, UseGuards,
-  ParseIntPipe, ValidationPipe, UseInterceptors, UploadedFile, Query,
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  ParseIntPipe,
+  ValidationPipe,
+  UseInterceptors,
+  UploadedFile,
+  Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ProductService } from './product.service';
@@ -27,7 +38,7 @@ export class ProductController {
   @UseInterceptors(FileInterceptor('image'))
   create(
     @Body(ValidationPipe) createProductDto: CreateProductDto,
-    @UploadedFile() file?: Express.Multer.File
+    @UploadedFile() file?: Express.Multer.File,
   ) {
     return this.productService.create(createProductDto, file);
   }
@@ -39,7 +50,7 @@ export class ProductController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body(ValidationPipe) updateProductDto: UpdateProductDto,
-    @UploadedFile() file?: Express.Multer.File
+    @UploadedFile() file?: Express.Multer.File,
   ) {
     return this.productService.update(id, updateProductDto, file);
   }

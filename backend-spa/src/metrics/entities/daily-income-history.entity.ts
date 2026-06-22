@@ -1,5 +1,10 @@
 // File: backend-spa/src/metrics/entities/daily-income-history.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+} from 'typeorm';
 
 @Entity('daily_income_history')
 export class DailyIncomeHistory {

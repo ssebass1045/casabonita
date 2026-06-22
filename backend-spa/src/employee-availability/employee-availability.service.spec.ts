@@ -9,7 +9,9 @@ describe('EmployeeAvailabilityService', () => {
       providers: [EmployeeAvailabilityService],
     }).compile();
 
-    service = module.get<EmployeeAvailabilityService>(EmployeeAvailabilityService);
+    service = module.get<EmployeeAvailabilityService>(
+      EmployeeAvailabilityService,
+    );
   });
 
   it('should be defined', () => {

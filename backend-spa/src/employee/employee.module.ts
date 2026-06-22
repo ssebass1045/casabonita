@@ -7,10 +7,7 @@ import { Employee } from './entities/employee.entity';
 import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Employee]),
-    CloudinaryModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Employee]), CloudinaryModule],
   controllers: [EmployeeController],
   providers: [EmployeeService],
   exports: [EmployeeService], // <-- ¡Añade esta línea!

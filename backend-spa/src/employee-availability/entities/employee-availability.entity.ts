@@ -1,5 +1,11 @@
 // File: backend-spa/src/employee-availability/entities/employee-availability.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Employee } from '../../employee/entities/employee.entity'; // Importa la entidad Employee
 import { DayOfWeek } from '../enums/day-of-week.enum'; // Importa el enum de días
 

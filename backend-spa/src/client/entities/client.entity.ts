@@ -26,10 +26,10 @@ export class Client {
   })
   gender: Gender;
 
-  @Column({ type: 'text', nullable: true }) 
+  @Column({ type: 'text', nullable: true })
   observations: string;
 
-   @Column({ unique: true, nullable: true }) // <-- NUEVO CAMPO: DNI
+  @Column({ unique: true, nullable: true }) // <-- NUEVO CAMPO: DNI
   dni: string;
 
   @Column({ type: 'date', nullable: true }) // <-- NUEVO CAMPO: Fecha de Nacimiento

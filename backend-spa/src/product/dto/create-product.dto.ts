@@ -11,7 +11,6 @@ import {
 import { Transform } from 'class-transformer'; // Asegúrate de que esta importación esté aquí
 import { ProductCategory } from '../entities/product.entity';
 
-
 export class CreateProductDto {
   @IsString()
   @IsNotEmpty()
@@ -34,7 +33,8 @@ export class CreateProductDto {
   price: number;
 
   @IsOptional()
-  @Transform(({ value }) => { // <-- NUEVA TRANSFORMACIÓN PARA isActive
+  @Transform(({ value }) => {
+    // <-- NUEVA TRANSFORMACIÓN PARA isActive
     if (typeof value === 'string') {
       if (value === 'true') return true;
       if (value === 'false') return false;

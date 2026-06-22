@@ -1,5 +1,13 @@
 // File: backend-spa/src/appointment/dto/get-appointments.dto.ts
-import { IsOptional, IsInt, Min, Max, IsEnum, IsString, IsDateString } from 'class-validator';
+import {
+  IsOptional,
+  IsInt,
+  Min,
+  Max,
+  IsEnum,
+  IsString,
+  IsDateString,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { AppointmentStatus } from '../enums/appointment-status.enum';
 import { PaymentStatus } from '../enums/payment-status.enum';

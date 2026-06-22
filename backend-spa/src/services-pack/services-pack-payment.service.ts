@@ -15,10 +15,10 @@ export class ServicesPackPaymentService {
   ) {}
 
   async createPayment(
-    clientServicesPackId: number, 
-    amount: number, 
+    clientServicesPackId: number,
+    amount: number,
     paymentMethod: PaymentMethod,
-    notes?: string
+    notes?: string,
   ): Promise<ServicesPackPayment> {
     // Crear el pago
     const payment = this.paymentRepository.create({
@@ -26,14 +26,14 @@ export class ServicesPackPaymentService {
       amount,
       paymentMethod,
       notes,
-      paymentDate: new Date()
+      paymentDate: new Date(),
     });
 
     // Actualizar el paquete del cliente
     const clientPack = await this.clientPackRepository.findOne({
-      where: { id: clientServicesPackId }
+      where: { id: clientServicesPackId },
     });
-    
+
     if (clientPack) {
       clientPack.amountPaid = Number(clientPack.amountPaid) + amount;
       await this.clientPackRepository.save(clientPack);
@@ -42,23 +42,29 @@ export class ServicesPackPaymentService {
     return await this.paymentRepository.save(payment);
   }
 
-  async getPaymentsByDateRange(startDate: Date, endDate: Date): Promise<ServicesPackPayment[]> {
+  async getPaymentsByDateRange(
+    startDate: Date,
+    endDate: Date,
+  ): Promise<ServicesPackPayment[]> {
     return await this.paymentRepository.find({
       where: {
-        paymentDate: Between(startDate, endDate)
+        paymentDate: Between(startDate, endDate),
       },
-      relations: ['clientServicesPack', 'clientServicesPack.client']
+      relations: ['clientServicesPack', 'clientServicesPack.client'],
     });
   }
 
-  async getPaymentSummaryByDateRange(startDate: Date, endDate: Date): Promise<any> {
+  async getPaymentSummaryByDateRange(
+    startDate: Date,
+    endDate: Date,
+  ): Promise<any> {
     const result = await this.paymentRepository
       .createQueryBuilder('payment')
       .select('payment.paymentMethod', 'paymentMethod')
       .addSelect('SUM(payment.amount)', 'total')
-      .where('payment.paymentDate BETWEEN :start AND :end', { 
-        start: startDate, 
-        end: endDate 
+      .where('payment.paymentDate BETWEEN :start AND :end', {
+        start: startDate,
+        end: endDate,
       })
       .groupBy('payment.paymentMethod')
       .getRawMany();

@@ -21,18 +21,18 @@ import { ServicesPackPaymentController } from './services-pack-payment.controlle
     ]),
   ],
   controllers: [
-    ServicesPackController, 
+    ServicesPackController,
     ServicesPackSessionController,
     ServicesPackPaymentController, // <-- Agregar nuevo controller
   ],
   providers: [
-    ServicesPackService, 
+    ServicesPackService,
     ServicesPackSessionService,
     ServicesPackPaymentService,
   ],
   exports: [
-    ServicesPackService, 
-    TypeOrmModule.forFeature([ServicesPackSession]), 
+    ServicesPackService,
+    TypeOrmModule.forFeature([ServicesPackSession]),
     ServicesPackSessionService,
     ServicesPackPaymentService,
   ],

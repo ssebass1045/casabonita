@@ -1,7 +1,15 @@
 // File: backend-spa/src/client/client.controller.ts
 import {
-  Controller, Get, Post, Body, Patch, Param, Delete, UseGuards,
-  ParseIntPipe, ValidationPipe
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  ParseIntPipe,
+  ValidationPipe,
 } from '@nestjs/common';
 import { ClientService } from './client.service';
 import { CreateClientDto } from './dto/create-client.dto';
@@ -10,7 +18,6 @@ import { AuthGuard } from '@nestjs/passport';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../user/entities/user.entity';
 import { RolesGuard } from '../auth/guards/roles.guard';
-
 
 //@UseGuards(AuthGuard('jwt'), RolesGuard)
 @Controller('clients')

@@ -1,10 +1,12 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateServicesPackPaymentsTable1757890000001 implements MigrationInterface {
-    name = 'CreateServicesPackPaymentsTable1757890000001'
+export class CreateServicesPackPaymentsTable1757890000001
+  implements MigrationInterface
+{
+  name = 'CreateServicesPackPaymentsTable1757890000001';
 
-    public async up(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`
+  public async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`
             CREATE TABLE "services_pack_payment" (
                 "id" SERIAL PRIMARY KEY,
                 "clientServicesPackId" integer NOT NULL,
@@ -17,9 +19,9 @@ export class CreateServicesPackPaymentsTable1757890000001 implements MigrationIn
                 REFERENCES "client_services_pack"("id") ON DELETE CASCADE
             )
         `);
-    }
+  }
 
-    public async down(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`DROP TABLE "services_pack_payment"`);
-    }
+  public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`DROP TABLE "services_pack_payment"`);
+  }
 }

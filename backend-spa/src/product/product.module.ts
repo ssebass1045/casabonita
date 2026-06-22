@@ -7,10 +7,7 @@ import { Product } from './entities/product.entity';
 import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Product]),
-    CloudinaryModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Product]), CloudinaryModule],
   controllers: [ProductController],
   providers: [ProductService],
   exports: [ProductService],

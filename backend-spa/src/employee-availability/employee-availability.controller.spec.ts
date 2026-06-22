@@ -11,7 +11,9 @@ describe('EmployeeAvailabilityController', () => {
       providers: [EmployeeAvailabilityService],
     }).compile();
 
-    controller = module.get<EmployeeAvailabilityController>(EmployeeAvailabilityController);
+    controller = module.get<EmployeeAvailabilityController>(
+      EmployeeAvailabilityController,
+    );
   });
 
   it('should be defined', () => {

@@ -16,10 +16,9 @@ export class ProductService {
   ) {}
 
   async create(
-      createProductDto: CreateProductDto,
-      file?: Express.Multer.File
-    ): Promise<Product> {
-
+    createProductDto: CreateProductDto,
+    file?: Express.Multer.File,
+  ): Promise<Product> {
     let imageUrl: string | undefined = undefined;
     if (file) {
       try {
@@ -31,14 +30,17 @@ export class ProductService {
     }
 
     const newProduct = this.productRepository.create({
-        ...createProductDto,
-        imageUrl: imageUrl ?? createProductDto.imageUrl,
+      ...createProductDto,
+      imageUrl: imageUrl ?? createProductDto.imageUrl,
     });
     return this.productRepository.save(newProduct);
   }
 
   // MODIFICADO: findAll ahora acepta filtros
-  async findAll(category?: ProductCategory, search?: string): Promise<Product[]> {
+  async findAll(
+    category?: ProductCategory,
+    search?: string,
+  ): Promise<Product[]> {
     const where: any = {};
 
     if (category) {
@@ -61,14 +63,15 @@ export class ProductService {
   }
 
   async update(
-      id: number,
-      updateProductDto: UpdateProductDto,
-      file?: Express.Multer.File
-    ): Promise<Product> {
-
+    id: number,
+    updateProductDto: UpdateProductDto,
+    file?: Express.Multer.File,
+  ): Promise<Product> {
     const product = await this.productRepository.preload({ id });
     if (!product) {
-      throw new NotFoundException(`Producto con ID ${id} no encontrado para actualizar`);
+      throw new NotFoundException(
+        `Producto con ID ${id} no encontrado para actualizar`,
+      );
     }
 
     let imageUrl: string | undefined = product.imageUrl;
@@ -77,15 +80,18 @@ export class ProductService {
         const result = await this.cloudinaryService.uploadFile(file);
         imageUrl = result.secure_url;
       } catch (error) {
-        console.error('Error uploading new product image to Cloudinary:', error);
+        console.error(
+          'Error uploading new product image to Cloudinary:',
+          error,
+        );
       }
     } else if (updateProductDto.imageUrl !== undefined) {
-        imageUrl = updateProductDto.imageUrl;
+      imageUrl = updateProductDto.imageUrl;
     }
 
     const updatedProduct = this.productRepository.merge(product, {
-        ...updateProductDto,
-        imageUrl: imageUrl,
+      ...updateProductDto,
+      imageUrl: imageUrl,
     });
 
     return this.productRepository.save(updatedProduct);
@@ -94,7 +100,9 @@ export class ProductService {
   async remove(id: number): Promise<void> {
     const result = await this.productRepository.delete(id);
     if (result.affected === 0) {
-      throw new NotFoundException(`Producto con ID ${id} no encontrado para eliminar`);
+      throw new NotFoundException(
+        `Producto con ID ${id} no encontrado para eliminar`,
+      );
     }
   }
 }

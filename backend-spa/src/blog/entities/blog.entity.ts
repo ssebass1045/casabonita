@@ -1,4 +1,3 @@
-
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity() // Esto le dice a TypeORM que esta clase es una entidad
@@ -20,6 +19,4 @@ export class Blog {
 
   @Column({ nullable: true }) // Columna para la URL de la imagen principal (opcional)
   imageUrl: string;
-
-  
 }

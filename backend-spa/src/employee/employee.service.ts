@@ -17,10 +17,9 @@ export class EmployeeService {
 
   // Crear un nuevo empleado
   async create(
-      createEmployeeDto: CreateEmployeeDto,
-      file?: Express.Multer.File // Acepta un archivo opcional para la imagen
-    ): Promise<Employee> {
-
+    createEmployeeDto: CreateEmployeeDto,
+    file?: Express.Multer.File, // Acepta un archivo opcional para la imagen
+  ): Promise<Employee> {
     let imageUrl: string | undefined = undefined;
     if (file) {
       try {
@@ -33,8 +32,8 @@ export class EmployeeService {
     }
 
     const newEmployee = this.employeeRepository.create({
-        ...createEmployeeDto,
-        imageUrl: imageUrl ?? createEmployeeDto.imageUrl, // Usa la URL subida o la del DTO si existe
+      ...createEmployeeDto,
+      imageUrl: imageUrl ?? createEmployeeDto.imageUrl, // Usa la URL subida o la del DTO si existe
     });
     return this.employeeRepository.save(newEmployee);
   }
@@ -55,36 +54,40 @@ export class EmployeeService {
 
   // Actualizar un empleado por ID
   async update(
-      id: number,
-      updateEmployeeDto: UpdateEmployeeDto,
-      file?: Express.Multer.File // Acepta un archivo opcional para la nueva imagen
-    ): Promise<Employee> {
-
+    id: number,
+    updateEmployeeDto: UpdateEmployeeDto,
+    file?: Express.Multer.File, // Acepta un archivo opcional para la nueva imagen
+  ): Promise<Employee> {
     const employee = await this.employeeRepository.preload({ id });
     if (!employee) {
-      throw new NotFoundException(`Empleado con ID ${id} no encontrado para actualizar`);
+      throw new NotFoundException(
+        `Empleado con ID ${id} no encontrado para actualizar`,
+      );
     }
 
     let imageUrl: string | undefined = employee.imageUrl; // Mantiene la URL existente por defecto
     if (file) {
-       // Opcional: Aquí podrías añadir lógica para eliminar la imagen antigua de Cloudinary
-       // si el empleado ya tenía una y se sube una nueva.
+      // Opcional: Aquí podrías añadir lógica para eliminar la imagen antigua de Cloudinary
+      // si el empleado ya tenía una y se sube una nueva.
       try {
         const result = await this.cloudinaryService.uploadFile(file);
         imageUrl = result.secure_url; // Obtiene la nueva URL segura
       } catch (error) {
-        console.error('Error uploading new employee image to Cloudinary:', error);
+        console.error(
+          'Error uploading new employee image to Cloudinary:',
+          error,
+        );
         // Manejar error
       }
     } else if (updateEmployeeDto.imageUrl !== undefined) {
-        // Permite actualizar/eliminar la URL manualmente si no se sube archivo
-        imageUrl = updateEmployeeDto.imageUrl;
+      // Permite actualizar/eliminar la URL manualmente si no se sube archivo
+      imageUrl = updateEmployeeDto.imageUrl;
     }
 
     // Actualiza la entidad con datos del DTO y la nueva URL
     const updatedEmployee = this.employeeRepository.merge(employee, {
-        ...updateEmployeeDto,
-        imageUrl: imageUrl,
+      ...updateEmployeeDto,
+      imageUrl: imageUrl,
     });
 
     return this.employeeRepository.save(updatedEmployee);
@@ -95,7 +98,9 @@ export class EmployeeService {
     const result = await this.employeeRepository.delete(id);
     if (result.affected === 0) {
       // Si affected es 0, significa que no se encontró ninguna fila con ese ID
-      throw new NotFoundException(`Empleado con ID ${id} no encontrado para eliminar`);
+      throw new NotFoundException(
+        `Empleado con ID ${id} no encontrado para eliminar`,
+      );
     }
     // No se devuelve nada en una eliminación exitosa (o puedes devolver un mensaje)
   }

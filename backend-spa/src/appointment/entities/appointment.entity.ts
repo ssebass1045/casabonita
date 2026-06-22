@@ -1,5 +1,11 @@
 // File: backend-spa/src/appointment/entities/appointment.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Client } from '../../client/entities/client.entity';
 import { Employee } from '../../employee/entities/employee.entity';
 import { Treatment } from '../../treatment/entities/treatment.entity';

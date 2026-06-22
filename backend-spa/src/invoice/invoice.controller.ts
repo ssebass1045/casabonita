@@ -1,5 +1,16 @@
 // File: backend-spa/src/invoice/invoice.controller.ts
-import { Controller, Get, Param, Res, UseGuards, ParseIntPipe, NotFoundException, BadRequestException, Post, Body } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Res,
+  UseGuards,
+  ParseIntPipe,
+  NotFoundException,
+  BadRequestException,
+  Post,
+  Body,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Response } from 'express';
 import { InvoiceService } from './invoice.service';
@@ -32,11 +43,18 @@ export class InvoiceController {
   ) {
     const appointment = await this.appointmentService.findOne(appointmentId);
     if (!appointment) {
-      throw new NotFoundException(`Cita con ID ${appointmentId} no encontrada.`);
+      throw new NotFoundException(
+        `Cita con ID ${appointmentId} no encontrada.`,
+      );
     }
 
-    if (appointment.status !== 'Realizada' || appointment.paymentStatus !== 'Pagado') {
-      throw new BadRequestException('Solo se pueden facturar citas con estado "Realizada" y "Pagado".');
+    if (
+      appointment.status !== 'Realizada' ||
+      appointment.paymentStatus !== 'Pagado'
+    ) {
+      throw new BadRequestException(
+        'Solo se pueden facturar citas con estado "Realizada" y "Pagado".',
+      );
     }
 
     const pdfBuffer = await this.invoiceService.generateInvoicePdf(appointment);
@@ -58,7 +76,9 @@ export class InvoiceController {
     @Res() res: Response,
   ) {
     if (!appointmentIds || appointmentIds.length === 0) {
-      throw new BadRequestException('Se requiere al menos un ID de cita para generar una factura combinada.');
+      throw new BadRequestException(
+        'Se requiere al menos un ID de cita para generar una factura combinada.',
+      );
     }
 
     const appointments: Appointment[] = [];
@@ -68,18 +88,25 @@ export class InvoiceController {
         throw new NotFoundException(`Cita con ID ${id} no encontrada.`);
       }
       if (app.status !== 'Realizada' || app.paymentStatus !== 'Pagado') {
-        throw new BadRequestException(`La cita con ID ${id} no cumple los requisitos para ser facturada (debe estar Realizada y Pagado).`);
+        throw new BadRequestException(
+          `La cita con ID ${id} no cumple los requisitos para ser facturada (debe estar Realizada y Pagado).`,
+        );
       }
       appointments.push(app);
     }
 
     const firstClientId = appointments[0].client.id;
-    const allSameClient = appointments.every(app => app.client.id === firstClientId);
+    const allSameClient = appointments.every(
+      (app) => app.client.id === firstClientId,
+    );
     if (!allSameClient) {
-      throw new BadRequestException('Todas las citas seleccionadas deben pertenecer al mismo cliente para una factura combinada.');
+      throw new BadRequestException(
+        'Todas las citas seleccionadas deben pertenecer al mismo cliente para una factura combinada.',
+      );
     }
 
-    const pdfBuffer = await this.invoiceService.generateCombinedInvoicePdf(appointments);
+    const pdfBuffer =
+      await this.invoiceService.generateCombinedInvoicePdf(appointments);
 
     res.set({
       'Content-Type': 'application/pdf',
@@ -97,14 +124,23 @@ export class InvoiceController {
     @Param('appointmentId', ParseIntPipe) appointmentId: number,
   ): Promise<{ message: string }> {
     const appointment = await this.appointmentService.findOne(appointmentId);
-    if (!appointment) throw new NotFoundException(`Cita con ID ${appointmentId} no encontrada.`);
-    if (!appointment.client?.phone) throw new BadRequestException('El cliente no tiene un número de teléfono registrado.');
+    if (!appointment)
+      throw new NotFoundException(
+        `Cita con ID ${appointmentId} no encontrada.`,
+      );
+    if (!appointment.client?.phone)
+      throw new BadRequestException(
+        'El cliente no tiene un número de teléfono registrado.',
+      );
 
     const pdfBuffer = await this.invoiceService.generateInvoicePdf(appointment);
     const filename = `factura_${appointment.id}.pdf`;
 
     // Sube el PDF a Cloudinary
-    const uploadResult = await this.cloudinaryService.uploadPdfBuffer(pdfBuffer, filename);
+    const uploadResult = await this.cloudinaryService.uploadPdfBuffer(
+      pdfBuffer,
+      filename,
+    );
     const publicUrl = uploadResult.secure_url; // Obtiene la URL pública de Cloudinary
 
     await this.whatsappService.sendInvoice(
@@ -114,7 +150,9 @@ export class InvoiceController {
       filename,
     );
 
-    return { message: `Factura enviada por WhatsApp al cliente ${appointment.client.name}.` };
+    return {
+      message: `Factura enviada por WhatsApp al cliente ${appointment.client.name}.`,
+    };
   }
 
   // --- NUEVO ENDPOINT: sendCombinedInvoiceByWhatsapp ---
@@ -125,7 +163,9 @@ export class InvoiceController {
     @Body('appointmentIds') appointmentIds: number[],
   ): Promise<{ message: string }> {
     if (!appointmentIds || appointmentIds.length === 0) {
-      throw new BadRequestException('Se requiere al menos un ID de cita para generar una factura combinada.');
+      throw new BadRequestException(
+        'Se requiere al menos un ID de cita para generar una factura combinada.',
+      );
     }
 
     const appointments: Appointment[] = [];
@@ -135,21 +175,31 @@ export class InvoiceController {
         throw new NotFoundException(`Cita con ID ${id} no encontrada.`);
       }
       if (app.status !== 'Realizada' || app.paymentStatus !== 'Pagado') {
-        throw new BadRequestException(`La cita con ID ${id} no cumple los requisitos para ser facturada (debe estar Realizada y Pagado).`);
+        throw new BadRequestException(
+          `La cita con ID ${id} no cumple los requisitos para ser facturada (debe estar Realizada y Pagado).`,
+        );
       }
       appointments.push(app);
     }
 
     const firstClientId = appointments[0].client.id;
-    const allSameClient = appointments.every(app => app.client.id === firstClientId);
+    const allSameClient = appointments.every(
+      (app) => app.client.id === firstClientId,
+    );
     if (!allSameClient) {
-      throw new BadRequestException('Todas las citas seleccionadas deben pertenecer al mismo cliente para una factura combinada.');
+      throw new BadRequestException(
+        'Todas las citas seleccionadas deben pertenecer al mismo cliente para una factura combinada.',
+      );
     }
 
-    const pdfBuffer = await this.invoiceService.generateCombinedInvoicePdf(appointments);
+    const pdfBuffer =
+      await this.invoiceService.generateCombinedInvoicePdf(appointments);
     const filename = `factura_combinada_${appointments[0].client.name.replace(/\s/g, '_')}.pdf`;
     //const filePath = await this.invoiceService.saveInvoicePdf(pdfBuffer, filename);
-    const uploadResult = await this.cloudinaryService.uploadPdfBuffer(pdfBuffer, filename);
+    const uploadResult = await this.cloudinaryService.uploadPdfBuffer(
+      pdfBuffer,
+      filename,
+    );
     const publicUrl = uploadResult.secure_url;
 
     await this.whatsappService.sendCombinedInvoice(
@@ -159,6 +209,8 @@ export class InvoiceController {
       filename,
     );
 
-    return { message: `Factura combinada enviada por WhatsApp al cliente ${appointments[0].client.name}.` };
+    return {
+      message: `Factura combinada enviada por WhatsApp al cliente ${appointments[0].client.name}.`,
+    };
   }
 }

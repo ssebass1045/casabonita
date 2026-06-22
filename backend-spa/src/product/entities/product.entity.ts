@@ -1,7 +1,6 @@
 // File: backend-spa/src/product/entities/product.entity.ts
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
-
 // NUEVO: Definimos el enum para las categorías de productos
 export enum ProductCategory {
   FACIAL = 'facial',

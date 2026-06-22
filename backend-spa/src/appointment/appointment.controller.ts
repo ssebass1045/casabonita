@@ -1,7 +1,16 @@
 // File: backend-spa/src/appointment/appointment.controller.ts
 import {
-  Controller, Get, Post, Body, Patch, Param, Delete, UseGuards,
-  ParseIntPipe, ValidationPipe, Query // <-- Importa Query
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  ParseIntPipe,
+  ValidationPipe,
+  Query, // <-- Importa Query
 } from '@nestjs/common';
 import { AppointmentService } from './appointment.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
@@ -47,7 +56,8 @@ export class AppointmentController {
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get()
   @Roles(UserRole.ADMIN, UserRole.STAFF)
-  findAll(@Query(ValidationPipe) query: GetAppointmentsDto) { // <-- Acepta el DTO de consulta
+  findAll(@Query(ValidationPipe) query: GetAppointmentsDto) {
+    // <-- Acepta el DTO de consulta
     return this.appointmentService.findAll(query);
   }
 
@@ -58,7 +68,6 @@ export class AppointmentController {
     return this.appointmentService.findOne(id);
   }
 
-  
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('client/:clientId')
   @Roles(UserRole.ADMIN, UserRole.STAFF)

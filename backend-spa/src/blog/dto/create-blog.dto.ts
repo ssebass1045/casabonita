@@ -1,4 +1,3 @@
-
 import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
 
 export class CreateBlogDto {
@@ -11,7 +10,7 @@ export class CreateBlogDto {
   content: string;
 
   @IsString()
-  @IsOptional() 
+  @IsOptional()
   author?: string;
 
   @IsString()

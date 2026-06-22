@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ServicesPack } from './entities/services-pack.entity';
@@ -6,7 +10,6 @@ import { ClientServicesPack } from './entities/client-services-pack.entity';
 import { ServicesPackSession } from './entities/services-pack-session.entity';
 import { CreateServicesPackDto } from './dto/create-services-pack.dto';
 import { CreateClientServicesPackDto } from './dto/create-client-services-pack.dto';
-
 
 @Injectable()
 export class ServicesPackService {
@@ -19,10 +22,15 @@ export class ServicesPackService {
     private servicesPackSessionRepository: Repository<ServicesPackSession>,
   ) {}
 
-  async updateClientServicesPack(id: number, updateDto: CreateClientServicesPackDto): Promise<ClientServicesPack> {
+  async updateClientServicesPack(
+    id: number,
+    updateDto: CreateClientServicesPackDto,
+  ): Promise<ClientServicesPack> {
     const clientPack = await this.getClientServicesPackById(id);
     if (!clientPack) {
-      throw new NotFoundException(`Paquete del cliente con ID ${id} no encontrado`);
+      throw new NotFoundException(
+        `Paquete del cliente con ID ${id} no encontrado`,
+      );
     }
 
     Object.assign(clientPack, updateDto);
@@ -32,30 +40,33 @@ export class ServicesPackService {
   async getAllClientServicesPacks(): Promise<ClientServicesPack[]> {
     return this.clientServicesPackRepository.find({
       relations: ['client', 'servicesPack'],
-      where: { isActive: true }
+      where: { isActive: true },
     });
   }
 
-  async getClientServicesPackById(id: number): Promise<ClientServicesPack | null> {
+  async getClientServicesPackById(
+    id: number,
+  ): Promise<ClientServicesPack | null> {
     return this.clientServicesPackRepository.findOne({
       where: { id },
-      relations: ['client', 'servicesPack']
+      relations: ['client', 'servicesPack'],
     });
   }
 
-  async createClientServicesPack(createDto: CreateClientServicesPackDto): Promise<ClientServicesPack> {
+  async createClientServicesPack(
+    createDto: CreateClientServicesPackDto,
+  ): Promise<ClientServicesPack> {
     const clientPack = this.clientServicesPackRepository.create({
       ...createDto,
       sessionsUsed: 0,
       sessionsRemaining: createDto.sessionsRemaining || 0,
       amountPaid: createDto.amountPaid || 0,
       isActive: true,
-      purchaseDate: new Date()
+      purchaseDate: new Date(),
     });
-    
+
     return this.clientServicesPackRepository.save(clientPack);
   }
-
 
   // Métodos CRUD para ServicesPack
   async getAllServicesPacks(): Promise<ServicesPack[]> {
@@ -66,7 +77,9 @@ export class ServicesPackService {
     return this.servicesPackRepository.findOne({ where: { id } });
   }
 
-  async createServicesPack(createDto: CreateServicesPackDto): Promise<ServicesPack> {
+  async createServicesPack(
+    createDto: CreateServicesPackDto,
+  ): Promise<ServicesPack> {
     const pack = this.servicesPackRepository.create({
       ...createDto,
       isActive: createDto.isActive ?? true,
@@ -74,7 +87,10 @@ export class ServicesPackService {
     return this.servicesPackRepository.save(pack);
   }
 
-  async updateServicesPack(id: number, updateDto: CreateServicesPackDto): Promise<ServicesPack> {
+  async updateServicesPack(
+    id: number,
+    updateDto: CreateServicesPackDto,
+  ): Promise<ServicesPack> {
     const pack = await this.getServicesPackById(id);
     if (!pack) {
       throw new NotFoundException(`Paquete con ID ${id} no encontrado`);
@@ -109,7 +125,9 @@ export class ServicesPackService {
     }
 
     if (clientPack.sessionsRemaining <= 0) {
-      throw new BadRequestException('No hay sesiones disponibles en este paquete');
+      throw new BadRequestException(
+        'No hay sesiones disponibles en este paquete',
+      );
     }
 
     const session = this.servicesPackSessionRepository.create({

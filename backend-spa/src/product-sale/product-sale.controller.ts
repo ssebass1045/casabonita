@@ -1,5 +1,12 @@
 // File: backend-spa/src/product-sale/product-sale.controller.ts
-import { Controller, Get, Post, Body, ValidationPipe, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  ValidationPipe,
+  UseGuards,
+} from '@nestjs/common';
 import { ProductSaleService } from './product-sale.service';
 import { CreateProductSaleDto } from './dto/create-product-sale.dto';
 import { AuthGuard } from '@nestjs/passport';

@@ -1,7 +1,17 @@
 // File: backend-spa/src/blog/blog.controller.ts
 import {
-  Controller, Get, Post, Body, Patch, Param, Delete, UseGuards,
-  ParseIntPipe, ValidationPipe, UseInterceptors, UploadedFile
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  ParseIntPipe,
+  ValidationPipe,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express'; // Importa FileInterceptor
 import { BlogService } from './blog.service';
@@ -26,7 +36,7 @@ export class BlogController {
   @UseInterceptors(FileInterceptor('image')) // Intercepta archivo del campo 'image'
   create(
     @Body(ValidationPipe) createBlogDto: CreateBlogDto,
-    @UploadedFile() file?: Express.Multer.File // Inyecta el archivo (opcional)
+    @UploadedFile() file?: Express.Multer.File, // Inyecta el archivo (opcional)
     // @Request() req // Podrías inyectar Request si necesitas el ID del usuario para el autor
   ) {
     // const userId = req.user.userId; // Ejemplo para obtener ID del usuario
@@ -40,7 +50,7 @@ export class BlogController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body(ValidationPipe) updateBlogDto: UpdateBlogDto,
-    @UploadedFile() file?: Express.Multer.File // Inyecta el archivo (opcional)
+    @UploadedFile() file?: Express.Multer.File, // Inyecta el archivo (opcional)
   ) {
     return this.blogService.update(id, updateBlogDto, file);
   }
