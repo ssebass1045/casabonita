@@ -613,12 +613,21 @@ button:disabled {
   box-sizing: border-box; /* Incluye padding y borde en el tamaño total del elemento */
   text-align: left; /* Alinea el texto a la izquierda por defecto dentro de esta sección */
 
-  /* **1. Fondo de Imagen para la Sección Welcome** */
-  /* La imagen de las "hojas/flores" que ya tenías */
-  background-image: url("https://ibb.co/ZzLMYv5C");
-  background-position: left center; /* La posicionamos más al centro-izquierda */
+  /* Fondo decorativo local para evitar recursos externos rotos */
+  background-image:
+    radial-gradient(
+      circle at left center,
+      rgba(212, 170, 78, 0.14),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 20% 20%,
+      rgba(244, 162, 97, 0.12),
+      transparent 18%
+    );
+  background-position: left center;
   background-repeat: no-repeat;
-  background-size: 210px auto;
+  background-size: cover;
 
   /* Color de fondo principal (blanco pastel como Figurbell) */
   background-color: var(
@@ -1174,105 +1183,107 @@ button:disabled {
 }
 
 .about-content-block {
-    max-width: 860px;
-    margin: 0 auto;
-    padding: 28px 30px;
-    border-radius: 24px;
-    background: rgba(255, 255, 255, 0.72);
-    backdrop-filter: blur(12px);
-    box-shadow: 0 18px 45px rgba(17, 16, 21, 0.08);
-    line-height: 1.8;
-    color: var(--color-text-dark-figurbell);
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 28px 30px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 18px 45px rgba(17, 16, 21, 0.08);
+  line-height: 1.8;
+  color: var(--color-text-dark-figurbell);
 }
 
 .section-kicker {
-    display: block;
-    text-align: center;
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-    font-size: 12px;
-    font-weight: 700;
-    color: rgba(34, 34, 34, 0.62);
-    margin-bottom: 10px;
+  display: block;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(34, 34, 34, 0.62);
+  margin-bottom: 10px;
 }
 
 .subsection-title {
-    text-align: center;
-    font-size: clamp(1.2rem, 2vw, 1.7rem);
-    color: var(--color-text-dark-figurbell);
-    margin: 0 auto 24px auto;
-    max-width: 760px;
+  text-align: center;
+  font-size: clamp(1.2rem, 2vw, 1.7rem);
+  color: var(--color-text-dark-figurbell);
+  margin: 0 auto 24px auto;
+  max-width: 760px;
 }
 
 .info-grid,
 .faq-grid {
-    width: 100%;
-    max-width: 1100px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 18px;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 18px;
 }
 
 .info-card,
 .faq-card {
-    padding: 24px;
-    border-radius: 22px;
-    background: rgba(255, 255, 255, 0.78);
-    border: 1px solid rgba(255, 255, 255, 0.68);
-    box-shadow: 0 18px 40px rgba(17, 16, 21, 0.08);
+  padding: 24px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.68);
+  box-shadow: 0 18px 40px rgba(17, 16, 21, 0.08);
 }
 
 .info-card h3,
 .faq-card h3,
 .about-content-block h2,
 .about-content-block h3 {
-    color: var(--color-text-dark-figurbell);
-    margin-bottom: 10px;
+  color: var(--color-text-dark-figurbell);
+  margin-bottom: 10px;
 }
 
 .info-card p,
 .faq-card p,
 .about-content-block p {
-    color: rgba(34, 34, 34, 0.8);
-    line-height: 1.75;
+  color: rgba(34, 34, 34, 0.8);
+  line-height: 1.75;
 }
 
 .contact-info-grid {
-    width: 100%;
-    max-width: 980px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 18px;
+  width: 100%;
+  max-width: 980px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
 }
 
 .contact-info-card {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 22px;
-    border-radius: 22px;
-    background: rgba(255, 255, 255, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.65);
-    box-shadow: 0 14px 34px rgba(17, 16, 21, 0.08);
-    color: var(--color-text-dark-figurbell);
-    text-decoration: none;
-    transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 22px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow: 0 14px 34px rgba(17, 16, 21, 0.08);
+  color: var(--color-text-dark-figurbell);
+  text-decoration: none;
+  transition:
+    transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .contact-info-card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 22px 42px rgba(17, 16, 21, 0.12);
-    text-decoration: none;
+  transform: translateY(-6px);
+  box-shadow: 0 22px 42px rgba(17, 16, 21, 0.12);
+  text-decoration: none;
 }
 
 .contact-info-card strong {
-    font-size: 18px;
+  font-size: 18px;
 }
 
 .contact-info-card span {
-    color: rgba(34, 34, 34, 0.74);
+  color: rgba(34, 34, 34, 0.74);
 }
 
 /* --- Estilos específicos para la sección de Contacto (Footer) --- */

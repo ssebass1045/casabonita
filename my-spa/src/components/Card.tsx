@@ -1,5 +1,6 @@
 // File: my-spa/src/components/Card.tsx
 import React from "react";
+import fallbackBrandImage from "../assets/imagenes/logo-casabonita.png";
 
 interface CardProps {
   imageUrl?: string;
@@ -26,10 +27,7 @@ const Card: React.FC<CardProps> = ({
     <div className={["card", className].filter(Boolean).join(" ")}>
       <div className="card-media">
         <img
-          src={
-            imageUrl ||
-            "https://via.placeholder.com/300x220.png?text=Casa+Bonita"
-          }
+          src={imageUrl || fallbackBrandImage}
           alt={title}
           className="card-image"
           loading="lazy"
