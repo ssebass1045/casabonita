@@ -17,7 +17,7 @@ interface BlogsSectionProps {
 
 const BlogsSection: React.FC<BlogsSectionProps> = ({ blogs }) => {
   return (
-    <section id="blogs" className="section section-custom-bg-5">
+    <section id="blogs" className="section section-custom-bg-5 reveal">
       <h2 className="section-title">Nuestro Blog</h2>
       <div className="cards-grid">
         {blogs.map(blog => (
@@ -29,6 +29,8 @@ const BlogsSection: React.FC<BlogsSectionProps> = ({ blogs }) => {
             buttonText="Leer Más"
             // --- CAMBIO AQUÍ: Reemplaza alert() por toast.info() ---
             onButtonClick={() => toast.info(`Redirigiendo al blog: ${blog.title}`)}
+            className="card--lux"
+            eyebrow={blog.author || 'Blog'}
           />
         ))}
       </div>

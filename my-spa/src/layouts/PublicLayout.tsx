@@ -1,6 +1,6 @@
 // File: my-spa/src/layouts/PublicLayout.tsx
-import React, { useState, useContext } from 'react';
-import { Link as RouterLink, Outlet } from 'react-router-dom';
+import React, { useEffect, useState, useContext } from 'react';
+import { Link as RouterLink, Outlet, useLocation } from 'react-router-dom';
 import { HashLink } from 'react-router-hash-link';
 import { AuthContext } from '../auth/authContext';
 import AdminToolbar from '../components/AdminToolbar';
@@ -8,6 +8,7 @@ import AdminToolbar from '../components/AdminToolbar';
 const PublicLayout = () => {
   const { user } = useContext(AuthContext);
   const [isMenuOpen, setMenuOpen] = useState(false); // Estado para el menú móvil
+  const location = useLocation();
 
   const topOffset = user ? '56px' : '0';
 
@@ -20,6 +21,28 @@ const PublicLayout = () => {
   const closeMenu = () => {
     setMenuOpen(false);
   };
+
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const elements = Array.from(document.querySelectorAll<HTMLElement>('.reveal'));
+    if (elements.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            (entry.target as HTMLElement).classList.add('is-visible');
+            observer.unobserve(entry.target);
+          }
+        }
+      },
+      { threshold: 0.12, rootMargin: '0px 0px -10% 0px' },
+    );
+
+    for (const el of elements) observer.observe(el);
+    return () => observer.disconnect();
+  }, [location.pathname]);
 
   return (
     <>

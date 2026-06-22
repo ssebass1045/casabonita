@@ -13,6 +13,8 @@ interface Treatment {
   description?: string;
   price?: number;
   imageUrl?: string;
+  category?: string;
+  isFeatured?: boolean;
 }
 
 const ManageTreatments = () => {
@@ -141,6 +143,8 @@ const ManageTreatments = () => {
               <th>Nombre</th>
               <th>Descripción</th>
               <th>Precio</th>
+              <th>Categoría</th>
+              <th>Destacado</th>
               <th>Imagen</th>
               <th>Acciones</th>
             </tr>
@@ -152,6 +156,8 @@ const ManageTreatments = () => {
                 <td>{treatment.name}</td>
                 <td>{treatment.description?.substring(0, 50)}...</td>
                 <td>{treatment.price ? `$${treatment.price}` : '-'}</td>
+                <td>{treatment.category || '-'}</td>
+                <td>{treatment.isFeatured ? 'Sí' : 'No'}</td>
                 <td>
                   {treatment.imageUrl ? (
                     <img src={treatment.imageUrl} alt={treatment.name} width="50" />

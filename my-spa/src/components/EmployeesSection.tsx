@@ -17,7 +17,7 @@ interface EmployeesSectionProps {
 
 const EmployeesSection: React.FC<EmployeesSectionProps> = ({ employees }) => {
   return (
-    <section id="employees" className="section section-custom-bg-4">
+    <section id="employees" className="section section-custom-bg-4 reveal">
       <h2 className="section-title">Nuestro Equipo</h2>
       <div className="cards-grid">
         {employees.map(employee => (
@@ -27,6 +27,8 @@ const EmployeesSection: React.FC<EmployeesSectionProps> = ({ employees }) => {
             description={`${employee.specialty || 'Especialista'}. ${employee.description || ''}`}
             imageUrl={employee.imageUrl}
             // No incluimos botón para esta tarjeta
+            className="card--lux"
+            eyebrow={employee.specialty || 'Especialista'}
           />
         ))}
       </div>

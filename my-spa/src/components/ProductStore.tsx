@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Card from './Card';
+import Seo, { buildBreadcrumbSchema } from './Seo';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
@@ -63,7 +64,7 @@ const ProductStore = () => {
 
   const handlePurchaseRequest = (productName: string, price: string) => {
     const numericPrice = parseFloat(price);
-    const message = `¡Hola! Estoy interesado/a en comprar el producto \"${productName}\" por un valor de $${numericPrice.toFixed(
+    const message = `¡Hola! Estoy interesado/a en comprar el producto "${productName}" por un valor de $${numericPrice.toFixed(
       2
     )}.`;
     const whatsappUrl = `https://wa.me/573217571992?text=${encodeURIComponent(message)}`;
@@ -72,8 +73,27 @@ const ProductStore = () => {
 
   return (
     <section id="store" className="section">
-      <h2 className="section-title">Nuestra Tienda</h2>
-      <p className="section-description">Explora nuestra selección de productos de alta calidad para el cuidado personal.</p>
+      <Seo
+        title="Tienda de Productos de Belleza en Caldas, Antioquia"
+        description="Compra productos destacados para cuidado facial, corporal, cabello y tratamientos especiales de Casa Bonita Centro Estetico en Caldas, Antioquia."
+        path="/store"
+        keywords={[
+          'tienda de belleza',
+          'productos para la piel',
+          'productos faciales',
+          'productos corporales',
+          'cuidado personal',
+          'productos de belleza en caldas antioquia',
+        ]}
+        structuredData={buildBreadcrumbSchema([
+          { name: 'Inicio', path: '/' },
+          { name: 'Tienda', path: '/store' },
+        ])}
+      />
+      <div className="section-kicker">Productos destacados</div>
+      <h1 className="section-title">Tienda de belleza y cuidado personal</h1>
+      <p className="section-description">Explora nuestra selección de productos de alta calidad para el cuidado facial, corporal y del cabello en Caldas, Antioquia.</p>
+      <h2 className="subsection-title">Encuentra productos alineados con tu rutina de bienestar</h2>
 
       {/* Contenedor de Filtros */}
       <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginBottom: '40px', flexWrap: 'wrap' }}>

@@ -30,7 +30,7 @@ const ProductsSection: React.FC<ProductsSectionProps> = ({ products }) => {
     .slice(0, 3);
 
   return (
-    <section id="products" className="section section-custom-bg-3"> {/* Aplicamos clases */}
+    <section id="products" className="section section-custom-bg-3 reveal"> {/* Aplicamos clases */}
       <h2 className="section-title">Nuestros Productos Destacados</h2> {/* Aplicamos clase */}
       <div className="cards-grid"> {/* Aplicamos clase */}
         {activeProducts.map(product => (
@@ -41,6 +41,8 @@ const ProductsSection: React.FC<ProductsSectionProps> = ({ products }) => {
             imageUrl={product.imageUrl}
             buttonText="Comprar"
             onButtonClick={() => handlePurchaseRequest(product.name, product.price)}
+            className="card--lux"
+            eyebrow={product.category ? String(product.category) : undefined}
           />
         ))}
       </div>

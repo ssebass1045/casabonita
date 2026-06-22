@@ -1,3 +1,5 @@
-# https://www.robotstxt.org/robotstxt.html
+# Archivo base SEO para indexacion
 User-agent: *
-Disallow:
+Allow: /
+
+Sitemap: https://www.casabonitaspa.com/sitemap.xml

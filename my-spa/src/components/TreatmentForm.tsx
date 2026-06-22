@@ -11,6 +11,8 @@ interface Treatment {
   description?: string;
   price?: number;
   imageUrl?: string;
+  category?: string;
+  isFeatured?: boolean;
 }
 
 interface TreatmentFormData {
@@ -18,6 +20,8 @@ interface TreatmentFormData {
   description: string;
   price: string;
   image: File | null;
+  category: string;
+  isFeatured: boolean;
 }
 
 interface TreatmentFormProps {
@@ -31,7 +35,9 @@ const TreatmentForm: React.FC<TreatmentFormProps> = ({ treatment, onSuccess, onC
     name: '',
     description: '',
     price: '',
-    image: null
+    image: null,
+    category: 'otros',
+    isFeatured: false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,7 +51,9 @@ const TreatmentForm: React.FC<TreatmentFormProps> = ({ treatment, onSuccess, onC
         name: treatment.name || '',
         description: treatment.description || '',
         price: treatment.price ? treatment.price.toString() : '',
-        image: null // La imagen existente no se pre-carga en el input file
+        image: null,
+        category: treatment.category || 'otros',
+        isFeatured: Boolean(treatment.isFeatured),
       });
     }
   }, [treatment]);
@@ -55,6 +63,14 @@ const TreatmentForm: React.FC<TreatmentFormProps> = ({ treatment, onSuccess, onC
     setFormData(prev => ({
       ...prev,
       [name]: value
+    }));
+  };
+
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: checked,
     }));
   };
 
@@ -99,6 +115,12 @@ const TreatmentForm: React.FC<TreatmentFormProps> = ({ treatment, onSuccess, onC
       if (priceNumber !== undefined) {
         submitData.append('price', priceNumber.toFixed(2));
       }
+
+      if (formData.category) {
+        submitData.append('category', formData.category);
+      }
+
+      submitData.append('isFeatured', formData.isFeatured ? 'true' : 'false');
 
       // Añadir imagen si se seleccionó una nueva
       if (formData.image) {
@@ -222,6 +244,53 @@ const TreatmentForm: React.FC<TreatmentFormProps> = ({ treatment, onSuccess, onC
         <small style={{ color: '#666', fontSize: '12px' }}>
           Deja vacío si no quieres especificar un precio
         </small>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '15px' }}>
+        <div>
+          <label htmlFor="category" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+            Categoría
+          </label>
+          <select
+            id="category"
+            name="category"
+            value={formData.category}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                category: e.target.value,
+              }))
+            }
+            style={{
+              width: '100%',
+              padding: '8px',
+              border: '1px solid #ccc',
+              borderRadius: '4px',
+              fontSize: '14px',
+            }}
+          >
+            <option value="facial">Rostro</option>
+            <option value="cuidado_piel">Cuidado de Piel</option>
+            <option value="corporal">Corporal</option>
+            <option value="masajes_relajacion">Masajes y Relajación</option>
+            <option value="depilacion">Depilación</option>
+            <option value="cejas_pestanas">Cejas y Pestañas</option>
+            <option value="belleza">Belleza</option>
+            <option value="otros">Otros</option>
+          </select>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}>
+            <input
+              type="checkbox"
+              name="isFeatured"
+              checked={formData.isFeatured}
+              onChange={handleCheckboxChange}
+            />
+            Destacado (Home)
+          </label>
+        </div>
       </div>
 
       {/* Campo Imagen */}
