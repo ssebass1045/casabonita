@@ -1,27 +1,43 @@
 // File: my-spa/src/components/AppointmentCalendar.tsx
-import React, { useState, useEffect, useRef } from 'react';
-import FullCalendar from '@fullcalendar/react';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import timeGridPlugin from '@fullcalendar/timegrid';
-import interactionPlugin from '@fullcalendar/interaction';
+import React, { useRef } from "react";
+import FullCalendar from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import timeGridPlugin from "@fullcalendar/timegrid";
+import interactionPlugin from "@fullcalendar/interaction";
 // ELIMINA: import resourceTimelinePlugin from '@fullcalendar/resource-timeline'; // Ya no necesitamos este plugin
-import axios from 'axios';
-import Modal from './Modal';
-import AppointmentForm from './AppointmentForm';
-
-// Importa el enum DayOfWeek desde la nueva ubicación centralizada
-import { DayOfWeek } from '../enums/day-of-week.enum';
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
-
+import { DayOfWeek } from "../enums/day-of-week.enum";
 
 // Interfaces de datos (deben coincidir con el backend)
-interface Client { id: number; name: string; }
-interface Employee { id: number; name: string; specialty?: string; }
-interface Treatment { id: number; name: string; price?: number; }
-enum AppointmentStatus { PENDIENTE = 'Pendiente', CONFIRMADA = 'Confirmada', CANCELADA = 'Cancelada', REALIZADA = 'Realizada' }
-enum PaymentMethod { EFECTIVO = 'Efectivo', TARJETA = 'Tarjeta', TRANSFERENCIA = 'Transferencia', OTRO = 'Otro' }
-enum PaymentStatus { PENDIENTE = 'Pendiente', PAGADO = 'Pagado' }
+interface Client {
+  id: number;
+  name: string;
+}
+interface Employee {
+  id: number;
+  name: string;
+  specialty?: string;
+}
+interface Treatment {
+  id: number;
+  name: string;
+  price?: number;
+}
+enum AppointmentStatus {
+  PENDIENTE = "Pendiente",
+  CONFIRMADA = "Confirmada",
+  CANCELADA = "Cancelada",
+  REALIZADA = "Realizada",
+}
+enum PaymentMethod {
+  EFECTIVO = "Efectivo",
+  TARJETA = "Tarjeta",
+  TRANSFERENCIA = "Transferencia",
+  OTRO = "Otro",
+}
+enum PaymentStatus {
+  PENDIENTE = "Pendiente",
+  PAGADO = "Pagado",
+}
 
 interface Appointment {
   id: number;
@@ -45,12 +61,12 @@ interface EmployeeAvailability {
   employeeId: number;
   dayOfWeek: DayOfWeek;
   startTime: string; // HH:MM
-  endTime: string;   // HH:MM
+  endTime: string; // HH:MM
   maxAppointmentsAtOnce: number;
   employee?: Employee;
 }
 
-interface AppointmentCalendarProps { 
+interface AppointmentCalendarProps {
   appointments: Appointment[];
   employees: Employee[];
   employeeAvailabilities: EmployeeAvailability[];
@@ -58,12 +74,11 @@ interface AppointmentCalendarProps {
   onDateClick: (date: Date) => void;
 }
 
-const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({ 
-  appointments, 
-  employees, 
-  employeeAvailabilities, 
-  onEventClick, 
-  onDateClick 
+const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
+  appointments,
+  employeeAvailabilities,
+  onEventClick,
+  onDateClick,
 }) => {
   const calendarRef = useRef(null);
   // Los estados de carga y error ahora se manejan en ManageAppointments
@@ -80,16 +95,21 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
 
   // Función para transformar citas a eventos de FullCalendar
   const getCalendarEvents = () => {
-    return appointments.map(app => ({
+    return appointments.map((app) => ({
       id: app.id.toString(),
       // resourceId: app.employeeId.toString(), // Ya no necesitamos resourceId
-      title: `${app.treatment?.name || 'Servicio'} - ${app.client?.name || 'Cliente'} (${app.employee?.name || 'Empleado'})`, // Añade empleado al título
+      title: `${app.treatment?.name || "Servicio"} - ${app.client?.name || "Cliente"} (${app.employee?.name || "Empleado"})`, // Añade empleado al título
       start: app.startTime,
       end: app.endTime,
       extendedProps: {
-        appointmentData: app
+        appointmentData: app,
       },
-      color: app.status === AppointmentStatus.CONFIRMADA ? '#28a745' : (app.status === AppointmentStatus.PENDIENTE ? '#ffc107' : '#dc3545'),
+      color:
+        app.status === AppointmentStatus.CONFIRMADA
+          ? "#28a745"
+          : app.status === AppointmentStatus.PENDIENTE
+            ? "#ffc107"
+            : "#dc3545",
     }));
   };
 
@@ -98,10 +118,10 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
   const getCalendarBusinessHours = () => {
     // Mapea las disponibilidades a un formato que FullCalendar entienda para businessHours
     // Esto asume que quieres mostrar la disponibilidad general del SPA, no por empleado individual en esta vista
-    const businessHours = employeeAvailabilities.map(av => ({
+    const businessHours = employeeAvailabilities.map((av) => ({
       daysOfWeek: [Object.values(DayOfWeek).indexOf(av.dayOfWeek) + 1], // Convierte enum a número de día (1=Lunes, 7=Domingo)
       startTime: av.startTime, // HH:MM
-      endTime: av.endTime,     // HH:MM
+      endTime: av.endTime, // HH:MM
       // resourceId ya no es necesario aquí
       // display: 'background', // Esto ya está implícito en businessHours
       // color: '#e0ffe0', // Esto ya está implícito en businessHours
@@ -132,9 +152,9 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]} // ELIMINA resourceTimelinePlugin
         initialView="timeGridWeek" // <-- CAMBIO: Vista semanal por franjas de tiempo
         headerToolbar={{
-          left: 'prev,next today',
-          center: 'title',
-          right: 'timeGridWeek,timeGridDay,dayGridMonth' // <-- Ajusta las vistas disponibles
+          left: "prev,next today",
+          center: "title",
+          right: "timeGridWeek,timeGridDay,dayGridMonth", // <-- Ajusta las vistas disponibles
         }}
         locale="es"
         slotMinTime="07:00:00"
@@ -145,15 +165,12 @@ const AppointmentCalendar: React.FC<AppointmentCalendarProps> = ({
         dayMaxEvents={true}
         weekends={true}
         nowIndicator={true}
-
         // ELIMINA: resources={getCalendarResources()}
         // ELIMINA: resourceAreaHeaderContent="Empleados"
 
         events={getCalendarEvents()}
         eventClick={handleEventClick}
-
         businessHours={getCalendarBusinessHours()} // Se aplica a todo el calendario
-
         select={handleDateClick}
         // eventDrop={handleEventDrop} // Para arrastrar y soltar citas (implementar después)
         // eventResize={handleEventResize} // Para redimensionar citas (implementar después)
